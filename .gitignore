@@ -1,0 +1,20 @@
+node_modules
+.env
+.env.local
+dist
+.next
+.DS_Store
+
+# Tony's old skill and personal data (CV facts, resumes, phone, email). Never commit.
+legacy/
+Legacy/
+
+# Generated local data
+.local/
+coverage/
+*.log
+.vercel
+supabase/.branches
+supabase/.temp
+next-env.d.ts
+*.tsbuildinfo

@@ -1,0 +1,9 @@
+{
+  "name": "jobtailor",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "typecheck": "npm run typecheck -w @jobtailor/core",
+    "test": "npm run test -w @jobtailor/core"
+  }
+}
