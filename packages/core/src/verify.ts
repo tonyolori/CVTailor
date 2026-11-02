@@ -105,6 +105,7 @@ class LibraryIndex {
 
   constructor(readonly lib: FactLibrary) {
     const parts: string[] = [];
+    const doNotClaim = new Set<string>();
     for (const entry of lib.entries) {
       this.orgs.add(normLoose(entry.org));
       parts.push(entry.title, entry.org, ...entry.variants);
@@ -117,8 +118,9 @@ class LibraryIndex {
         if (f.designCapacity) nums.forEach((n) => this.designCapacityNumbers.add(n));
       }
       for (const v of entry.variants) numbersIn(v).forEach((n) => this.knownNumbers.add(n));
-      this.doNotClaim.push(...entry.doNotClaim.filter((p) => p.trim()));
+      for (const p of entry.doNotClaim) if (p.trim()) doNotClaim.add(p);
     }
+    this.doNotClaim = [...doNotClaim];
     lib.skills.forEach((s) => this.terms.add(norm(s)));
     for (const c of lib.credentials) {
       parts.push(c.name, c.issuer ?? "");
@@ -133,6 +135,12 @@ class LibraryIndex {
     this.corpus = parts.join("\n").toLowerCase();
     this.credentialNames = lib.credentials.map((c) => normLoose(c.name));
     this.languageNames = new Set(lib.languages.map((l) => normLoose(l.name)));
+  }
+
+  /** "Acme Bank (client: Big Co)" still names the library's "Acme Bank". */
+  hasOrg(name: string): boolean {
+    const n = normLoose(name);
+    return [...this.orgs].some((o) => n === o || ` ${n} `.includes(` ${o} `));
   }
 
   hasCredential(name: string): boolean {
@@ -228,7 +236,7 @@ export function verifyResume(resume: Resume, lib: FactLibrary): VerifyResult {
   );
 
   resume.experience.forEach((x, i) => {
-    if (!idx.orgs.has(normLoose(x.company))) {
+    if (!idx.hasOrg(x.company)) {
       issues.push({
         severity: "error",
         path: `experience[${i}].company`,
@@ -236,7 +244,7 @@ export function verifyResume(resume: Resume, lib: FactLibrary): VerifyResult {
       });
       return;
     }
-    const entries = lib.entries.filter((e) => normLoose(e.org) === normLoose(x.company) && e.start);
+    const entries = lib.entries.filter((e) => e.start && ` ${normLoose(x.company)} `.includes(` ${normLoose(e.org)} `));
     if (entries.length > 0 && !entries.some((e) => e.start === x.start)) {
       issues.push({
         severity: "warn",
@@ -303,7 +311,7 @@ export function verifyResume(resume: Resume, lib: FactLibrary): VerifyResult {
   });
 
   resume.volunteering.forEach((v, i) => {
-    if (!idx.orgs.has(normLoose(v.org))) {
+    if (!idx.hasOrg(v.org)) {
       issues.push({
         severity: "error",
         path: `volunteering[${i}].org`,

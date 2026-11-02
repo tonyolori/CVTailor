@@ -53,7 +53,8 @@ export class SubscriptionProvider implements LlmProvider {
 
     try {
       for await (const message of query({
-        prompt: user,
+        // The fixed prefix keeps posting text from ever being read as a leading slash command.
+        prompt: `Input data follows.\n\n${user}`,
         options: {
           model: req.tier === "small" ? this.config.modelSmall : this.config.modelStrong,
           systemPrompt: system,
@@ -62,6 +63,7 @@ export class SubscriptionProvider implements LlmProvider {
           allowedTools: [],
           permissionMode: "dontAsk",
           settingSources: [],
+          skills: [],
           strictMcpConfig: true,
           mcpServers: {},
           persistSession: false,

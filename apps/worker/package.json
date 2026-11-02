@@ -7,7 +7,7 @@
     "start": "tsx --env-file-if-exists=../../.env src/main.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --exclude test/rls.test.ts",
-    "test:rls": "vitest run test/rls.test.ts",
+    "test:rls": "node --env-file=../../.env ../../node_modules/vitest/vitest.mjs run test/rls.test.ts",
     "seed:personas": "tsx --env-file-if-exists=../../.env src/seed/personas.ts",
     "seed:tony": "tsx --env-file-if-exists=../../.env src/seed/tony.ts",
     "seed:companies": "tsx --env-file-if-exists=../../.env src/seed/companies.ts",
