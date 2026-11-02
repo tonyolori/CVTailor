@@ -260,9 +260,8 @@ export async function scanBoard(http: Http, company: CompanyRow): Promise<RawJob
   const { ats, slug } = company;
   switch (ats) {
     case "gh": {
-      const body =
-        (await http.json<{ jobs?: GreenhouseJob[] }>(`https://boards-api.greenhouse.io/v1/boards/${slug}/jobs?content=true`)) ??
-        (await http.json<{ jobs?: GreenhouseJob[] }>(`https://boards-api.eu.greenhouse.io/v1/boards/${slug}/jobs?content=true`));
+      // EU boards are served from this host too.
+      const body = await http.json<{ jobs?: GreenhouseJob[] }>(`https://boards-api.greenhouse.io/v1/boards/${slug}/jobs?content=true`);
       return body ? parseGreenhouse(body, company) : null;
     }
     case "lever": {

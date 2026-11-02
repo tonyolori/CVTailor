@@ -96,6 +96,12 @@ describe("evaluateGates: remote software persona", () => {
     expect(r.failed).toContain("timezone");
   });
 
+  it("an unknown employer base stays in, with a note", () => {
+    const r = evaluateGates(job({ employerBase: {} }), prefs, NOW);
+    expect(r.pass).toBe(true);
+    expect(r.notes).toContain("employer base unknown");
+  });
+
   it("checks the employer base only when the user sets one", () => {
     expect(evaluateGates(job({ employerBase: { country: "NG" } }), prefs, NOW).failed).toContain("employer_base");
     const any = PreferencesSchema.parse({ ...prefs, employerBase: null });
@@ -221,6 +227,12 @@ describe("helpers", () => {
   it("findMissingCredentials matches on whole words, not fragments", () => {
     expect(findMissingCredentials(["RN"], ["Unrelated Learning Certificate"])).toEqual(["RN"]);
     expect(findMissingCredentials(["NMC"], ["NMC Registration"])).toEqual([]);
+    expect(findMissingCredentials(["Active NMC PIN"], ["NMC Registration"])).toEqual([]);
+  });
+
+  it("holding a broad registration doesn't imply a narrower one", () => {
+    expect(findMissingCredentials(["NMC Midwifery Registration"], ["NMC Registration"])).toEqual(["NMC Midwifery Registration"]);
+    expect(findMissingCredentials(["V300 independent prescribing"], ["NMC Registration", "Registered Nurse (Adult)"])).toHaveLength(1);
   });
 });
 

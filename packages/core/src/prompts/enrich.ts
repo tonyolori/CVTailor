@@ -32,16 +32,17 @@ WORK MODE
 REMOTE ELIGIBILITY
 Structured location data beats descriptive text, and specific beats general. Job boards and even employers attach "worldwide" or "global" labels to roles that are really limited, so:
 - If structured fields (secondaryLocations, allLocations, offices, locations, applicantLocationRequirements, jobLocation, or an application form question) list specific countries or regions, those decide. Set eligibleCountries or eligibleRegions from them and set worldwide=false, even if the description says "global", "anywhere" or "can be executed globally".
-- worldwide=true only when the posting and every structured field agree that anyone anywhere may apply.
+- worldwide=true only when the posting and every structured field agree that anyone anywhere may apply, or a structured list itself includes an entry such as "Worldwide" or "no location restrictions". A list like "Poland, Georgia, Worldwide" is worldwide.
+- In live_page_data, applicantLocationRequirements limits who may apply. jobLocation on a TELECOMMUTE posting is only where the employer sits, so it doesn't limit eligibility.
 - A bare "Remote" with nothing else: worldwide=false and both lists empty. That means unclear, not worldwide.
 - eligibleCountries: ISO 3166-1 alpha-2 codes (GB for the UK). eligibleRegions: only from ${Region.options.join(", ")}.
 - A named country in a remote posting ("Remote - Germany", "Remote, US") means that country only. "US only", "must be based in Canada" and similar likewise.
 - requiresWorkAuthorization: countries where the candidate must already hold the right to work or reside ("must be eligible to work in the UK", "no visa sponsorship" for a named country, "EU work permit"). Use country codes; for a whole bloc such as the EU, list its countries only if the posting names them, otherwise put the bloc in eligibleRegions.
-- tzRestriction: only a hard window on where the worker may be ("UTC-4 to UTC+4", "must be within US time zones"). Converting a named working schedule such as "online 8am to 5pm Pacific" to the UTC offsets that could reasonably keep those hours counts. Asking for a few hours of overlap is not a restriction: leave it null.
+- tzRestriction: a hard window on where the worker may be. "UTC-4 to UTC+4" and "must be within US time zones" count. A required full working day on a named schedule counts too: "online 9am to 5pm Pacific" means minUtcOffset -11, maxUtcOffset -3. Asking for a few hours of overlap is not a restriction: leave it null.
 - locationQuote: the posting's exact words about location, verbatim, in one short string.
 
 PLACES
-- locations: every physical place the role is tied to, as country code, optional region and city. Fill this for hybrid and on-site roles. For a remote role, fill it only if the posting ties the role to a place.
+- locations: every physical place the role is tied to, as country code, optional region and city. Fill this for hybrid and on-site roles. For a remote role, fill it only if the posting ties the role to a place. Use the city as structured fields give it; for a district within a city, give the city.
 
 EMPLOYER
 - employerBase: where the employer is headquartered or its main hiring entity, as a country code when stated or well evidenced in the text, plus regions. Null country when unknown.

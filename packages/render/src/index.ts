@@ -7,7 +7,8 @@ import { CoverLetterDocument, ResumeDocument } from "./template";
 
 export { dateRange, formatDate, orderedSections } from "./template";
 
-const require = createRequire(import.meta.url);
+/** Resolved from the working directory, because a bundled module's own location isn't reliable. */
+const require = createRequire(join(process.cwd(), "package.json"));
 
 function fontFile(pkg: string, file: string): string {
   return join(dirname(require.resolve(`${pkg}/package.json`)), file);

@@ -19,6 +19,7 @@ export interface JobRow {
   from_ats: boolean;
   raw_text: string | null;
   location_text: string | null;
+  work_mode?: string | null;
   ats_fields: Record<string, unknown> | null;
   last_verified: string | null;
 }
@@ -64,7 +65,13 @@ export function reconcile(e: EnrichedJob, job: JobRow, live: LiveCheck | null, c
     postedAt,
     isOpen: e.isOpen && !live?.closedSignal,
     category: categories.has(e.category) ? e.category : "other",
+    // A remote-only board or an ATS field settles it when the posting's words don't.
+    workMode: e.workMode === "unclear" && isWorkMode(job.work_mode) ? job.work_mode : e.workMode,
   };
+}
+
+function isWorkMode(v: string | null | undefined): v is "remote" | "hybrid" | "onsite" {
+  return v === "remote" || v === "hybrid" || v === "onsite";
 }
 
 export function needsLiveCheck(job: JobRow): boolean {

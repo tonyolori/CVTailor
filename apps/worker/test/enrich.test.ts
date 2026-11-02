@@ -92,6 +92,11 @@ describe("reconcile", () => {
     expect(reconcile(enriched(), row(), { ...live, closedSignal: "no longer accepting" }, ids).isOpen).toBe(false);
   });
 
+  it("a source's work mode settles an unclear reading, but never overrides a clear one", () => {
+    expect(reconcile(enriched({ workMode: "unclear" }), row({ work_mode: "remote" }), null, ids).workMode).toBe("remote");
+    expect(reconcile(enriched({ workMode: "onsite" }), row({ work_mode: "remote" }), null, ids).workMode).toBe("onsite");
+  });
+
   it("an unknown category becomes other", () => {
     expect(reconcile(enriched({ category: "underwater-basket-weaving" }), row(), null, ids).category).toBe("other");
   });

@@ -125,16 +125,17 @@ function significantWords(s: string): string[] {
 
 /**
  * Required credentials with no counterpart in the user's library. A held credential counts
- * when every significant word of one name appears in the other, so "NMC PIN" matches "NMC
- * Registration" but "NMC Midwifery Registration" doesn't match it. A pure kind-of-credential
- * phrase with no significant words can't be judged here, so it isn't reported as missing.
+ * when it has every significant word of the required one, so "NMC PIN" is met by "NMC
+ * Registration" but "NMC Midwifery Registration" isn't: holding a broader registration
+ * never implies a narrower one. A pure kind-of-credential phrase with no significant words
+ * can't be judged here, so it isn't reported as missing.
  */
 export function findMissingCredentials(required: string[], held: string[]): string[] {
   const have = held.map(significantWords).filter((w) => w.length > 0);
   return required.filter((r) => {
     const need = significantWords(r);
     if (need.length === 0) return false;
-    return !have.some((h) => need.every((w) => h.includes(w)) || h.every((w) => need.includes(w)));
+    return !have.some((h) => need.every((w) => h.includes(w)));
   });
 }
 
@@ -187,11 +188,16 @@ export function evaluateGates(
     if (countries.length > 0 || regions.length > 0) {
       const base = e.employerBase;
       const baseCountry = base.country?.toUpperCase() ?? null;
-      const ok =
-        (baseCountry != null && countries.some((c) => c.toUpperCase() === baseCountry)) ||
-        (baseCountry != null && regions.some((r) => countryInRegion(baseCountry, r))) ||
-        base.regions.some((r) => regions.includes(r));
-      if (!ok) fail("employer_base", `employer based in ${baseCountry ?? "an unknown location"}`);
+      if (baseCountry == null && base.regions.length === 0) {
+        // Postings often don't say. Unknown isn't a mismatch, so it stays in and gets recorded.
+        notes.push("employer base unknown");
+      } else {
+        const ok =
+          (baseCountry != null && countries.some((c) => c.toUpperCase() === baseCountry)) ||
+          (baseCountry != null && regions.some((r) => countryInRegion(baseCountry, r))) ||
+          base.regions.some((r) => regions.includes(r));
+        if (!ok) fail("employer_base", `employer based in ${baseCountry ?? base.regions.join(", ")}`);
+      }
     }
   }
 

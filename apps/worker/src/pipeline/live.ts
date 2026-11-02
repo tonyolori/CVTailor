@@ -1,4 +1,4 @@
-import { parseAshby, parseGreenhouse, parseLever, type CompanyRow } from "../sources/ats";
+import { parseAshby, parseBreezy, parseGreenhouse, parseLever, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
 import { htmlToText, toIso } from "../sources/text";
 import type { RawJob } from "../sources/types";
@@ -94,12 +94,19 @@ export async function resolveAtsRecord(http: Http, url: string): Promise<RawJob 
     const slug = parts[0]!;
     const id = parts[parts.indexOf("jobs") + 1];
     if (!id) return null;
-    const hosts = u.host.includes(".eu.") ? ["boards-api.eu.greenhouse.io"] : ["boards-api.greenhouse.io", "boards-api.eu.greenhouse.io"];
-    for (const host of hosts) {
-      const body = await http.json<never>(`https://${host}/v1/boards/${slug}/jobs/${id}?content=true`);
-      if (body) return parseGreenhouse({ jobs: [body] }, companyFor("gh", slug))[0] ?? null;
-    }
-    return null;
+    // EU boards are served from the main API host too.
+    const body = await http.json<never>(`https://boards-api.greenhouse.io/v1/boards/${slug}/jobs/${id}?content=true`);
+    return body ? (parseGreenhouse({ jobs: [body] }, companyFor("gh", slug))[0] ?? null) : null;
+  }
+  if (u.host.endsWith(".breezy.hr") && parts[0] === "p" && parts[1]) {
+    // The board's own list holds every location, where the page's JSON-LD has only the first.
+    const slug = u.host.replace(".breezy.hr", "");
+    const body = await http.json<never[]>(`https://${slug}.breezy.hr/json`);
+    if (!Array.isArray(body)) return null;
+    const found = parseBreezy(body, companyFor("breezy", slug)).find((j) => j.url.includes(parts[1]!));
+    if (!found) return null;
+    const page = await http.text(url);
+    return { ...found, description: page ? htmlToText(page) : "" };
   }
   if (u.host === "jobs.lever.co" && parts.length >= 2) {
     const body = await http.json<never>(`https://api.lever.co/v0/postings/${parts[0]}/${parts[1]}?mode=json`);

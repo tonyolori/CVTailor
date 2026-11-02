@@ -18,6 +18,10 @@ import type { RawJob } from "../src/sources/types";
  * runs cost record, and no code path special-cased for any persona.
  */
 const config = loadConfig();
+
+if (!/^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(config.SUPABASE_URL)) {
+  throw new Error("This suite wipes and rewrites data, so it only runs against local Supabase.");
+}
 const db = serviceClient(config);
 const NOW = new Date("2026-11-02T03:00:00Z");
 const RUN_DATE = "2026-11-02";
@@ -156,7 +160,10 @@ beforeAll(async () => {
     preferences: remoteSoftwarePersona.preferences,
     facts: remoteSoftwarePersona.facts,
   });
-  await db.from("profiles").update({ active: false }).neq("email", remoteSoftwarePersona.email).neq("email", remoteAccountantPersona.email).neq("email", onsiteNursePersona.email);
+  // Earlier runs of this suite leave people paused and switches flipped. Start clean.
+  await db.from("app_settings").update({ value: false }).eq("key", "kill_switch");
+  await db.from("profiles").update({ active: false }).not("id", "is", null);
+  await db.from("profiles").update({ active: true, email_paused: false }).in("id", [...ids.values()]);
   await storeJobs(db, JOBS);
 });
 

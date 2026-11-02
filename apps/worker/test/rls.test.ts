@@ -8,6 +8,10 @@ import { serviceClient } from "../src/db";
  * Needs `npm run db:start`, then `npm run db:reset`.
  */
 const config = loadConfig();
+
+if (!/^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(config.SUPABASE_URL)) {
+  throw new Error("This suite wipes and rewrites data, so it only runs against local Supabase.");
+}
 const admin = serviceClient(config);
 const PASSWORD = "local-test-only-password";
 

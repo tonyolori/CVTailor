@@ -1,8 +1,12 @@
 import { Document, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+// In scope on purpose: tsx applies a tsconfig only to files it includes, so running the worker
+// compiles this file with classic JSX, which needs React here. Other runners ignore the import.
+import * as React from "react";
 import type { CoverLetter, Resume, ResumeSection } from "@jobtailor/core";
 
 // Ported from the legacy theme: a serif name over a sans body, one navy accent, caps section
 // headings with a hairline rule, dates right-aligned on each role's title line.
+void React;
 const NAVY = "#16304f";
 const ACCENT = "#2d5a8c";
 const BODY = "#1f2937";
