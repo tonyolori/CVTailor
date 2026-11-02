@@ -40,6 +40,17 @@ function titleHit(title: string, wanted: string[]): boolean {
   });
 }
 
+export type TitleTier = "core" | "a" | "b" | "c";
+
+/** Which of the user's title lists a posting's title falls in. Null when it matches none. */
+export function titleTier(title: string, prefs: Preferences): TitleTier | null {
+  if (titleHit(title, prefs.targetTitles)) return "core";
+  if (titleHit(title, prefs.expansionTitles.a)) return "a";
+  if (titleHit(title, prefs.expansionTitles.b)) return "b";
+  if (titleHit(title, prefs.expansionTitles.c)) return "c";
+  return null;
+}
+
 /** "target" is a close match to the user's main titles; "other" matches an expansion title or a category keyword. */
 export function titleMatch(title: string, prefs: Preferences, categories: Category[]): "target" | "other" | null {
   if (titleHit(title, prefs.targetTitles)) return "target";

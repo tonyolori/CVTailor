@@ -360,7 +360,7 @@ describe("verifyResume", () => {
     const nurse = onsiteNursePersona.facts;
     const r = ResumeSchema.parse({
       header: { name: nurse.contact.name, roleTitle: "Staff Nurse", email: nurse.contact.email },
-      summary: "Registered nurse with experience on a 28-bed acute medical ward.",
+      summary: "Registered midwife with experience on a 28-bed acute medical ward.",
       skills: [{ group: "Clinical", items: ["Wound care", "Care planning"] }],
       credentials: [{ name: "NMC Registration", issuer: "Nursing and Midwifery Council", year: "2018" }],
       experience: [
@@ -375,9 +375,9 @@ describe("verifyResume", () => {
       sectionOrder: ["credentials", "summary", "experience", "skills", "education"],
     });
     const v = verifyResume(r, nurse);
-    // "Registered nurse" must be supported by the library, whose credential is "NMC Registration".
-    expect(messages(v)).toContain('"Registered nurse"');
-    r.summary = "Nurse with experience on a 28-bed acute medical ward.";
+    // The library has "Registered Nurse (Adult)", which doesn't support a midwifery claim.
+    expect(messages(v)).toContain('"Registered midwife"');
+    r.summary = "Registered nurse with experience on a 28-bed acute medical ward.";
     const fixed = verifyResume(r, nurse);
     expect(fixed.issues.filter((i) => i.severity === "error")).toEqual([]);
   });

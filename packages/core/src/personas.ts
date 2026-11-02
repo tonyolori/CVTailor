@@ -148,6 +148,7 @@ export const onsiteNursePersona: Persona = {
     languages: [{ name: "English", level: "Native" }],
     credentials: [
       { id: "c1", name: "NMC Registration", issuer: "Nursing and Midwifery Council", year: "2018" },
+      { id: "c3", name: "Registered Nurse (Adult)", issuer: "Nursing and Midwifery Council", year: "2018" },
       { id: "c2", name: "Immediate Life Support", issuer: "Resuscitation Council UK", year: "2024" },
     ],
     entries: [

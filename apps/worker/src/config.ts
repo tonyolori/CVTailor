@@ -21,6 +21,8 @@ const ConfigSchema = z.object({
   GLOBAL_DAILY_BUDGET_USD: z.coerce.number().positive().default(5),
   USER_DAILY_BUDGET_USD: z.coerce.number().positive().default(0.5),
 
+  /** The run starts from this hour. A later start catches up on a missed day. */
+  RUN_START_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(1),
   RUN_ALERT_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(6),
   BILLING_ENFORCED: bool.default(false),
   /** Comma-separated ids of sources with unverified terms that Tony has chosen to enable. */

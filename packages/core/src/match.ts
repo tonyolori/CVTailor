@@ -107,23 +107,35 @@ export function salaryMeetsFloor(salary: JobSalary | null, floor: Preferences["m
 function normCredential(s: string): string {
   return s
     .toLowerCase()
-    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/[^\p{L}\p{N} ]+/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-/** Required credentials with no counterpart in the user's library. Either name may contain the other. */
-export function findMissingCredentials(required: string[], held: string[]): string[] {
-  const have = held.map(normCredential).filter(Boolean);
-  return required.filter((r) => {
-    const n = normCredential(r);
-    if (!n) return false;
-    return !have.some((h) => wholeWords(h, n) || wholeWords(n, h));
-  });
+/** Words that say what kind of credential it is, not which one. */
+const GENERIC_CREDENTIAL_WORDS = new Set(
+  "a an the of in and or for current active valid registration registered certificate certification certified licence license licensed pin number holder professional qualification qualified membership member".split(" "),
+);
+
+function significantWords(s: string): string[] {
+  return normCredential(s)
+    .split(" ")
+    .filter((w) => w && !GENERIC_CREDENTIAL_WORDS.has(w));
 }
 
-function wholeWords(haystack: string, needle: string): boolean {
-  return ` ${haystack} `.includes(` ${needle} `);
+/**
+ * Required credentials with no counterpart in the user's library. A held credential counts
+ * when every significant word of one name appears in the other, so "NMC PIN" matches "NMC
+ * Registration" but "NMC Midwifery Registration" doesn't match it. A pure kind-of-credential
+ * phrase with no significant words can't be judged here, so it isn't reported as missing.
+ */
+export function findMissingCredentials(required: string[], held: string[]): string[] {
+  const have = held.map(significantWords).filter((w) => w.length > 0);
+  return required.filter((r) => {
+    const need = significantWords(r);
+    if (need.length === 0) return false;
+    return !have.some((h) => need.every((w) => h.includes(w)) || h.every((w) => need.includes(w)));
+  });
 }
 
 export function evaluateGates(

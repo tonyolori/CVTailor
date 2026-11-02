@@ -52,6 +52,8 @@ export function toIso(value: string | number | null | undefined): string | null 
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+// Deprecated or exceptional codes that share a display name with a real country (DD reads "Germany").
+const NOT_COUNTRIES = new Set("AC AN BU CP CS DD DG EA EU EZ FX IC QO SU TA TP UK UN XA XB YU ZR".split(" "));
 const COUNTRY_NAMES = new Map<string, string>();
 const names = new Intl.DisplayNames(["en"], { type: "region" });
 for (let a = 65; a <= 90; a++) {
@@ -59,14 +61,12 @@ for (let a = 65; a <= 90; a++) {
     const code = String.fromCharCode(a, b);
     try {
       const name = names.of(code);
-      // Keep the first code for a name: "UK" and "GB" both read "United Kingdom", and GB is the ISO one.
-      if (name && name !== code && !COUNTRY_NAMES.has(name.toLowerCase())) COUNTRY_NAMES.set(name.toLowerCase(), code);
+      if (name && name !== code && !NOT_COUNTRIES.has(code)) COUNTRY_NAMES.set(name.toLowerCase(), code);
     } catch {
       // not a region code
     }
   }
 }
-COUNTRY_NAMES.delete("european union");
 COUNTRY_NAMES.set("usa", "US");
 COUNTRY_NAMES.set("uk", "GB");
 COUNTRY_NAMES.set("england", "GB");
