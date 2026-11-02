@@ -25,8 +25,6 @@ export interface JobRow {
 }
 
 const MAX_TEXT_FOR_MODEL = 20_000;
-/** Largest number of postings enriched in one run. Protects the budget if a source floods. */
-const MAX_PER_RUN = 300;
 
 export function buildEnrichRequest(job: JobRow, live: LiveCheck | null, categories: Category[]): LlmRequest<EnrichedJob> {
   const text = job.raw_text?.trim() ? job.raw_text : (live?.text ?? "");
@@ -98,9 +96,10 @@ export async function enrichPending(
   provider: LlmProvider,
   budget: Budget,
   categories: Category[],
+  maxPerRun = 300,
 ): Promise<EnrichResult> {
   const jobs = must(
-    await db.from("jobs").select("*").eq("status", "new").order("first_seen").limit(MAX_PER_RUN),
+    await db.from("jobs").select("*").eq("status", "new").order("first_seen").limit(maxPerRun),
     "pending jobs",
   ) as JobRow[];
   let usage = ZERO_USAGE;

@@ -20,6 +20,8 @@ const ConfigSchema = z.object({
 
   GLOBAL_DAILY_BUDGET_USD: z.coerce.number().positive().default(5),
   USER_DAILY_BUDGET_USD: z.coerce.number().positive().default(0.5),
+  /** Most postings enriched per run. The rest wait for the next run. */
+  ENRICH_MAX_PER_RUN: z.coerce.number().int().positive().default(300),
 
   /** The run starts from this hour. A later start catches up on a missed day. */
   RUN_START_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(1),

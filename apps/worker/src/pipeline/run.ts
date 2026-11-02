@@ -29,6 +29,7 @@ export interface RunDeps {
     | "OWNER_EMAIL"
     | "GLOBAL_DAILY_BUDGET_USD"
     | "USER_DAILY_BUDGET_USD"
+    | "ENRICH_MAX_PER_RUN"
     | "BILLING_ENFORCED"
     | "ENABLED_UNVERIFIED_SOURCES"
     | "RUN_START_HOUR_UTC"
@@ -67,7 +68,7 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
     collected = await collect(db, http, allPrefs, categories, opts, now);
     await budget.record("collect", ZERO_USAGE, "ok");
     await runDiscovery(db, http, now).catch((err: unknown) => log("discovery.failed", { kind: err instanceof Error ? err.name : "unknown" }));
-    await enrichPending(db, http, provider, budget, categories);
+    await enrichPending(db, http, provider, budget, categories, config.ENRICH_MAX_PER_RUN);
   }
 
   const boards = must(await db.from("companies").select("id,ats,slug,name,tags,countries,fail_count").in("ats", ["gh", "lever", "ashby", "workable", "breezy", "recruitee"]), "boards") as CompanyRow[];

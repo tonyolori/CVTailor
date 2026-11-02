@@ -9,7 +9,8 @@ Things only Tony can do. Items are ordered so you can stop at any point and stil
 - [ ] `npx supabase start` (first run downloads images). Copy the printed keys into `.env` using `.env.example`.
 - [ ] `npm run db:reset` applies migrations and `supabase/seed.sql`.
 - [ ] `npm run seed:personas` creates the two synthetic test users.
-- [ ] `npm test` and `npm run test:rls`.
+- [ ] `npm run seed:companies` loads the employer boards to scan.
+- [ ] `npm test`, `npm run test:rls` and `npm run test:integration`. The last two wipe local data, so re-run the seeds afterwards.
 
 ## Level 2: your Claude account, no API key (just you and the synthetic personas)
 
@@ -17,7 +18,8 @@ Things only Tony can do. Items are ordered so you can stop at any point and stil
 - [ ] Sign in: `npm run claude:login` runs the Claude Code binary's login. It completes in Anthropic's own browser flow.
 - [ ] In `.env`: `LLM_PROVIDER=claude-subscription` and `OWNER_EMAIL=<your account email in JobTailor>`.
 - [ ] Check it: `npm run llm:check`
-- [ ] Do **not** set `ANTHROPIC_API_KEY` in this mode. It takes precedence over your login, and you would be billed through the API.
+- [ ] Do **not** set `ANTHROPIC_API_KEY` in this mode. It's ignored for AI calls here, but it's easy to mistake for what's being billed.
+- [ ] If runs stop early with a usage-limit note, lower `ENRICH_MAX_PER_RUN` or `daily_cap`, or run at a quieter time. The next run picks up where it stopped.
 
 **Limits of this mode.** It is for your own testing. Anthropic's terms do not allow routing requests through a personal plan on behalf of other people, so the worker runs AI stages only for `OWNER_EMAIL` and synthetic personas. Real test users need Level 3.
 
@@ -49,7 +51,10 @@ Max, Ultra and Team plans include monthly API credits for a linked Console org (
 
 ### Web host (Vercel or Cloudflare Pages)
 - [ ] Create a project with `apps/web` as its root and add the env vars listed in `.env.example` under "Web app".
-- [ ] Set `NEXT_PUBLIC_SITE_URL` to the deployed URL.
+- [ ] Set `NEXT_PUBLIC_SITE_URL` to the deployed URL. Sign-in redirects depend on it.
+- [ ] Set `CRON_SECRET`, `OWNER_EMAIL`, `EMAIL_API_KEY` and `EMAIL_FROM`. The daily check in `apps/web/vercel.json` uses them to alert you when no run has finished. On Cloudflare Pages, call `/api/cron/run-check` from a Cron Trigger instead.
+- [ ] Set `SUPABASE_SERVICE_ROLE_KEY` as a server-only variable. Account deletion, unsubscribe, webhooks and admin use it.
+- [ ] Leave `ANTHROPIC_API_KEY` unset on the web host unless you're at Level 3. Without it, onboarding's AI steps queue for the worker.
 
 ### Worker on your PC
 - [ ] Follow `docs/SCHEDULING.md` for Windows Task Scheduler or systemd.
@@ -57,8 +62,11 @@ Max, Ultra and Team plans include monthly API credits for a linked Console org (
 ## Level 5: paid plans (later)
 
 - [ ] Create a Paystack account and complete its business verification.
-- [ ] Set the webhook URL to `<site>/api/webhooks/paystack` and put the keys in the web host's env.
+- [ ] Set the webhook URL to `<site>/api/webhooks/paystack`.
+- [ ] Create a monthly plan in Paystack. Put its code in `PAYSTACK_PLAN_CODE_MONTHLY`, and set `PAYSTACK_SECRET_KEY`, `PAYSTACK_PRICE_MONTHLY_KOBO` and `PAYSTACK_PRICE_ONCE_KOBO` on the web host.
+- [ ] **TODO(verify): Paystack's docs block automated reading, so I couldn't read them directly.** The signature scheme is confirmed. Event names and payload fields come from secondary sources, so send test events from the Paystack dashboard and confirm `apps/web/lib/paystack.ts` handles them, using test keys, before taking real money.
 - [ ] Decide pricing using cost per user per day on the admin page.
+- [ ] Set `BILLING_ENFORCED=true` on the worker when you're ready. This also turns off Remotive, whose free API excludes commercial use.
 
 ## Before inviting anyone who isn't you
 

@@ -126,6 +126,7 @@ const deps = (now: Date, over: Partial<RunDeps["config"]> = {}): RunDeps => ({
     OWNER_EMAIL: "owner-not-used@example.com",
     GLOBAL_DAILY_BUDGET_USD: 50,
     USER_DAILY_BUDGET_USD: 10,
+    ENRICH_MAX_PER_RUN: 300,
     BILLING_ENFORCED: false,
     ENABLED_UNVERIFIED_SOURCES: [],
     RUN_START_HOUR_UTC: 1,

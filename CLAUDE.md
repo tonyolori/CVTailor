@@ -20,13 +20,14 @@ npm run typecheck        # all workspaces
 npm test                 # unit tests, no services needed
 npm run db:start         # local Supabase (needs Docker)
 npm run db:reset         # re-apply migrations and seed.sql
-npm run test:rls         # RLS suite against local Supabase
+npm run test:rls         # RLS suite against local Supabase (wipes test rows, localhost only)
+npm run test:integration # whole pipeline, three personas (wipes local data, localhost only)
 npm run seed:personas    # two synthetic test users
 npm run seed:tony        # user #1 from legacy/ (local only)
 npm run llm:check        # one cheap call through the configured provider
 npm run eval:enrich      # enrichment agreement for all personas
 npm run worker           # run today's pipeline if not done, then send due emails
-npm run web              # dashboard on :3000
+npm run web              # dashboard on :3000; magic links land in Mailpit on :54324
 ```
 
 ## Non-negotiable rules
@@ -55,5 +56,9 @@ npm run web              # dashboard on :3000
 - Every pipeline stage is idempotent: a crashed run resumes by re-running the same date.
 - Budget check before every LLM call (`Budget.assertAvailable`); tokens and cost recorded in `runs`.
 - Tests run offline. Parsers test against `apps/worker/fixtures/`; LLM code uses the `fake` provider.
+- vitest and Next compile differently from `tsx`, which is what the worker really runs on. `render-check.ts` guards this; add a similar check if a change depends on the compile step.
+- New tables get default privileges for anon and authenticated, so every migration must `revoke all` and grant back only what's needed.
+- Upserts need a full unique constraint. A partial index can't back `onConflict`.
+- Redirects use `siteUrl()`, never the request's own URL, which can name an internal host.
 - Persona fixtures live in `packages/core/src/personas.ts` and are invented. Exercise changes against all three, not only the software one.
 - Commit after each phase with a clear message.
