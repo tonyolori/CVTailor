@@ -1,0 +1,1352 @@
+[
+ {
+  "ats": "gh",
+  "slug": "gitlab",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "canonical",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "automatticcareers",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "consensys",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "wikimedia",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "mozilla",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "elastic",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "grafanalabs",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "vercel",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "netlify",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "togetherai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "gleanwork",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "arizeai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "sourcegraph91",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "lightningai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "assemblyai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "cresta",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "prolific",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "humeai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "tensorops",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "youcom",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "typeform",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "upgrade",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "tailscale",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "mattermost",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "okx",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "bitpanda",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "binance",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "levelai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "toptal",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "kinsta",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "supabase",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "posthog",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "zapier",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "n8n",
+  "notes": "hires remotely across ~26 European countries; visas only to Germany.",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "replit",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "langchain",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "modal",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "deepgram",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "cohere",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "vapi",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "livekit",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "weaviate",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "llamaindex",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "openrouter",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "factory",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "browserbase",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "e2b",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "composio",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "letta",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "braintrust",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "duck-duck-go",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "elevenlabs",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "kraken.com",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "relevanceai",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "synthesia",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "linear",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "resend",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "mintlify",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "baseten",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "anyscale",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "perplexity",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "decagon",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "lovable",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "warp",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "airbyte",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "prefect",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "hex",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "omni",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "g2i",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "alloy",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "railway",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "oyster",
+  "notes": "AI Solutions roles say \"EMEA or AMER\" in the text, with a short country list in Ashby.",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "ashby",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "inngest",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "trychroma",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "pinecone",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "render",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "neon",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "mem0",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "clerk",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "zed",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "speakeasy",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "runpod",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "nomic",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "ollama",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "1password",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "huggingface",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "doist",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "x-team",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "breezy",
+  "slug": "social-discovery-ventures",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "swamp-club",
+  "notes": "(agent-first dev tools, US): Ashby roles say \"Worldwide\" but require online 8 AM–5 PM Pacific.",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "stickermule",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "gitbook",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "triggerdev",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "hostinger",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "bitwarden",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "brave",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "alpaca",
+  "notes": "(US brokerage API, has staff in Nigeria): engineering roles are mostly \"Remote - Americas\" or \"Europe/Americas\"; a few say \"Global Anywhere\". Check `first_published`, because aggregators re-date old roles.",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "workwave",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "nearform",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "robotsandpencils",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "alan",
+  "notes": "(Paris health insurer): hires across France, Belgium and Spain, and the postings require legal eligibility to work there. Strong agent-platform work (MCP, evals, Python).",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "action1",
+  "notes": "(Houston): its board says a European country label means it hires across the EU.",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "invicti-security",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "customerio",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "fingerprint",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "revenuecat",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "temporal",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "helpscout",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "kestra",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "close",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "circleci",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "gh",
+  "slug": "octopusdeploy",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "sonatype",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "percona",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://scopicsoftware.zohorecruit.com/jobs/careers",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://jobs.ashbyhq.com/toggl",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://careers-page.com/hivexteam",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://careers.kula.ai/maisa",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Proxify",
+  "name": "Proxify",
+  "notes": "talent network that hires globally; on 2026-11-01 and 2026-11-02 no Lever, Ashby or Workable board under `proxify`",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Kinsta (Workable)",
+  "name": "Kinsta (Workable)",
+  "notes": "Lever board found; Workable slug empty",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Pydantic",
+  "name": "Pydantic",
+  "notes": "Logfire team is remote-first; Ashby slug \"pydantic\" didn't respond (rechecked 2026-11-02: Not Found)",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Langfuse",
+  "name": "Langfuse",
+  "notes": "Ashby board responded but was empty on 2026-10-30, 2026-10-31, 2026-11-01 and 2026-11-02; recheck",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Deel",
+  "name": "Deel",
+  "notes": "Ashby board responded but was empty on 2026-10-30, 2026-10-31, 2026-11-01 and 2026-11-02; recheck",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "CopilotKit",
+  "name": "CopilotKit",
+  "notes": "open-source agent framework with \"Anywhere\" roles dated May on Agentic Engineering Jobs; Lever slug is live but empty, and the careers page shows no ATS link",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Huzzle",
+  "name": "Huzzle",
+  "notes": "UK talent marketplace with contract AI roles; Workable `huzzle` had 2,518 postings, then rate-limited before they could be read, so fetch it alone",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Jobgether",
+  "name": "Jobgether",
+  "notes": "remote-jobs aggregator on Lever (`api.lever.co/v0/postings/jobgether`); too big for the scanner, fetch it alone with a longer timeout. On 2026-10-31 it had 4,101 roles, each tagged with one country and none worldwide; low yield",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Fluence International",
+  "name": "Fluence International",
+  "notes": "NY psychedelic-therapy training company posting worldwide contracts on Remotive; no ATS found, applications go by email",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Arkestro",
+  "name": "Arkestro",
+  "notes": "Greenhouse `arkestroinc` is live, but only 5 roles (still 5 on 2026-11-02), mostly US or plain \"Remote\"; check whether it hires worldwide",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Zone & Co",
+  "name": "Zone & Co",
+  "notes": "AI Software Engineer (London, remote) seen on LinkedIn; on 2026-11-02 no Greenhouse, Lever or Ashby board under `zoneandco`, and Workable is empty",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Rillet",
+  "name": "Rillet",
+  "notes": "AI-native ERP (likely the confidential client behind 0xigen's FDE ad); Ashby `rillet` is mostly hybrid SF/NYC",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ }
+]

@@ -1,0 +1,49 @@
+{
+ "jobs": [
+  {
+   "id": "3b5d54ca-741b-45ac-bd3f-31605a0d3541",
+   "title": "AI Platform Engineer",
+   "department": "Business Operations",
+   "team": "Business Operations",
+   "employmentType": "FullTime",
+   "location": "Remote, Global",
+   "secondaryLocations": [],
+   "publishedAt": "2026-07-31T18:56:39.246+00:00",
+   "isListed": true,
+   "isRemote": null,
+   "workplaceType": null,
+   "address": null,
+   "jobUrl": "https://jobs.ashbyhq.com/supabase/3b5d54ca-741b-45ac-bd3f-31605a0d3541",
+   "applyUrl": "https://jobs.ashbyhq.com/supabase/3b5d54ca-741b-45ac-bd3f-31605a0d3541/application",
+   "descriptionHtml": "<h2>About Supabase</h2><p style=\"min-height:1.5em\">Supabase is the Postgres development platform, built by developers for developers. We provide a complete backend solution including Database, Auth, Storage, Edge Functions, Realtime, and Vector Search. All services are deeply integrated and designed for growth.<br /></p><h2>About the Role</h2><p style=\"min-height:1.5em\">We are hiring a <strong>AI Platform Engineer</strong> to build the execution layer for Supabase's internal AI systems.</p><p st…",
+   "descriptionPlain": "ABOUT SUPABASE\n\nSupabase is the Postgres development platform, built by developers for developers. We provide a complete backend solution including Database, Auth, Storage, Edge Functions, Realtime, and Vector Search. All services are deeply integrated and designed for growth.\n\n\n\nABOUT THE ROLE\n\nWe are hiring a AI Platform Engineer to build the execution layer for Supabase's internal AI systems.\n\nSupabase is building an AI-native internal operating system: a common way of working across the comp…"
+  },
+  {
+   "id": "a069c886-1107-408e-88b4-e1aa8d33d4bc",
+   "title": " Account Executive DACH (German-Speaking)",
+   "department": "Sales",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Remote, EMEA",
+   "secondaryLocations": [
+    {
+     "location": "Europe",
+     "address": {
+      "postalAddress": {}
+     }
+    }
+   ],
+   "publishedAt": "2026-10-31T09:47:47.582+00:00",
+   "isListed": true,
+   "isRemote": null,
+   "workplaceType": null,
+   "address": {
+    "postalAddress": {}
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/supabase/a069c886-1107-408e-88b4-e1aa8d33d4bc",
+   "applyUrl": "https://jobs.ashbyhq.com/supabase/a069c886-1107-408e-88b4-e1aa8d33d4bc/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\">Supabase is the Postgres development platform, built by developers for developers. We provide a complete backend solution including Database, Auth, Storage, Edge Functions, Realtime, and Vector Search. All services are deeply integrated and designed for growth.</p><p style=\"min-height:1.5em\"><strong>About the Role</strong></p><p style=\"min-height:1.5em\">We’re looking for a creative and driven German-Speaking Commercial Account Executive to help grow our customer base …",
+   "descriptionPlain": "Supabase is the Postgres development platform, built by developers for developers. We provide a complete backend solution including Database, Auth, Storage, Edge Functions, Realtime, and Vector Search. All services are deeply integrated and designed for growth.\n\nAbout the Role\n\nWe’re looking for a creative and driven German-Speaking Commercial Account Executive to help grow our customer base of developer-first startups. This role is perfect for someone who thrives in startup environments, enjoys…"
+  }
+ ]
+}

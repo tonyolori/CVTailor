@@ -1,0 +1,125 @@
+{
+ "updatedAt": 1793582767,
+ "offset": 0,
+ "limit": 20,
+ "totalCount": 3,
+ "jobs": [
+  {
+   "title": "Accountant [100% Remote]",
+   "excerpt": "Hours: Full overlap with EST, 9am to 5pm Location: Remote, worldwide The roleYou own full-cycle accounting for a portfolio of eCommerce client files.",
+   "companyName": "UpCounting",
+   "companySlug": "upcounting",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": "USD",
+   "locationRestrictions": [],
+   "timezoneRestrictions": [
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    -4,
+    -3.5,
+    -3,
+    -2,
+    -1
+   ],
+   "categories": [
+    "Remote-Accountant",
+    "Remote-Staff-Accountant",
+    "Remote-Accounting-Jobs",
+    "Remote-Accounting-Specialist",
+    "Remote-Accounting-Coordinator",
+    "Finance"
+   ],
+   "parentCategories": [
+    "Finance"
+   ],
+   "description": "<p><strong>Hours:</strong> Full overlap with EST, 9am to 5pm<br><strong>Location:</strong> Remote, worldwide</p><h2><strong>The role</strong></h2><p>You own full-cycle accounting for a portfolio of eCommerce client files. Reconciliations, A/P, A/R, journal entries, month-end and year-end close. You are responsible for the numbers being right and delivered on time.</p><p>Our clients are 7 to 9-figure eCommerce brands, usually in high growth. You work to a five-day close.</p><h2><strong>Must have<…",
+   "pubDate": 1793322182,
+   "expiryDate": 1795783280,
+   "applicationLink": "https://himalayas.app/companies/upcounting/jobs/accountant-100-remote-9459857074?utm_source=api",
+   "guid": "https://himalayas.app/companies/upcounting/jobs/accountant-100-remote-9459857074"
+  },
+  {
+   "title": "Accountant / Auditor",
+   "excerpt": "Role Title: Accountant / AuditorRole Type: ContractorLocation: Remotemicro1 is engaging Accountant / Auditors to contribute to a customer's project focusing on rigorous financial oversight and compliance.",
+   "companyName": "micro1",
+   "companySlug": "micro1",
+   "employmentType": "Contractor",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "hourly",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": "USD",
+   "locationRestrictions": [],
+   "timezoneRestrictions": [
+    -11,
+    -10,
+    -9.5,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    -4,
+    -3.5,
+    -3,
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    3,
+    3.5,
+    4,
+    4.5,
+    5,
+    5.5,
+    5.75,
+    6,
+    6.5,
+    7,
+    8,
+    8.75,
+    9,
+    9.5,
+    10,
+    10.5,
+    11,
+    12,
+    12.75,
+    13,
+    14
+   ],
+   "categories": [
+    "Audit-Accountant",
+    "Accountant",
+    "Audit-And-Accounting",
+    "Auditor",
+    "Financial-Auditor",
+    "Accounting-and-Audit-Expert",
+    "Financial-Accountant",
+    "Financial-Statement-Auditor",
+    "Audit-Tax-and-Accounting",
+    "Audit-Accounting"
+   ],
+   "parentCategories": [
+    "Finance"
+   ],
+   "description": "<h3>Role Title: Accountant / Auditor</h3><h3>Role Type: Contractor</h3><h3>Location: Remote</h3><p><a href=\"https://himalayas.app/companies/micro1\">micro1</a> is engaging Accountant / Auditors to contribute to a customer's project focusing on rigorous financial oversight and compliance. In this role, you'll apply your expertise to help train next-generation AI systems. Your work will shape how models learn, reason, and perform through high-quality, real-world input. No prior experience in AI is …",
+   "pubDate": 1791962416,
+   "expiryDate": 1797146416,
+   "applicationLink": "https://himalayas.app/companies/micro1/jobs/accountant-auditor?utm_source=api",
+   "guid": "https://himalayas.app/companies/micro1/jobs/accountant-auditor"
+  }
+ ]
+}

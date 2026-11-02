@@ -1,0 +1,221 @@
+[
+ {
+  "id": "0b3ed5780ce801",
+  "friendly_id": "0b3ed5780ce801-accounting-manager",
+  "name": "Accounting Manager",
+  "url": "https://social-discovery-ventures.breezy.hr/p/0b3ed5780ce801-accounting-manager",
+  "published_date": "2026-10-21T10:20:52.803Z",
+  "type": {
+   "id": "fullTime",
+   "name": "Full-Time"
+  },
+  "location": {
+   "country": {
+    "id": "worldwide",
+    "name": "Worldwide"
+   },
+   "is_remote": true,
+   "primary": true,
+   "remote_details": {
+    "value": "remote",
+    "label": "Fully remote, no location restrictions"
+   },
+   "name": "Worldwide",
+   "id": "50ba3c90a874"
+  },
+  "department": "Finance",
+  "salary": "",
+  "company": {
+   "name": "Social Discovery Group",
+   "logo_url": null,
+   "friendly_id": "social-discovery-ventures",
+   "isMultipleLocationsEnabled": true
+  },
+  "locations": [
+   {
+    "country": {
+     "id": "worldwide",
+     "name": "Worldwide"
+    },
+    "is_remote": true,
+    "primary": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Worldwide",
+    "id": "50ba3c90a874"
+   },
+   {
+    "country": {
+     "name": "Poland",
+     "id": "PL"
+    },
+    "city": "Warsaw",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Warsaw, PL",
+    "id": "58d5efd42474"
+   },
+   {
+    "country": {
+     "name": "Serbia",
+     "id": "RS"
+    },
+    "city": "Belgrade",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Belgrade, RS",
+    "id": "5a90f919afe1"
+   },
+   {
+    "country": {
+     "name": "Georgia",
+     "id": "GE"
+    },
+    "city": "Tbilisi",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Tbilisi, GE",
+    "id": "62a3b8930719"
+   },
+   {
+    "country": {
+     "name": "Armenia",
+     "id": "AM"
+    },
+    "city": "Yerevan",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Yerevan, AM",
+    "id": "af7788305baf"
+   }
+  ]
+ },
+ {
+  "id": "a254b666fed401",
+  "friendly_id": "a254b666fed401-affiliate-manager-ai-product",
+  "name": "Affiliate Manager (AI Product)",
+  "url": "https://social-discovery-ventures.breezy.hr/p/a254b666fed401-affiliate-manager-ai-product",
+  "published_date": "2026-10-13T11:17:54.126Z",
+  "type": {
+   "id": "fullTime",
+   "name": "Full-Time"
+  },
+  "location": {
+   "country": {
+    "name": "Serbia",
+    "id": "RS"
+   },
+   "city": "Belgrade",
+   "primary": true,
+   "is_remote": true,
+   "remote_details": {
+    "value": "remote",
+    "label": "Fully remote, no location restrictions"
+   },
+   "name": "Belgrade, RS",
+   "id": "98be1cc33920"
+  },
+  "department": "Marketing",
+  "salary": "",
+  "company": {
+   "name": "Social Discovery Group",
+   "logo_url": null,
+   "friendly_id": "social-discovery-ventures",
+   "isMultipleLocationsEnabled": true
+  },
+  "locations": [
+   {
+    "country": {
+     "id": "worldwide",
+     "name": "Worldwide"
+    },
+    "is_remote": true,
+    "primary": false,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Worldwide",
+    "id": "b319d51006fa"
+   },
+   {
+    "country": {
+     "name": "Poland",
+     "id": "PL"
+    },
+    "city": "Warsaw",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Warsaw, PL",
+    "id": "d70b64ce1b0a"
+   },
+   {
+    "country": {
+     "name": "Serbia",
+     "id": "RS"
+    },
+    "city": "Belgrade",
+    "primary": true,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Belgrade, RS",
+    "id": "98be1cc33920"
+   },
+   {
+    "country": {
+     "name": "Georgia",
+     "id": "GE"
+    },
+    "city": "Tbilisi",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Tbilisi, GE",
+    "id": "59e87d822766"
+   },
+   {
+    "country": {
+     "name": "Armenia",
+     "id": "AM"
+    },
+    "city": "Yerevan",
+    "primary": false,
+    "is_remote": true,
+    "remote_details": {
+     "value": "remote",
+     "label": "Fully remote, no location restrictions"
+    },
+    "name": "Yerevan, AM",
+    "id": "fc34b990fe2b"
+   }
+  ]
+ }
+]
