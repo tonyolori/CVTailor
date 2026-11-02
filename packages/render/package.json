@@ -1,0 +1,24 @@
+{
+  "name": "@jobtailor/render",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.2.0",
+    "@fontsource/lora": "^5.2.0",
+    "@jobtailor/core": "*",
+    "@react-pdf/renderer": "^4.9.0",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "pdfjs-dist": "^5.0.0"
+  }
+}

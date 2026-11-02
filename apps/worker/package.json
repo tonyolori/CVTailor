@@ -1,0 +1,27 @@
+{
+  "name": "@jobtailor/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=../../.env src/main.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --exclude test/rls.test.ts",
+    "test:rls": "vitest run test/rls.test.ts",
+    "seed:personas": "tsx --env-file-if-exists=../../.env src/seed/personas.ts",
+    "seed:tony": "tsx --env-file-if-exists=../../.env src/seed/tony.ts",
+    "seed:companies": "tsx --env-file-if-exists=../../.env src/seed/companies.ts",
+    "llm:check": "tsx --env-file-if-exists=../../.env src/llm-check.ts",
+    "eval:enrich": "tsx --env-file-if-exists=../../.env src/eval/enrich.ts"
+  },
+  "dependencies": {
+    "@jobtailor/core": "*",
+    "@jobtailor/llm": "*",
+    "@jobtailor/render": "*",
+    "@supabase/supabase-js": "^2.118.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}

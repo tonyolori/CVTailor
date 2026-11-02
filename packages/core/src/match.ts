@@ -1,105 +1,205 @@
-import type { EnrichedJob } from "./job";
-import type { Preferences } from "./preferences";
+import type { EnrichedJob, JobSalary } from "./job";
+import type { Preferences, SalaryPeriod } from "./preferences";
+import { countryInRegion } from "./regions";
 
 export type Gate =
-  | "remote"
+  | "work_mode"
   | "location"
-  | "company_base"
-  | "role"
+  | "employer_base"
+  | "category"
+  | "role_type"
   | "exclusion"
   | "seniority"
   | "age"
   | "closed"
-  | "timezone";
+  | "timezone"
+  | "salary"
+  | "credential"
+  | "language";
 
 export interface JobForMatch {
   title: string;
   enriched: EnrichedJob;
 }
 
+export interface GateContext {
+  /** Credential names from the user's fact library. */
+  credentials?: string[];
+}
+
 export interface GateResult {
   pass: boolean;
   failed: Gate[];
   reasons: string[];
-  /**
-   * True when location is the only gate that failed. These roles are candidates
-   * for the "worth a look" list if the LLM score is high enough.
-   */
-  locationOnly: boolean;
+  /** Things worth recording that didn't fail a gate, e.g. "salary unknown". */
+  notes: string[];
+  /** Required credentials the user's library doesn't have. A score penalty applies when the gate is off. */
+  missingCredentials: string[];
+  /** True when only location or work mode failed. Candidates for "worth a look" if they score high enough. */
+  nearMiss: boolean;
 }
 
 export type LocationVerdict = "ok" | "excluded" | "unclear";
 
 /**
- * Port of the "structured location list decides" rule.
+ * Remote eligibility. Port of the "structured location list decides" rule.
  * Order matters: work-authorisation requirements and explicit country lists
  * beat a "worldwide" label, because aggregators and ATS descriptions get this wrong.
  */
 export function locationVerdict(e: EnrichedJob, prefs: Preferences): LocationVerdict {
-  const country = prefs.eligibility.country.toUpperCase();
-  const regions = new Set<string>(prefs.eligibility.regions);
+  if (prefs.remoteScope === "any") return "ok";
 
-  const auth = e.requiresWorkAuthorization.map((c) => c.toUpperCase());
-  if (auth.length > 0 && !auth.includes(country)) return "excluded";
+  const hasList = e.eligibleCountries.length > 0 || e.eligibleRegions.length > 0;
+  const country = prefs.eligibility.country.toUpperCase();
+  const authorised = new Set([country, ...prefs.eligibility.workAuthorization.map((c) => c.toUpperCase())]);
+
+  if (e.requiresWorkAuthorization.length > 0) {
+    if (!e.requiresWorkAuthorization.some((c) => authorised.has(c.toUpperCase()))) return "excluded";
+  }
+
+  if (prefs.remoteScope === "worldwide_only") {
+    if (hasList) return "excluded";
+    return e.worldwide ? "ok" : "unclear";
+  }
 
   if (e.eligibleCountries.length > 0) {
-    return e.eligibleCountries.map((c) => c.toUpperCase()).includes(country) ? "ok" : "excluded";
+    return e.eligibleCountries.some((c) => authorised.has(c.toUpperCase())) ? "ok" : "excluded";
   }
   if (e.eligibleRegions.length > 0) {
+    const regions = new Set<string>(prefs.eligibility.regions);
     return e.eligibleRegions.some((r) => regions.has(r)) ? "ok" : "excluded";
   }
-  if (e.worldwide) return "ok";
-  return "unclear";
+  return e.worldwide ? "ok" : "unclear";
 }
 
-const EXCLUDED_ROLE_FAMILIES = new Set(["research", "sales", "data_labelling"]);
+function normPlace(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .trim()
+    .toLowerCase();
+}
+
+/** Hybrid and on-site roles: the job's structured locations against the user's accepted places. */
+export function placeVerdict(e: EnrichedJob, prefs: Preferences): LocationVerdict {
+  if (e.locations.length === 0) return "unclear";
+  const countries = new Set(prefs.locations.countries.map((c) => c.toUpperCase()));
+  const cities = new Set(prefs.locations.cities.map(normPlace));
+  const ok = e.locations.some((l) => {
+    if (countries.size > 0 && !countries.has(l.country.toUpperCase())) return false;
+    if (cities.size === 0) return countries.size > 0;
+    return l.city != null && cities.has(normPlace(l.city));
+  });
+  return ok ? "ok" : "excluded";
+}
+
+const PER_YEAR: Record<SalaryPeriod, number> = { hour: 2080, day: 260, week: 52, month: 12, year: 1 };
+
+/** Annualised comparison. Null when the posting's salary and the floor can't be compared. */
+export function salaryMeetsFloor(salary: JobSalary | null, floor: Preferences["minSalary"]): boolean | null {
+  if (!salary || !floor) return null;
+  if (salary.currency.toUpperCase() !== floor.currency.toUpperCase()) return null;
+  const top = salary.max ?? salary.min;
+  if (top == null) return null;
+  return top * PER_YEAR[salary.period] >= floor.amount * PER_YEAR[floor.period];
+}
+
+function normCredential(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Required credentials with no counterpart in the user's library. Either name may contain the other. */
+export function findMissingCredentials(required: string[], held: string[]): string[] {
+  const have = held.map(normCredential).filter(Boolean);
+  return required.filter((r) => {
+    const n = normCredential(r);
+    if (!n) return false;
+    return !have.some((h) => wholeWords(h, n) || wholeWords(n, h));
+  });
+}
+
+function wholeWords(haystack: string, needle: string): boolean {
+  return ` ${haystack} `.includes(` ${needle} `);
+}
 
 export function evaluateGates(
   job: JobForMatch,
   prefs: Preferences,
   now: Date = new Date(),
+  ctx: GateContext = {},
 ): GateResult {
   const e = job.enriched;
   const failed: Gate[] = [];
   const reasons: string[] = [];
+  const notes: string[] = [];
   const fail = (gate: Gate, reason: string) => {
-    failed.push(gate);
+    if (!failed.includes(gate)) failed.push(gate);
     reasons.push(reason);
   };
 
   if (!e.isOpen) fail("closed", "posting is closed");
 
-  if (e.remoteType !== "remote") fail("remote", `work type is ${e.remoteType}`);
-
-  const loc = locationVerdict(e, prefs);
-  if (loc === "excluded") fail("location", "location list excludes the candidate's country");
-  if (loc === "unclear") fail("location", "location eligibility unclear");
-
-  if (!prefs.companyBase.includes("any") && !prefs.companyBase.some((b) => b === e.companyHq)) {
-    fail("company_base", `company based in ${e.companyHq}`);
+  if (e.workMode === "unclear") {
+    fail("work_mode", "work mode unclear");
+  } else if (!prefs.workModes.includes(e.workMode)) {
+    fail("work_mode", `work mode is ${e.workMode}`);
   }
 
-  if (e.tzRestriction) {
-    const off = prefs.eligibility.utcOffsetHours;
-    if (off < e.tzRestriction.minUtcOffset || off > e.tzRestriction.maxUtcOffset) {
-      fail("timezone", "time-zone window excludes the candidate");
+  if (e.workMode === "remote") {
+    if (prefs.workModes.includes("remote")) {
+      const loc = locationVerdict(e, prefs);
+      if (loc === "excluded") fail("location", "location list excludes the candidate");
+      if (loc === "unclear") fail("location", "location eligibility unclear");
+    }
+    if (e.tzRestriction) {
+      const off = prefs.eligibility.utcOffsetHours;
+      if (off < e.tzRestriction.minUtcOffset || off > e.tzRestriction.maxUtcOffset) {
+        fail("timezone", "time-zone window excludes the candidate");
+      }
+    }
+  } else if (e.workMode === "hybrid" || e.workMode === "onsite") {
+    const hasPlaces = prefs.locations.countries.length > 0 || prefs.locations.cities.length > 0;
+    if (prefs.workModes.includes(e.workMode) || hasPlaces) {
+      const loc = placeVerdict(e, prefs);
+      if (loc === "excluded") fail("location", "role is outside the accepted locations");
+      if (loc === "unclear") fail("location", "role location unclear");
     }
   }
 
-  if (EXCLUDED_ROLE_FAMILIES.has(e.roleFamily) || e.isTrainingWork) {
-    fail("role", `excluded role type (${e.isTrainingWork ? "training work" : e.roleFamily})`);
+  if (prefs.employerBase) {
+    const { countries, regions } = prefs.employerBase;
+    if (countries.length > 0 || regions.length > 0) {
+      const base = e.employerBase;
+      const baseCountry = base.country?.toUpperCase() ?? null;
+      const ok =
+        (baseCountry != null && countries.some((c) => c.toUpperCase() === baseCountry)) ||
+        (baseCountry != null && regions.some((r) => countryInRegion(baseCountry, r))) ||
+        base.regions.some((r) => regions.includes(r));
+      if (!ok) fail("employer_base", `employer based in ${baseCountry ?? "an unknown location"}`);
+    }
   }
+
+  if (prefs.categories.length > 0 && e.category !== "other" && !prefs.categories.includes(e.category)) {
+    fail("category", `category is ${e.category}`);
+  }
+
+  const excludedType = e.roleTypes.find((t) => prefs.excludeRoleTypes.includes(t));
+  if (excludedType) fail("role_type", `excluded role type (${excludedType})`);
   if (e.isUnpaidOrFeeBased) fail("exclusion", "unpaid, commission-only or fee-based");
 
   const title = job.title.toLowerCase();
   const hit = prefs.excludeTitleKeywords.find((k) => {
     const kw = k.trim().toLowerCase();
-    return kw && new RegExp(`\\b${escapeRegExp(kw)}\\b`).test(title);
+    return kw && new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(kw)}(?![\\p{L}\\p{N}])`, "u").test(title);
   });
   if (hit) fail("exclusion", `title contains "${hit}"`);
 
-  if (e.seniority === "staff_plus") fail("seniority", "staff or above");
-  if (e.maxYearsRequired != null && e.maxYearsRequired > prefs.maxYearsRequired) {
+  if (prefs.excludeSeniority.includes(e.seniority)) fail("seniority", `seniority is ${e.seniority}`);
+  if (prefs.maxYearsRequired != null && e.maxYearsRequired != null && e.maxYearsRequired > prefs.maxYearsRequired) {
     fail("seniority", `asks for ${e.maxYearsRequired}+ years`);
   }
 
@@ -111,11 +211,34 @@ export function evaluateGates(
     else if (ageDays > prefs.maxPostingAgeDays) fail("age", `posted ${Math.floor(ageDays)} days ago`);
   }
 
+  if (prefs.minSalary) {
+    const meets = salaryMeetsFloor(e.salary, prefs.minSalary);
+    if (meets === false) fail("salary", "salary is below the floor");
+    if (meets === null) notes.push("salary unknown");
+  }
+
+  const missingCredentials = findMissingCredentials(e.requiredCredentials, ctx.credentials ?? []);
+  if (missingCredentials.length > 0) {
+    if (prefs.missingCredentialPolicy === "hard_gate") {
+      fail("credential", `requires ${missingCredentials.join(", ")}`);
+    } else {
+      notes.push(`missing credential: ${missingCredentials.join(", ")}`);
+    }
+  }
+
+  if (prefs.languages.length > 0 && e.languagesRequired.length > 0) {
+    const known = new Set(prefs.languages.map((l) => l.trim().toLowerCase()));
+    const missing = e.languagesRequired.filter((l) => !known.has(l.trim().toLowerCase()));
+    if (missing.length > 0) fail("language", `requires ${missing.join(", ")}`);
+  }
+
   return {
     pass: failed.length === 0,
     failed,
     reasons,
-    locationOnly: failed.length > 0 && failed.every((g) => g === "location"),
+    notes,
+    missingCredentials,
+    nearMiss: failed.length > 0 && failed.every((g) => g === "location" || g === "work_mode"),
   };
 }
 
