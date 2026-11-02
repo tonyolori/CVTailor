@@ -120,6 +120,26 @@ describe("renderResumePdf", () => {
     expect(page.view[2]).toBeCloseTo(612, 0);
   });
 
+  it("never strands a bullet mark at the bottom of a page", async () => {
+    const long = ResumeSchema.parse({
+      ...base,
+      experience: Array.from({ length: 6 }, (_, i) => ({
+        title: `Role ${i}`,
+        company: "Co",
+        start: "2020-01",
+        end: "2021-01",
+        bullets: Array.from({ length: 8 }, () => "A long bullet that wraps over more than one line of text on the page, so that it can land right on the boundary between two pages when the content runs long."),
+      })),
+    });
+    const { pdf, pages } = await renderResumePdf(long);
+    expect(pages).toBeGreaterThan(1);
+    const doc = await getDocument({ data: new Uint8Array(pdf), verbosity: 0 }).promise;
+    for (let p = 1; p <= doc.numPages; p++) {
+      const items = (await (await doc.getPage(p)).getTextContent()).items.flatMap((i) => ("str" in i && i.str.trim() ? [i.str.trim()] : []));
+      expect(items.at(-1), `page ${p}`).not.toBe("•");
+    }
+  });
+
   it("reports when long content runs past two pages", async () => {
     const long = ResumeSchema.parse({
       ...base,

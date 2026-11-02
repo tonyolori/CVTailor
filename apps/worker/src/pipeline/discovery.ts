@@ -15,7 +15,9 @@ export function slugCandidates(company: string): string[] {
     .split(/\s+/)
     .filter(Boolean);
   if (words.length === 0) return [];
-  return [...new Set([words.join(""), words.join("-"), words[0]!])];
+  // Never the first word alone: "Bright Vision Technologies" matched a board called "bright",
+  // which belongs to some other company.
+  return [...new Set([words.join(""), words.join("-")])];
 }
 
 /**

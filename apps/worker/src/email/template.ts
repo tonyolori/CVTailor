@@ -324,7 +324,7 @@ export function renderEmailHtml(d: DailySummary, links: EmailLinks): string {
 }
 
 export function renderEmailText(d: DailySummary, links: EmailLinks): string {
-  const lines = [`Daily job search, ${d.date}`, `${d.roles.length} roles to apply for, ${d.worthALook.length} worth a look`, ""];
+  const lines = [`Daily job search, ${d.date}`, `${d.roles.length} role${d.roles.length === 1 ? "" : "s"} to apply for, ${d.worthALook.length} worth a look`, ""];
   d.gaps.forEach((g) => lines.push(`NOTE: ${g}`));
   d.notes.forEach((g) => lines.push(`NOTE: ${g}`));
   d.roles.forEach((r, i) => {

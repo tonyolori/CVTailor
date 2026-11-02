@@ -14,6 +14,7 @@ interface HimalayasJob {
   locationRestrictions?: unknown[];
   timezoneRestrictions?: number[];
   pubDate?: number;
+  expiryDate?: number;
   applicationLink: string;
   guid: string;
   minSalary?: number | null;
@@ -43,6 +44,7 @@ export function parseHimalayas(body: { jobs?: HimalayasJob[] }): RawJob[] {
         timezoneRestrictions: asArray(j.timezoneRestrictions),
         salary: { min: j.minSalary ?? null, max: j.maxSalary ?? null, period: j.salaryPeriod, currency: j.currency },
         seniority: asArray(j.seniority),
+        expiresAt: toIso(j.expiryDate),
       },
     };
   });
@@ -405,7 +407,8 @@ export function parseHnThread(item: HnItem): RawJob[] {
     if (!c.text) return [];
     const text = htmlToText(c.text);
     const first = text.split("\n")[0] ?? "";
-    const parts = first.split("|").map((p) => p.trim()).filter(Boolean);
+    // Mostly "Company | Role | Place", though some posters use dashes.
+    const parts = first.split(/\||\s[—–]\s/).map((p) => p.trim()).filter(Boolean);
     if (parts.length < 2) return [];
     const role = parts.slice(1).find((p) => ROLE_WORDS.test(p));
     if (!role) return [];

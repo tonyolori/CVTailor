@@ -1,6 +1,6 @@
 import type { EnrichedJob, JobSalary } from "./job";
 import type { Preferences, SalaryPeriod } from "./preferences";
-import { countryInRegion } from "./regions";
+import { countryInRegion, regionWithin } from "./regions";
 
 export type Gate =
   | "work_mode"
@@ -195,7 +195,7 @@ export function evaluateGates(
         const ok =
           (baseCountry != null && countries.some((c) => c.toUpperCase() === baseCountry)) ||
           (baseCountry != null && regions.some((r) => countryInRegion(baseCountry, r))) ||
-          base.regions.some((r) => regions.includes(r));
+          base.regions.some((r) => regions.some((wanted) => regionWithin(r, wanted)));
         if (!ok) fail("employer_base", `employer based in ${baseCountry ?? base.regions.join(", ")}`);
       }
     }

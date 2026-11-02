@@ -98,7 +98,7 @@ function Bullets({ items }: { items: string[] }) {
   return (
     <>
       {items.map((b, i) => (
-        <View key={i} style={s.bullet}>
+        <View key={i} style={s.bullet} wrap={false}>
           <Text style={s.bulletMark}>•</Text>
           <Text style={s.bulletText}>{b}</Text>
         </View>

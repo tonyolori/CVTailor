@@ -1,5 +1,5 @@
 import { prefilter, type Category, type Preferences } from "@jobtailor/core";
-import { must, type Db } from "../db";
+import { chunks, must, type Db } from "../db";
 import { log } from "../log";
 import { atsBoards, scanCompanies, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
@@ -11,7 +11,7 @@ import { AGGREGATORS } from "../sources/aggregators";
 /** Two failures in a row and a board moves back to the leads list. */
 export const MAX_BOARD_FAILURES = 2;
 const MAX_DESCRIPTION_CHARS = 30_000;
-const CHUNK = 200;
+const INSERT_CHUNK = 200;
 
 export interface CollectResult {
   sources: { id: string; label: string; found: number; failed: boolean }[];
@@ -152,32 +152,27 @@ export async function collect(
 
 /** Inserts new postings only: a URL already stored is never re-processed, only marked as still listed. */
 export async function storeJobs(db: Db, jobs: RawJob[]): Promise<number> {
+  const knownUrls = new Set<string>();
+  const knownKeys = new Set<string | null>();
+  for (const batch of chunks([...new Set(jobs.map((j) => j.url))])) {
+    const rows = must(await db.from("jobs").select("url").in("url", batch), "existing urls") as { url: string }[];
+    rows.forEach((r) => knownUrls.add(r.url));
+  }
+  for (const batch of chunks([...new Set(jobs.map((j) => dedupeKey(j.company, j.title)))])) {
+    const rows = must(await db.from("jobs").select("dedupe_key").in("dedupe_key", batch), "existing keys") as { dedupe_key: string | null }[];
+    rows.forEach((r) => knownKeys.add(r.dedupe_key));
+  }
+
+  const fresh = jobs.filter((j) => !knownUrls.has(j.url) && (j.fromAts || !knownKeys.has(dedupeKey(j.company, j.title))));
   let inserted = 0;
+  for (const batch of chunks(fresh, INSERT_CHUNK)) {
+    const rows = must(await db.from("jobs").upsert(batch.map(toJobRow), { onConflict: "url", ignoreDuplicates: true }).select("id"), "insert jobs") as { id: number }[];
+    inserted += rows.length;
+  }
+
   const nowIso = new Date().toISOString();
-  for (let i = 0; i < jobs.length; i += CHUNK) {
-    const batch = jobs.slice(i, i + CHUNK);
-    const urls = batch.map((j) => j.url);
-    const keys = [...new Set(batch.map((j) => dedupeKey(j.company, j.title)))];
-    const existing = must(await db.from("jobs").select("url,dedupe_key").or(`url.in.(${urls.map(quote).join(",")}),dedupe_key.in.(${keys.map(quote).join(",")})`), "existing jobs") as {
-      url: string;
-      dedupe_key: string | null;
-    }[];
-    const knownUrls = new Set(existing.map((e) => e.url));
-    const knownKeys = new Set(existing.map((e) => e.dedupe_key));
-    const fresh = batch.filter(
-      (j) => !knownUrls.has(j.url) && (j.fromAts || !knownKeys.has(dedupeKey(j.company, j.title))),
-    );
-    if (fresh.length > 0) {
-      const rows = must(await db.from("jobs").upsert(fresh.map(toJobRow), { onConflict: "url", ignoreDuplicates: true }).select("id"), "insert jobs") as { id: number }[];
-      inserted += rows.length;
-    }
-    const seen = batch.filter((j) => knownUrls.has(j.url)).map((j) => j.url);
-    if (seen.length > 0) must(await db.from("jobs").update({ last_seen: nowIso }).in("url", seen), "mark seen");
+  for (const batch of chunks(jobs.filter((j) => knownUrls.has(j.url)).map((j) => j.url))) {
+    must(await db.from("jobs").update({ last_seen: nowIso }).in("url", batch), "mark seen");
   }
   return inserted;
-}
-
-/** PostgREST list values: quotes around each, inner quotes and backslashes escaped. */
-function quote(v: string): string {
-  return `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }

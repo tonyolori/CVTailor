@@ -10,7 +10,7 @@ import {
 } from "@jobtailor/core";
 import { libraryContext, SCORE_SYSTEM, ScoreSchema, scoreUserPrompt, type Score } from "@jobtailor/core/prompts";
 import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmUsage } from "@jobtailor/llm";
-import { must, type Db } from "../db";
+import { chunks, must, type Db } from "../db";
 import { log } from "../log";
 import type { Http } from "../sources/http";
 import { BudgetExceeded, type Budget } from "./budget";
@@ -149,16 +149,19 @@ class ScoreStop extends Error {
 /** Scores with the cache keyed by (user, job, preferences version). Stops cleanly at a budget or rate limit. */
 async function scoreAll(deps: MatchDeps, user: ActiveUser, items: Candidate[]): Promise<{ scored: Scored[]; usage: LlmUsage; stoppedBy?: string }> {
   if (items.length === 0) return { scored: [], usage: ZERO_USAGE };
-  const ids = items.map((c) => c.job.id);
-  const cached = must(
-    await deps.db
-      .from("match_scores")
-      .select("job_id,role_match,library_fit,reason")
-      .eq("user_id", user.id)
-      .eq("preferences_version", user.preferencesVersion)
-      .in("job_id", ids),
-    "cached scores",
-  ) as { job_id: number; role_match: number; library_fit: number; reason: string | null }[];
+  const cached: { job_id: number; role_match: number; library_fit: number; reason: string | null }[] = [];
+  for (const ids of chunks(items.map((c) => c.job.id), 200)) {
+    const rows = must(
+      await deps.db
+        .from("match_scores")
+        .select("job_id,role_match,library_fit,reason")
+        .eq("user_id", user.id)
+        .eq("preferences_version", user.preferencesVersion)
+        .in("job_id", ids),
+      "cached scores",
+    ) as typeof cached;
+    cached.push(...rows);
+  }
   const scores = new Map<number, Score>(
     cached.map((c) => [c.job_id, { roleMatch: Number(c.role_match), libraryFit: Number(c.library_fit), reason: c.reason ?? "" }]),
   );
@@ -227,7 +230,7 @@ async function verifyPick(deps: MatchDeps, c: Candidate, now: Date): Promise<{ o
   const checkedToday = c.job.last_verified && now.getTime() - new Date(c.job.last_verified).getTime() < 86_400_000;
   if (c.job.from_ats && checkedToday) return { ok: true, verified: true, note: "On the employer's board today" };
   const live = await checkLive(deps.http, liveUrl(c.job));
-  if (!live.reachable) return { ok: true, verified: false, note: "Couldn't reach the live posting" };
+  if (!live.reachable) return { ok: true, verified: false, note: "Couldn't check the employer's own listing" };
   if (live.closedSignal) {
     must(await deps.db.from("jobs").update({ status: "closed", last_verified: now.toISOString() }).eq("id", c.job.id), "close job");
     return { ok: false, verified: true, note: "Closed" };

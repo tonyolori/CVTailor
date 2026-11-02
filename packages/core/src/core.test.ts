@@ -96,6 +96,11 @@ describe("evaluateGates: remote software persona", () => {
     expect(r.failed).toContain("timezone");
   });
 
+  it("an employer known only by a region counts when that region is inside the wanted one", () => {
+    expect(evaluateGates(job({ employerBase: { regions: ["EU"] } }), prefs, NOW).failed).not.toContain("employer_base");
+    expect(evaluateGates(job({ employerBase: { regions: ["APAC"] } }), prefs, NOW).failed).toContain("employer_base");
+  });
+
   it("an unknown employer base stays in, with a note", () => {
     const r = evaluateGates(job({ employerBase: {} }), prefs, NOW);
     expect(r.pass).toBe(true);

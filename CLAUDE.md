@@ -10,7 +10,7 @@ Invite-only service: collects job postings, matches them to each user's preferen
 - `apps/worker`: pipeline (`collect -> enrich -> match -> verify live -> tailor -> verify facts -> render -> email`), source adapters, scheduler.
 - `apps/web`: Next.js dashboard.
 - `supabase/`: migrations, RLS, `seed.sql`.
-- `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SCHEDULING.md`, `BACKUPS.md`.
+- `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SOURCE-ISSUES.md`, `SCHEDULING.md`, `BACKUPS.md`.
 - `legacy/`: **gitignored.** Tony's old skill and personal data. Never copy personal data out of it into a tracked file.
 
 ## Commands
@@ -45,7 +45,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 11. **Never commit secrets.** Only `.env.example`.
 12. **No profession, work-mode or country hard-coding.** Not in code paths, prompts or UI copy. Occupation, work mode and location are data in each user's preferences.
 13. **Never invent credentials.** Licences, certifications, degrees and registrations come only from the library. An invented one is a verifier error.
-14. **Do not scrape sites that forbid it.** Every adapter records its terms status. Unverified sources stay off by default; ask Tony.
+14. **Do not scrape sites that forbid it.** Every adapter records its terms status. Unverified sources stay off by default; ask Tony. `sources/restricted.ts` enforces feed-only and off-limits hosts for all HTTP. Never answer a block with a browser, a changed user agent or rotating IPs.
 15. **Subscription mode serves the owner and synthetic personas only.** Anthropic does not allow routing requests through a personal plan on behalf of other users. Do not add a bypass.
 
 ## Conventions

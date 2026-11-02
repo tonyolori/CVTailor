@@ -46,6 +46,11 @@ export function countryInRegion(country: string, region: Region): boolean {
   return REGION_COUNTRIES[region].has(country.toUpperCase());
 }
 
+/** True when every country in `inner` is also in `outer`, so an EU employer counts as European. */
+export function regionWithin(inner: Region, outer: Region): boolean {
+  return [...REGION_COUNTRIES[inner]].every((c) => REGION_COUNTRIES[outer].has(c));
+}
+
 const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
 
 export function countryName(code: string): string {

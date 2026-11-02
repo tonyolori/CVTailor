@@ -1,4 +1,5 @@
 import { log } from "../log";
+import { blockedBySourceRules } from "./restricted";
 
 export interface Http {
   json<T = unknown>(url: string): Promise<T | null>;
@@ -34,6 +35,10 @@ export function politeHttp(
 
   async function request(url: string, accept: string): Promise<Response | null> {
     const host = new URL(url).host;
+    if (blockedBySourceRules(url)) {
+      log("http.blocked_by_source_rules", { host });
+      return null;
+    }
     const interval = policies[host]?.minIntervalMs ?? DEFAULT_INTERVAL_MS;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       const wait = (nextAllowed.get(host) ?? 0) - Date.now();

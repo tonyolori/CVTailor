@@ -1,5 +1,7 @@
 # Job sources
 
+What actually went wrong when fetching jobs, and what to expect next time, is in [`SOURCE-ISSUES.md`](SOURCE-ISSUES.md).
+
 ## What runs today
 
 | Source | Serves | Terms status | Conditions we honour |

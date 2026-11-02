@@ -177,6 +177,19 @@ const matchesFor = async (key: string) => {
 };
 const byType = (rows: Awaited<ReturnType<typeof matchesFor>>, type: string) => rows.find((r) => r.jobs.raw_text.includes(`TYPE=${type}`));
 
+describe("real collection volumes", () => {
+  // A real run fetched over 6,000 postings, and a long filter list fails with "URI too long".
+  it("stores and re-sees thousands of postings with long URLs and awkward characters", async () => {
+    const many = Array.from({ length: 1200 }, (_, i) => ({
+      ...raw(`bulk-${i}`, `Senior Backend Engineer, Payments (Remote) ${i}`, `Company, "Inc" (${i})`, "Remote", "x"),
+      url: `https://job-boards.greenhouse.io/a-rather-long-company-name/jobs/${9000000000 + i}?gh_src=a,b(c)"d"${SUFFIX}`,
+    }));
+    expect(await storeJobs(db, many)).toBe(1200);
+    expect(await storeJobs(db, many)).toBe(0);
+    await db.from("jobs").delete().like("company", 'Company, "Inc"%');
+  }, 60_000);
+});
+
 describe("a full morning run", () => {
   beforeAll(async () => {
     await runDaily(deps(NOW), RUN_DATE);

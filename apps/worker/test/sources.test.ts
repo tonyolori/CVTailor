@@ -29,6 +29,7 @@ import { slugCandidates } from "../src/pipeline/discovery";
 import { parseWatchList } from "../src/seed/companies";
 import { coverageGaps, relevantAdapters, searchQueries } from "../src/sources/registry";
 import { politeHttp } from "../src/sources/http";
+import { blockedBySourceRules } from "../src/sources/restricted";
 import { dedupeKey, guessCountry, htmlToText, toIso } from "../src/sources/text";
 import type { RawJob } from "../src/sources/types";
 
@@ -106,6 +107,12 @@ describe("aggregator parsers, against saved real responses", () => {
     expect(jobs[0]!.workModeHint).toBe("remote");
     expect(jobs[0]!.applyUrl).toBe("https://acme.example/jobs");
     expect(jobs[0]!.country).toBe("GB");
+  });
+
+  it("Hacker News also reads posts separated by dashes", () => {
+    const jobs = parseHnThread({ id: 1, children: [{ id: 12, created_at: "2026-10-01T15:00:00Z", text: "Acme (Remote US) — Full-Stack Software Engineer — TypeScript<p>Hi" }] });
+    expect(jobs[0]?.title).toBe("Full-Stack Software Engineer");
+    expect(jobs[0]?.company).toBe("Acme (Remote US)");
   });
 
   it("Hacker News copes with a saved real thread", () => {
@@ -333,7 +340,8 @@ describe("collection helpers", () => {
   });
 
   it("slugCandidates tries likely board slugs", () => {
-    expect(slugCandidates("Acme Widgets, Inc.")).toEqual(["acmewidgets", "acme-widgets", "acme"]);
+    expect(slugCandidates("Acme Widgets, Inc.")).toEqual(["acmewidgets", "acme-widgets"]);
+    expect(slugCandidates("Acme")).toEqual(["acme"]);
   });
 
   it("parses the legacy watch-list format", () => {
@@ -343,5 +351,52 @@ describe("collection helpers", () => {
     expect(rows[0]!.notes).toBe("hires worldwide");
     expect(rows[0]!.tags).toContain("tech");
     expect(rows[3]!.notes).toBe("no board yet");
+  });
+});
+
+describe("source rules at the HTTP layer", () => {
+  it("refuses sites that are out of bounds, whoever is asking", async () => {
+    const fetchFn = vi.fn(async () => new Response("{}", { status: 200 }));
+    const http = politeHttp({}, fetchFn as never, async () => {});
+    for (const url of [
+      "https://www.linkedin.com/jobs/view/1",
+      "https://www.indeed.com/viewjob?jk=1",
+      "https://uk.indeed.com/viewjob?jk=1",
+      "https://www.indeed.co.uk/viewjob?jk=1",
+      "https://www.remoterocketship.com/jobs/x",
+      "https://himalayas.app/companies/acme/jobs/x",
+      "https://weworkremotely.com/remote-jobs/acme-x",
+      "https://jobs.workable.com/view/abc",
+      "https://remoteOK.com/remote-jobs/x",
+    ]) {
+      expect(await http.text(url), url).toBeNull();
+    }
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("still allows each source's published feed or API", () => {
+    for (const url of [
+      "https://himalayas.app/jobs/api/search?q=nurse",
+      "https://weworkremotely.com/remote-jobs.rss",
+      "https://remoteok.com/api",
+      "https://remotive.com/api/remote-jobs",
+      "https://jobicy.com/api/v2/remote-jobs?count=100",
+      "https://www.workingnomads.com/api/exposed_jobs/",
+      "https://boards-api.greenhouse.io/v1/boards/acme/jobs",
+      "https://jobs.ashbyhq.com/acme/1",
+    ]) {
+      expect(blockedBySourceRules(url), url).toBe(false);
+    }
+  });
+
+  it("every enabled adapter's own endpoints pass the rules", async () => {
+    const asked: string[] = [];
+    const http = {
+      json: async (url: string) => (asked.push(url), null),
+      text: async (url: string) => (asked.push(url), null),
+    };
+    for (const a of AGGREGATORS) await a.fetch({ http, queries: ["Accountant"], now: new Date() });
+    expect(asked.length).toBeGreaterThan(5);
+    expect(asked.filter(blockedBySourceRules)).toEqual([]);
   });
 });

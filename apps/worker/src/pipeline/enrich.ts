@@ -61,11 +61,17 @@ export function reconcile(e: EnrichedJob, job: JobRow, live: LiveCheck | null, c
   return {
     ...e,
     postedAt,
-    isOpen: e.isOpen && !live?.closedSignal,
+    isOpen: e.isOpen && !live?.closedSignal && !expired(job),
     category: categories.has(e.category) ? e.category : "other",
     // A remote-only board or an ATS field settles it when the posting's words don't.
     workMode: e.workMode === "unclear" && isWorkMode(job.work_mode) ? job.work_mode : e.workMode,
   };
+}
+
+/** A source's own expiry date. Himalayas' terms also require expired jobs to be removed. */
+function expired(job: JobRow): boolean {
+  const at = job.ats_fields?.expiresAt;
+  return typeof at === "string" && new Date(at).getTime() < Date.now();
 }
 
 function isWorkMode(v: string | null | undefined): v is "remote" | "hybrid" | "onsite" {
@@ -99,7 +105,15 @@ export async function enrichPending(
   maxPerRun = 300,
 ): Promise<EnrichResult> {
   const jobs = must(
-    await db.from("jobs").select("*").eq("status", "new").order("first_seen").limit(maxPerRun),
+    // Employers' own boards first, because their dates and locations can be trusted, then newest.
+    // Otherwise whichever source was fetched first uses up the whole cap.
+    await db
+      .from("jobs")
+      .select("*")
+      .eq("status", "new")
+      .order("from_ats", { ascending: false })
+      .order("posted_at", { ascending: false, nullsFirst: false })
+      .limit(maxPerRun),
     "pending jobs",
   ) as JobRow[];
   let usage = ZERO_USAGE;

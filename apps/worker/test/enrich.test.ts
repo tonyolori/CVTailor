@@ -97,6 +97,11 @@ describe("reconcile", () => {
     expect(reconcile(enriched({ workMode: "onsite" }), row({ work_mode: "remote" }), null, ids).workMode).toBe("onsite");
   });
 
+  it("a source's expiry date closes the posting", () => {
+    expect(reconcile(enriched(), row({ ats_fields: { expiresAt: "2020-01-01T00:00:00.000Z" } }), null, ids).isOpen).toBe(false);
+    expect(reconcile(enriched(), row({ ats_fields: { expiresAt: "2099-01-01T00:00:00.000Z" } }), null, ids).isOpen).toBe(true);
+  });
+
   it("an unknown category becomes other", () => {
     expect(reconcile(enriched({ category: "underwater-basket-weaving" }), row(), null, ids).category).toBe("other");
   });

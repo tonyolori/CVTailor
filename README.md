@@ -75,6 +75,8 @@ Why the limit: [Anthropic's terms](https://code.claude.com/docs/en/legal-and-com
 
 **Check quality after changing a prompt.** `npm run eval:enrich`. Replies are cached, so only changed prompts cost anything. Don't tune on the postings marked held out.
 
+**A source is failing.** See [`docs/SOURCE-ISSUES.md`](docs/SOURCE-ISSUES.md).
+
 **Add job sources.** Read [`docs/SOURCES.md`](docs/SOURCES.md). The cheapest start is rows in `companies` with `tags` and `countries`, which needs no code.
 
 ## Reading the `runs` table

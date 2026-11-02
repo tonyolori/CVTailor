@@ -1,7 +1,7 @@
 import { type Category } from "@jobtailor/core";
 import { mayUseAi, ZERO_USAGE, type LlmProvider } from "@jobtailor/llm";
 import type { Config } from "../config";
-import { must, type Db } from "../db";
+import { errorInfo, must, type Db } from "../db";
 import type { EmailSender } from "../email/send";
 import { log } from "../log";
 import { AGGREGATORS } from "../sources/aggregators";
@@ -87,7 +87,7 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
       }
     } catch (err) {
       failedUsers++;
-      log("run.user_failed", { userId: user.id, kind: err instanceof Error ? err.name : "unknown" });
+      log("run.user_failed", { userId: user.id, ...errorInfo(err) });
       await budget.record("match", ZERO_USAGE, "failed", user.id, "stage_error");
     }
     try {
@@ -110,7 +110,7 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
       }
     } catch (err) {
       failedUsers++;
-      log("run.summary_failed", { userId: user.id, kind: err instanceof Error ? err.name : "unknown" });
+      log("run.summary_failed", { userId: user.id, ...errorInfo(err) });
     }
   }
   log("run.done", { runDate, users: users.length, picked, failedUsers, spentUsd: budget.spent() });
@@ -154,8 +154,8 @@ export async function tick(deps: RunDeps): Promise<string> {
         "finish run",
       );
     } catch (err) {
-      log("run.failed", { runDate, kind: err instanceof Error ? err.name : "unknown" });
-      must(await db.from("daily_runs").update({ status: "failed", finished_at: new Date().toISOString(), detail: { error: err instanceof Error ? err.name : "unknown" } }).eq("run_date", runDate), "fail run");
+      log("run.failed", { runDate, ...errorInfo(err) });
+      must(await db.from("daily_runs").update({ status: "failed", finished_at: new Date().toISOString(), detail: errorInfo(err) }).eq("run_date", runDate), "fail run");
     }
   }
 
