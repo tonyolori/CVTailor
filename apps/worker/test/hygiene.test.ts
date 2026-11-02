@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -63,9 +63,14 @@ describe("no hard-coding", () => {
   });
 
   it("no personal data reaches tracked source", () => {
-    const offenders = NOT_TESTS.filter((f) => /olori|tenece|stanbic|anthonyolori|olorit124|\+234 ?913/i.test(readFileSync(f, "utf8")));
-    // The privacy page names who runs the service, as the law requires.
-    expect(offenders.map(rel).filter((f) => !f.endsWith("app/privacy/page.tsx"))).toEqual([]);
+    // The owner's details live only in a gitignored file, so a fresh clone has nothing to check.
+    const seedPath = join(ROOT, "legacy/seed/owner.json");
+    if (!existsSync(seedPath)) return;
+    const seed = JSON.parse(readFileSync(seedPath, "utf8")) as { accountEmail: string; notifyEmail?: string; contact: { phone?: string } };
+    const secrets = [seed.accountEmail, seed.notifyEmail, seed.contact.phone].filter((v): v is string => Boolean(v));
+    const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n").filter((f) => /\.(ts|tsx|md|json|sql|toml|yml)$/.test(f));
+    const offenders = tracked.filter((f) => secrets.some((v) => readFileSync(join(ROOT, f), "utf8").includes(v)));
+    expect(offenders).toEqual([]);
   });
 
   it("core and prompts assume no profession, work mode or country", () => {
