@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FactLibrarySchema, type FactLibrary } from "@jobtailor/core";
 import { LibraryEditor } from "./LibraryEditor";
-import { pollTask } from "./TaskWait";
+import { cancelTask, pollTask } from "./TaskWait";
 
 type Step = "choose" | "working" | "review";
 
@@ -16,23 +16,45 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
   const [waited, setWaited] = useState(0);
   const abort = useRef<AbortController | null>(null);
 
+  const taskId = useRef<number | null>(null);
+
+  useEffect(() => () => abort.current?.abort(), []);
+
+  // A submit handler, not <form action>: React holds back state set inside a form action until
+  // the action ends, which here is the whole extraction, so the waiting screen would never show.
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (step !== "choose") return;
+    void upload(new FormData(event.currentTarget));
+  }
+
   async function upload(form: FormData) {
     setNotice(null);
+    setWaited(0);
     setStep("working");
-    const res = await fetch("/api/onboarding/extract", { method: "POST", body: form });
-    const body = (await res.json()) as { error?: string; library?: unknown; taskId?: number };
-    if (!res.ok || body.error) {
-      setNotice(body.error ?? "That didn't work. You can enter your details by hand.");
+    const failed = (message?: string) => {
+      setNotice(message ?? "That didn't work. You can enter your details by hand.");
       setStep("choose");
-      return;
+    };
+    try {
+      const res = await fetch("/api/onboarding/extract", { method: "POST", body: form });
+      const body = (await res.json()) as { error?: string; library?: unknown; taskId?: number };
+      if (!res.ok || body.error) return failed(body.error);
+      if (body.library) return accept(body.library);
+      taskId.current = body.taskId!;
+      abort.current = new AbortController();
+      const done = await pollTask<unknown>(body.taskId!, setWaited, abort.current.signal);
+      if (done.status === "done") return accept(done.output);
+      if (done.status !== "cancelled") failed(done.error);
+    } catch {
+      failed();
     }
-    if (body.library) return accept(body.library);
-    abort.current = new AbortController();
-    const done = await pollTask<unknown>(body.taskId!, setWaited, abort.current.signal);
-    if (done.status === "done") return accept(done.output);
-    if (done.status === "cancelled") return;
-    setNotice(done.error ?? "That couldn't be processed. You can enter your details by hand.");
-    setStep("choose");
+  }
+
+  function enterByHand() {
+    abort.current?.abort();
+    if (taskId.current !== null) void cancelTask(taskId.current);
+    setStep("review");
   }
 
   function accept(raw: unknown) {
@@ -57,22 +79,19 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
 
   if (step === "working") {
     return (
-      <div className="card">
-        <h2>Reading your CV...</h2>
+      <div className="card" role="status" aria-live="polite">
+        <div className="row">
+          <span className="spinner" aria-hidden="true" />
+          <h2>Reading your CV...</h2>
+        </div>
         <p className="muted">
-          {waited > 30
-            ? "This is taking a while. It's waiting for the background worker, which may be off right now. You can wait, or carry on by hand."
-            : "This usually takes under a minute."}
+          {waited >= 30
+            ? `Still waiting after ${waited} seconds. This step needs the background worker, which may be busy or off. You can keep waiting, or carry on by hand.`
+            : "This usually takes under a minute. You can stay on this page while it works."}
         </p>
-        {waited > 30 ? (
+        {waited >= 30 ? (
           <div>
-            <button
-              type="button"
-              onClick={() => {
-                abort.current?.abort();
-                setStep("review");
-              }}
-            >
+            <button type="button" onClick={enterByHand}>
               Enter my details by hand
             </button>
           </div>
@@ -86,7 +105,7 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
       <h2>Start from your CV</h2>
       <p className="muted">Upload a CV to get a proposed library of your jobs, facts and qualifications, then review it. The file itself isn't kept.</p>
       {notice ? <div className="notice bad">{notice}</div> : null}
-      <form action={upload} className="stack">
+      <form onSubmit={submit} className="stack">
         <label>
           CV (PDF or Word .docx, up to 5 MB)
           <input name="file" type="file" accept=".pdf,.docx" required />

@@ -26,7 +26,6 @@ import {
 import { onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona } from "@jobtailor/core";
 import { capDescription, dedupeRun } from "../src/pipeline/collect";
 import { slugCandidates } from "../src/pipeline/discovery";
-import { parseWatchList } from "../src/seed/companies";
 import { coverageGaps, relevantAdapters, searchQueries } from "../src/sources/registry";
 import { politeHttp } from "../src/sources/http";
 import { blockedBySourceRules } from "../src/sources/restricted";
@@ -342,15 +341,6 @@ describe("collection helpers", () => {
   it("slugCandidates tries likely board slugs", () => {
     expect(slugCandidates("Acme Widgets, Inc.")).toEqual(["acmewidgets", "acme-widgets"]);
     expect(slugCandidates("Acme")).toEqual(["acme"]);
-  });
-
-  it("parses the legacy watch-list format", () => {
-    const md = `## Notes\n\n- **Acme**: hires worldwide\n\n## Watch list\n\n\`\`\`text\ngh acme\nashby beta\n\`\`\`\n\n## Careers pages\n\n\`\`\`text\npage https://x.example/jobs\n\`\`\`\n\n## Leads\n\n\`\`\`text\nlead Gamma – no board yet\n\`\`\`\n\n## Discovery log\n`;
-    const rows = parseWatchList(md);
-    expect(rows.map((r) => r.ats)).toEqual(["gh", "ashby", "page", "lead"]);
-    expect(rows[0]!.notes).toBe("hires worldwide");
-    expect(rows[0]!.tags).toContain("tech");
-    expect(rows[3]!.notes).toBe("no board yet");
   });
 });
 

@@ -1,25 +1,13 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { regionsOfCountry, Region, type Preferences, type PreferencesInput, type WorkMode } from "@jobtailor/core";
 import type { TitleSuggestions } from "@jobtailor/core/prompts";
+import type { CountryOption } from "@/lib/countries";
 import { savePreferences } from "@/app/actions";
-import { pollTask } from "./TaskWait";
+import { cancelTask, pollTask } from "./TaskWait";
 
 const commas = (s: string) => s.split(",").map((l) => l.trim()).filter(Boolean);
-
-function countryOptions(): { code: string; name: string }[] {
-  const names = new Intl.DisplayNames(["en"], { type: "region" });
-  const out: { code: string; name: string }[] = [];
-  for (let a = 65; a <= 90; a++) {
-    for (let b = 65; b <= 90; b++) {
-      const code = String.fromCharCode(a, b);
-      const name = names.of(code);
-      if (name && name !== code && !/^(EU|UN|EZ|QO|XA|XB|AC|CP|DG|EA|IC|TA|UK|DD|SU|YU|BU|CS|FX|TP|ZR|AN)$/.test(code)) out.push({ code, name });
-    }
-  }
-  return out.sort((x, y) => x.name.localeCompare(y.name));
-}
 
 function offsetHours(tz: string): number {
   const now = new Date();
@@ -63,16 +51,17 @@ export function PreferencesForm({
   initial,
   categories,
   tz,
+  countries,
   next,
   saveLabel = "Save",
 }: {
   initial: Preferences | null;
   categories: { id: string; label: string }[];
   tz: string;
+  countries: CountryOption[];
   next?: string;
   saveLabel?: string;
 }) {
-  const countries = useMemo(countryOptions, []);
   const [p, setP] = useState<PreferencesInput>(
     initial ?? {
       categories: [],
@@ -119,6 +108,7 @@ export function PreferencesForm({
         const timer = setTimeout(() => controller.abort(), 90_000);
         const done = await pollTask<TitleSuggestions>(body.taskId, undefined, controller.signal).catch(() => ({ status: "cancelled" as const }));
         clearTimeout(timer);
+        if (done.status === "cancelled") void cancelTask(body.taskId);
         if (done.status === "done" && "output" in done) s = done.output;
         else if (done.status !== "cancelled" && "error" in done && done.error) throw new Error(done.error);
       }

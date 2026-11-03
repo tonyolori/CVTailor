@@ -6,6 +6,15 @@ const PUBLIC_PATHS = ["/login", "/auth", "/privacy", "/pricing", "/api/unsubscri
 
 /** Refreshes the session cookie on each request and sends signed-out visitors to the login page. */
 export async function proxy(request: NextRequest) {
+  // Locally, sign-in links return to 127.0.0.1, and a login started on localhost has its
+  // cookie under the wrong host, so it fails. The Host header is what the browser really used.
+  // Not a redirect response: Next sees both names as this server and rewrites it back to localhost.
+  const site = siteUrl("/", request);
+  if (site.hostname === "127.0.0.1" && request.headers.get("host")?.split(":")[0] === "localhost") {
+    const target = siteUrl(request.nextUrl.pathname + request.nextUrl.search, request).href;
+    return new NextResponse(`<!doctype html><meta http-equiv="refresh" content="0;url=${target}">`, { headers: { "content-type": "text/html" } });
+  }
+
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {

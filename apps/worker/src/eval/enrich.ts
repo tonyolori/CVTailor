@@ -24,6 +24,8 @@ import { accountantPostings, nursePostings, type LabelledPosting } from "./perso
 /**
  * npm run eval:enrich [-- --limit N --only owner|accountant|nurse]
  *
+ * The owner set needs private/seen.tsv (past decisions) and private/owner.json, and is skipped without them.
+ *
  * Runs enrichment plus evaluateGates against known answers and reports agreement by gate.
  * Replies are cached under .local/eval, so re-running costs nothing unless the prompt changes.
  * Roughly 30% of each set is held out (by hash, so it's stable) and must not be used for tuning.
@@ -151,10 +153,10 @@ function gateFromReason(reason: string): Gate | null {
 }
 
 async function runOwner(provider: LlmProvider): Promise<Outcome[]> {
-  const seenPath = join(ROOT, "legacy/seen.tsv");
-  const seedPath = join(ROOT, "legacy/seed/owner.json");
+  const seenPath = join(ROOT, "private/seen.tsv");
+  const seedPath = join(ROOT, "private/owner.json");
   if (!existsSync(seenPath) || !existsSync(seedPath)) {
-    console.log("legacy/seen.tsv or legacy/seed/owner.json not found: skipping the owner set");
+    console.log("private/seen.tsv or private/owner.json not found: skipping the owner set");
     return [];
   }
   const prefs: Preferences = PreferencesSchema.parse(JSON.parse(readFileSync(seedPath, "utf8")).preferences);

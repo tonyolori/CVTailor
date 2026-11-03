@@ -62,12 +62,16 @@ describe("no hard-coding", () => {
     expect(offenders.map(rel)).toEqual([]);
   });
 
+  it("the owner's seed file can't be committed", () => {
+    expect(execFileSync("git", ["check-ignore", "private/owner.json"], { cwd: ROOT, encoding: "utf8" }).trim()).toBe("private/owner.json");
+  });
+
   it("no personal data reaches tracked source", () => {
     // The owner's details live only in a gitignored file, so a fresh clone has nothing to check.
-    const seedPath = join(ROOT, "legacy/seed/owner.json");
+    const seedPath = join(ROOT, "private/owner.json");
     if (!existsSync(seedPath)) return;
-    const seed = JSON.parse(readFileSync(seedPath, "utf8")) as { accountEmail: string; notifyEmail?: string; contact: { phone?: string } };
-    const secrets = [seed.accountEmail, seed.notifyEmail, seed.contact.phone].filter((v): v is string => Boolean(v));
+    const seed = JSON.parse(readFileSync(seedPath, "utf8")) as { accountEmail: string; notifyEmail?: string; facts: { contact: { email: string; phone?: string } } };
+    const secrets = [seed.accountEmail, seed.notifyEmail, seed.facts.contact.email, seed.facts.contact.phone].filter((v): v is string => Boolean(v));
     const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n").filter((f) => /\.(ts|tsx|md|json|sql|toml|yml)$/.test(f));
     const offenders = tracked.filter((f) => secrets.some((v) => readFileSync(join(ROOT, f), "utf8").includes(v)));
     expect(offenders).toEqual([]);

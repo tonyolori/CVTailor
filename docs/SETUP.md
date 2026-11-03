@@ -8,8 +8,7 @@ Things only Tony can do. Items are ordered so you can stop at any point and stil
 - [ ] `npm install`
 - [ ] `npx supabase start` (first run downloads images). Copy the printed keys into `.env` using `.env.example`.
 - [ ] `npm run db:reset` applies migrations and `supabase/seed.sql`.
-- [ ] `npm run seed:personas` creates the two synthetic test users.
-- [ ] `npm run seed:companies` loads the employer boards to scan.
+- [ ] `npm run seed` creates the three synthetic test users, loads the employer boards to scan, and adds you from `private/owner.json`. That file is gitignored, so copy it across yourself on a new machine.
 - [ ] `npm test`, `npm run test:rls` and `npm run test:integration`. The last two wipe local data, so re-run the seeds afterwards.
 
 ## Level 2: your Claude account, no API key (just you and the synthetic personas)

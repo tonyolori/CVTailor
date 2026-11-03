@@ -5,9 +5,8 @@ dist
 .next
 .DS_Store
 
-# Tony's old skill and personal data (CV facts, resumes, phone, email). Never commit.
-legacy/
-Legacy/
+# The owner's seed data: CV facts, phone, email. Never commit.
+private/
 
 # Generated local data
 .local/

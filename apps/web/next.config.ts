@@ -15,6 +15,7 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   outputFileTracingRoot: repoRoot,
   transpilePackages: ["@jobtailor/core", "@jobtailor/llm", "@jobtailor/render"],
   serverExternalPackages: ["@react-pdf/renderer", "unpdf", "mammoth"],

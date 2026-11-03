@@ -1,6 +1,7 @@
 import { PreferencesSchema } from "@jobtailor/core";
 import { Nav } from "@/components/Nav";
 import { PreferencesForm } from "@/components/PreferencesForm";
+import { countryOptions } from "@/lib/countries";
 import { requireOnboarded } from "@/lib/auth";
 
 export default async function PreferencesPage() {
@@ -14,7 +15,7 @@ export default async function PreferencesPage() {
       <Nav email={user.email ?? ""} />
       <main className="page">
         <h1>Preferences</h1>
-        <PreferencesForm initial={PreferencesSchema.parse(data?.data)} categories={categories ?? []} tz={profile.tz} />
+        <PreferencesForm initial={PreferencesSchema.parse(data?.data)} categories={categories ?? []} tz={profile.tz} countries={countryOptions()} />
       </main>
     </>
   );

@@ -9,5 +9,5 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(siteUrl("/dashboard", request));
   }
-  return NextResponse.redirect(siteUrl("/login", request));
+  return NextResponse.redirect(siteUrl("/login?error=link", request));
 }

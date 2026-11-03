@@ -15,6 +15,7 @@ import { politeHttp } from "./sources/http";
  * `npm run worker` makes one pass and exits, which suits a scheduler.
  * `npm run worker -- --loop` stays up, so emails go at each user's send_time and
  * onboarding tasks get picked up. Either way, a missed run is caught up on start.
+ * `--tasks-only` skips the daily run and handles only onboarding tasks, which otherwise wait for it.
  */
 const config = loadConfig();
 const db = serviceClient(config);
@@ -34,15 +35,17 @@ const deps: RunDeps = {
       : fileSender(join(import.meta.dirname, "../../../.local/outbox")),
 };
 
+const tasksOnly = process.argv.includes("--tasks-only");
+
 async function pass(): Promise<void> {
-  const decision = await tick(deps);
+  const decision = tasksOnly ? "tasks_only" : await tick(deps);
   const budget = new Budget(db, provider.name, { globalUsd: config.GLOBAL_DAILY_BUDGET_USD, userUsd: config.USER_DAILY_BUDGET_USD });
   await budget.load();
   const tasks = await processAiTasks(db, provider, budget, config.OWNER_EMAIL);
   log("worker.pass", { decision, tasks });
 }
 
-const TICK_MS = 60_000;
+const TICK_MS = tasksOnly ? 5_000 : 60_000;
 
 if (process.argv.includes("--loop")) {
   log("worker.loop_start", { provider: provider.name });

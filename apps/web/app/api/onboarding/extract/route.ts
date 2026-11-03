@@ -3,6 +3,7 @@ import { EXTRACT_FACTS_SYSTEM, extractFactsUserPrompt, ProposedLibrarySchema } f
 import { webProvider } from "@/lib/ai";
 import { extractCvText, MAX_CV_BYTES } from "@/lib/cv-text";
 import { allow } from "@/lib/rate-limit";
+import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_CV_CHARS = 60_000;
@@ -44,6 +45,9 @@ export async function POST(request: NextRequest) {
     if (!r.ok) return NextResponse.json({ error: "That couldn't be processed. You can enter your details by hand." }, { status: 502 });
     return NextResponse.json({ library: r.data });
   }
+
+  // A newer upload replaces any still waiting, such as one from before a page reload.
+  await adminClient().from("ai_tasks").delete().eq("user_id", data.user.id).eq("kind", "extract_facts").eq("status", "pending");
 
   const { data: task, error } = await supabase
     .from("ai_tasks")

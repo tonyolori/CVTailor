@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { PreferencesForm } from "@/components/PreferencesForm";
+import { countryOptions } from "@/lib/countries";
 import { requireUser } from "@/lib/auth";
 
 export default async function OnboardingPreferencesPage() {
@@ -16,7 +17,7 @@ export default async function OnboardingPreferencesPage() {
         <small className="muted">Step 2 of 2</small>
         <h1>What you're looking for</h1>
       </div>
-      <PreferencesForm initial={null} categories={categories ?? []} tz={profile.tz} next="/dashboard" saveLabel="Finish" />
+      <PreferencesForm initial={null} categories={categories ?? []} tz={profile.tz} countries={countryOptions()} next="/dashboard" saveLabel="Finish" />
     </main>
   );
 }

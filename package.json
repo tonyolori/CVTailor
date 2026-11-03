@@ -12,6 +12,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "test:rls": "npm run test:rls -w @jobtailor/worker",
+    "seed": "npm run seed:personas && npm run seed:companies && npm run seed:tony",
     "seed:personas": "npm run seed:personas -w @jobtailor/worker --",
     "seed:tony": "npm run seed:tony -w @jobtailor/worker --",
     "seed:companies": "npm run seed:companies -w @jobtailor/worker --",

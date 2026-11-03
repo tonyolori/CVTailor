@@ -11,7 +11,7 @@ Invite-only service: collects job postings, matches them to each user's preferen
 - `apps/web`: Next.js dashboard.
 - `supabase/`: migrations, RLS, `seed.sql`.
 - `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SOURCE-ISSUES.md`, `SCHEDULING.md`, `BACKUPS.md`.
-- `legacy/`: **gitignored.** Tony's old skill and personal data. Never copy personal data out of it into a tracked file.
+- `private/`: **gitignored.** `owner.json` holds Tony's real CV facts, preferences and contact details, and is the only source for `seed:tony`. `seen.tsv` holds his past job decisions for the eval. Never copy personal data out of it into a tracked file. This repo stands alone: copy anything it needs in here rather than pointing at another project.
 
 ## Commands
 
@@ -22,11 +22,14 @@ npm run db:start         # local Supabase (needs Docker)
 npm run db:reset         # re-apply migrations and seed.sql
 npm run test:rls         # RLS suite against local Supabase (wipes test rows, localhost only)
 npm run test:integration # whole pipeline, three personas (wipes local data, localhost only)
-npm run seed:personas    # two synthetic test users
-npm run seed:tony        # user #1 from legacy/ (local only)
+npm run seed             # personas, companies and Tony after any db:reset; also resets newuser@jobtailor.test, a blank account for testing signup
+npm run seed:personas    # the three synthetic test users
+npm run seed:companies   # employer boards to scan
+npm run seed:tony        # user #1 from private/owner.json (local only)
 npm run llm:check        # one cheap call through the configured provider
-npm run eval:enrich      # enrichment agreement for all personas
+npm run eval:enrich      # enrichment agreement for the personas and Tony's past decisions
 npm run worker           # run today's pipeline if not done, then send due emails
+npm run worker -- --loop --tasks-only  # only onboarding's AI steps, no daily run
 npm run web              # dashboard on :3000; magic links land in Mailpit on :54324
 ```
 
@@ -52,6 +55,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 
 - TypeScript strict, ESM, npm workspaces. `tsx` runs the worker; there is no build step for it.
 - Model IDs come from env (`LLM_MODEL_SMALL`, `LLM_MODEL_STRONG`), never literals in code.
+- Keep costs down: Haiku (small tier) for enrichment, scoring and title suggestions; Sonnet (strong tier) for CVs, cover letters and CV import. Don't use Opus or anything pricier.
 - All config goes through the zod-validated `loadConfig()`; do not read `process.env` elsewhere in the worker.
 - Every pipeline stage is idempotent: a crashed run resumes by re-running the same date.
 - Budget check before every LLM call (`Budget.assertAvailable`); tokens and cost recorded in `runs`.
@@ -60,5 +64,6 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - New tables get default privileges for anon and authenticated, so every migration must `revoke all` and grant back only what's needed.
 - Upserts need a full unique constraint. A partial index can't back `onConflict`.
 - Redirects use `siteUrl()`, never the request's own URL, which can name an internal host.
+- In client components, use `onSubmit` or `useActionState` for slow forms. React holds back state set inside a plain `<form action={fn}>` until `fn` ends, so a waiting screen set there never shows.
 - Persona fixtures live in `packages/core/src/personas.ts` and are invented. Exercise changes against all three, not only the software one.
 - Commit after each phase with a clear message.
