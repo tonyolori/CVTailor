@@ -52,8 +52,20 @@ describe("actionFor", () => {
       email: "a@example.com",
       planId: "once30",
       days: 30,
+      cvs: 30,
+      grant: "plan_add",
       subscriptionCode: undefined,
     });
+  });
+
+  it("a top-up grants CVs and adds no days to the plan", () => {
+    const a = actionFor({ event: "charge.success", data: { reference: "t1", status: "success", amount: 150000, metadata: { user_id: "u1", plan_id: "topup" } } });
+    expect(a).toMatchObject({ kind: "payment", days: 0, cvs: 10, grant: "extra" });
+  });
+
+  it("a renewal resets the plan's CVs instead of adding to them", () => {
+    const a = actionFor({ event: "charge.success", data: { reference: "r1", status: "success", amount: 500000, customer: { email: "a@b.c" } } });
+    expect(a).toMatchObject({ kind: "payment", days: 31, cvs: 30, grant: "plan_reset" });
   });
 
   it("ignores a charge that didn't succeed", () => {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FREE_CVS, PLAN_CVS } from "@jobtailor/core";
 import { redirect } from "next/navigation";
 import { CvSheet } from "@/components/CvSheet";
 import { LandingStory } from "@/components/LandingStory";
@@ -31,7 +32,7 @@ export default async function Home() {
           </span>
         </h1>
         <div className="join">
-          <p>Every morning we read new postings, keep the ones that fit, and write a CV for each from your own experience.</p>
+          <p>Every morning we read new postings and keep the ones that fit. Choose the jobs you want, and we'll write a CV for each from your own experience.</p>
           <LandingSignIn />
         </div>
         <div className="fan" aria-hidden="true">
@@ -60,7 +61,7 @@ export default async function Home() {
           <li>
             <b>3</b>
             <strong>Open your matches each morning</strong>
-            <span>By email and on your dashboard, each with its CV.</span>
+            <span>By email and on your dashboard. Click any job to get its CV.</span>
           </li>
         </ol>
       </section>
@@ -72,10 +73,10 @@ export default async function Home() {
         </div>
         <div className="plans">
           <div>
-            <b>Free</b>A weekly digest of your matches.
+            <b>Free</b>Daily matches, plus {FREE_CVS} CVs to try it.
           </div>
           <div>
-            <b>Paid</b>Daily matches and tailored CVs, plus a CV for any job you paste in. By the month or for 30 days.
+            <b>Paid</b>{PLAN_CVS} CVs, by the month or for 30 days, for your matches or any job you paste in. Add more whenever you need them.
           </div>
         </div>
         <div className="foot">

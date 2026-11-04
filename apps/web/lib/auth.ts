@@ -17,6 +17,9 @@ export interface Profile {
   paid_until: string | null;
   consented_at: string | null;
   cv_style: string;
+  cv_plan_left: number;
+  cv_free_left: number;
+  cv_extra_left: number;
 }
 
 /** Signed-in user and their profile. Redirects to login otherwise. */

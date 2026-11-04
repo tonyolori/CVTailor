@@ -71,8 +71,3 @@ export function shouldAlert(
   if (existing?.status === "ok") return false;
   return !existing?.alert_sent_at;
 }
-
-/** Free-plan weekly digest day: Monday, in the user's own zone. */
-export function isDigestDay(now: Date, tzRaw: string): boolean {
-  return new Intl.DateTimeFormat("en-US", { timeZone: validZone(tzRaw), weekday: "short" }).format(now) === "Mon";
-}

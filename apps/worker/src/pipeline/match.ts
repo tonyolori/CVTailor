@@ -119,7 +119,7 @@ async function storeDecisions(
   db: Db,
   user: ActiveUser,
   runDate: string,
-  rows: { c: Candidate; decision: string; score?: number; reason: string; verified?: boolean | null; verifiedNote?: string | null; tailorStatus?: string }[],
+  rows: { c: Candidate; decision: string; score?: number; reason: string; verified?: boolean | null; verifiedNote?: string | null }[],
 ): Promise<void> {
   for (let i = 0; i < rows.length; i += 200) {
     const batch = rows.slice(i, i + 200).map((r) => ({
@@ -134,7 +134,6 @@ async function storeDecisions(
       notes: r.c.gates.notes,
       verified: r.verified ?? null,
       verified_note: r.verifiedNote ?? null,
-      tailor_status: r.tailorStatus ?? "none",
     }));
     must(await db.from("matches").upsert(batch, { onConflict: "user_id,job_id" }), "store matches");
   }
@@ -297,7 +296,7 @@ export async function matchUser(deps: MatchDeps, user: ActiveUser, runDate: stri
       continue;
     }
     await storeDecisions(deps.db, user, runDate, [
-      { c: s, decision: "picked", score: s.score, reason: s.reason, verified: v.verified, verifiedNote: v.note, tailorStatus: "pending" },
+      { c: s, decision: "picked", score: s.score, reason: s.reason, verified: v.verified, verifiedNote: v.note },
     ]);
     picked++;
   }

@@ -1,4 +1,4 @@
-import { DEFAULT_CV_REQUESTS_PER_DAY, isEntitled, PASTED_JOB_TITLE, type Category } from "@jobtailor/core";
+import { DEFAULT_CV_REQUESTS_PER_DAY, PASTED_JOB_TITLE, type Category } from "@jobtailor/core";
 import {
   EXTRACT_FACTS_SYSTEM,
   extractFactsUserPrompt,
@@ -12,7 +12,7 @@ import { must, type Db } from "../db";
 import { log } from "../log";
 import { BudgetExceeded, type Budget } from "./budget";
 import { buildEnrichRequest, reconcile, type JobRow } from "./enrich";
-import { tailorUser } from "./tailor";
+import { tailorMatch } from "./tailor";
 import { loadUser } from "./users";
 
 interface Task {
@@ -21,6 +21,7 @@ interface Task {
   kind: "extract_facts" | "suggest_titles" | "tailor_match";
   input: Record<string, unknown>;
   match_id: number | null;
+  cv_bucket: string | null;
   created_at: string;
 }
 
@@ -47,8 +48,14 @@ export async function processAiTasks(db: Db, provider: LlmProvider, budget: Budg
 }
 
 async function runTask(db: Db, provider: LlmProvider, budget: Budget, ownerEmail: string | undefined, task: Task, options: TaskOptions): Promise<void> {
-  const finish = async (fields: Record<string, unknown>) =>
+  // A CV that wasn't written doesn't use up the person's allowance.
+  const finish = async (fields: Record<string, unknown>) => {
     must(await db.from("ai_tasks").update({ input: {}, ...fields }).eq("id", task.id), "finish task");
+    if (task.kind === "tailor_match" && fields.status !== "done") {
+      const { error } = await db.rpc("refund_task_cv", { task_id: task.id });
+      if (error) log("ai_task.refund_failed", { taskId: task.id, userId: task.user_id });
+    }
+  };
 
   const profile = must(await db.from("profiles").select("email,is_synthetic").eq("id", task.user_id).single(), "task profile") as { email: string; is_synthetic: boolean };
   const access = mayUseAi(provider.name, ownerEmail, { email: profile.email, isSynthetic: profile.is_synthetic });
@@ -101,7 +108,7 @@ async function runTask(db: Db, provider: LlmProvider, budget: Budget, ownerEmail
   }
 }
 
-export const NOT_ENTITLED_MESSAGE = "Writing a CV on request needs a paid plan.";
+export const NOT_ENTITLED_MESSAGE = "You've used all your CVs.";
 export const LIMIT_MESSAGE = "You've reached today's limit for writing CVs. Try again tomorrow.";
 const BUDGET_MESSAGE = "We can't write more CVs today. Try again tomorrow.";
 const RETRY_MESSAGE = "We couldn't write this CV just now. Try again in a little while.";
@@ -111,7 +118,10 @@ async function markMatch(db: Db, matchId: number, reason: string): Promise<void>
   must(await db.from("matches").update({ tailor_status: "failed", tailor_error: reason }).eq("id", matchId), "mark match");
 }
 
-/** People asking for a CV are checked here as well as on the web, because this is what spends the money. */
+/**
+ * People asking for a CV are checked here as well as on the web, because this is what spends the
+ * money. With billing on, only a task holding a CV from someone's allowance runs.
+ */
 async function writeRequestedCv(db: Db, provider: LlmProvider, budget: Budget, ownerEmail: string | undefined, task: Task, options: TaskOptions): Promise<Record<string, unknown>> {
   const matchId = task.match_id;
   if (!matchId) return { status: "failed", error: RETRY_MESSAGE };
@@ -123,7 +133,7 @@ async function writeRequestedCv(db: Db, provider: LlmProvider, budget: Budget, o
 
   const user = await loadUser(db, task.user_id);
   if (!user) return refuse("no_library", "Finish adding your experience and preferences first.");
-  if (!isEntitled(user, options.billingEnforced ?? false, now)) return refuse("not_entitled", NOT_ENTITLED_MESSAGE);
+  if (options.billingEnforced && (!task.cv_bucket || task.cv_bucket === "none")) return refuse("not_entitled", NOT_ENTITLED_MESSAGE);
 
   const dayStart = `${now.toISOString().slice(0, 10)}T00:00:00Z`;
   const { count, error } = await db
@@ -143,7 +153,7 @@ async function writeRequestedCv(db: Db, provider: LlmProvider, budget: Budget, o
     return { status: "failed", error: RETRY_MESSAGE };
   }
 
-  const result = await tailorUser({ db, provider, budget, ownerEmail, now }, user, { matchId });
+  const result = await tailorMatch({ db, provider, budget, ownerEmail, now }, user, matchId);
   if (result.rendered > 0) return { status: "done", output: { matchId } };
   if (result.stoppedBy) {
     await markMatch(db, matchId, "budget");

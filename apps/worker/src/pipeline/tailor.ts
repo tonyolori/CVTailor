@@ -205,18 +205,18 @@ export interface TailorResult {
 }
 
 /**
- * Tailors each pending pick. Idempotent: an AI draft already stored isn't regenerated, only
- * rendered if its PDF is missing, so a crashed run resumes without paying twice.
+ * Writes the CV someone asked for. Idempotent: an AI draft already stored isn't regenerated,
+ * only rendered if its PDF is missing, so a crashed task resumes without paying twice.
  */
-export async function tailorUser(deps: TailorDeps, user: ActiveUser, only?: { matchId: number }): Promise<TailorResult> {
+export async function tailorMatch(deps: TailorDeps, user: ActiveUser, matchId: number): Promise<TailorResult> {
   const result: TailorResult = { rendered: 0, failed: 0, usage: ZERO_USAGE };
   const access = mayUseAi(deps.provider.name, deps.ownerEmail, { email: user.email, isSynthetic: user.isSynthetic });
   if (!access.allowed) return result;
 
-  // Normally today's picks. A CV someone asked for names its match, whatever its decision.
-  const base = deps.db.from("matches").select("id,job_id,posting_text,jobs(title,company,raw_text,enriched)").eq("user_id", user.id).in("tailor_status", ["pending", "drafted"]);
-  const scoped = only ? base.eq("id", only.matchId) : base.eq("decision", "picked");
-  const pending = must(await scoped.order("score", { ascending: false }), "pending tailor") as unknown as PendingRow[];
+  const pending = must(
+    await deps.db.from("matches").select("id,job_id,posting_text,jobs(title,company,raw_text,enriched)").eq("id", matchId).eq("user_id", user.id).in("tailor_status", ["pending", "drafted"]),
+    "pending tailor",
+  ) as unknown as PendingRow[];
 
   const jobs: TailorJob[] = [];
   for (const row of pending) {

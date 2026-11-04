@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { DailySummarySchema, e, emailSubject, renderEmailHtml, renderEmailText, safeUrl } from "../src/email/template";
 import { resendSender } from "../src/email/send";
-import { decideRun, isDigestDay, sendAtFor, shouldAlert, STALE_RUN_MS, zonedTimeToUtc } from "../src/pipeline/schedule";
-import { isEntitled } from "../src/pipeline/run";
+import { decideRun, sendAtFor, shouldAlert, STALE_RUN_MS, zonedTimeToUtc } from "../src/pipeline/schedule";
 import { log } from "../src/log";
 
 const summary = DailySummarySchema.parse({
@@ -171,23 +170,22 @@ describe("scheduling", () => {
     expect(shouldAlert({ status: "failed", alert_sent_at: "2026-11-02T06:01:00Z" }, after, 6)).toBe(false);
     expect(shouldAlert({ status: "running", alert_sent_at: null }, after, 6)).toBe(true);
   });
-
-  it("the free digest goes on the user's own Monday", () => {
-    expect(isDigestDay(new Date("2026-11-02T12:00:00Z"), "Africa/Lagos")).toBe(true);
-    expect(isDigestDay(new Date("2026-11-03T12:00:00Z"), "Africa/Lagos")).toBe(false);
-    expect(isDigestDay(new Date("2026-11-01T23:30:00Z"), "Africa/Lagos")).toBe(true);
-  });
 });
 
-describe("isEntitled", () => {
-  const now = new Date("2026-11-02");
-  it("everyone is entitled until billing is switched on", () => {
-    expect(isEntitled({ plan: "free", paidUntil: null }, false, now)).toBe(true);
+describe("a role with no CV yet", () => {
+  const summary = { date: "2026-11-04", sources: [], roles: [{ matchId: 42, title: "Staff Nurse", company: "Acme", score: 9, apply: "https://example.com/apply" }] };
+  const links = { dashboardUrl: "https://app.example/dashboard", unsubscribeUrl: "https://app.example/u" };
+
+  it("offers a link that opens that job, in both versions of the email", () => {
+    const parsed = DailySummarySchema.parse(summary);
+    expect(renderEmailHtml(parsed, links)).toContain("https://app.example/dashboard?job=42");
+    expect(renderEmailHtml(parsed, links)).toContain("Write my CV");
+    expect(renderEmailText(parsed, links)).toContain("Write my CV: https://app.example/dashboard?job=42");
   });
-  it("then only an unexpired paid plan", () => {
-    expect(isEntitled({ plan: "free", paidUntil: null }, true, now)).toBe(false);
-    expect(isEntitled({ plan: "pro", paidUntil: "2026-12-01" }, true, now)).toBe(true);
-    expect(isEntitled({ plan: "pro", paidUntil: "2026-10-01" }, true, now)).toBe(false);
+
+  it("offers no link once the CV exists", () => {
+    const parsed = DailySummarySchema.parse({ ...summary, roles: [{ ...summary.roles[0], resumePath: "u/42/cv.pdf" }] });
+    expect(renderEmailText(parsed, links)).not.toContain("Write my CV");
   });
 });
 

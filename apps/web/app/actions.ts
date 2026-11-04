@@ -173,7 +173,7 @@ export async function updateSettings(_prev: ActionResult | null, form: FormData)
   const notify = String(form.get("notify_email") ?? "").trim();
   if (notify && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(notify)) return { ok: false, message: "That email address doesn't look right." };
   const dailyCap = Number(form.get("daily_cap"));
-  if (!Number.isInteger(dailyCap) || dailyCap < 1 || dailyCap > 10) return { ok: false, message: "Daily limit must be from 1 to 10." };
+  if (!Number.isInteger(dailyCap) || dailyCap < 1 || dailyCap > 10) return { ok: false, message: "Most matches per day must be from 1 to 10." };
   const sendTime = String(form.get("send_time") ?? "08:00");
   if (!/^\d{2}:\d{2}/.test(sendTime)) return { ok: false, message: "Enter a send time." };
   const { error } = await supabase

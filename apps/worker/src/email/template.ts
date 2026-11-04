@@ -183,6 +183,11 @@ export interface EmailLinks {
   unsubscribeUrl: string;
 }
 
+/** Opens the job on the dashboard, where the CV is written with one click. */
+function writeLink(links: EmailLinks, matchId: number | undefined): string {
+  return matchId ? `${links.dashboardUrl}?job=${matchId}` : links.dashboardUrl;
+}
+
 export function emailSubject(d: DailySummary): string {
   const n = d.roles.length;
   return `Job search ${d.date}: ${n} role${n === 1 ? "" : "s"} to apply for`;
@@ -253,8 +258,11 @@ export function renderEmailHtml(d: DailySummary, links: EmailLinks): string {
         r.sourceLabel && r.sourceUrl
           ? `<tr><td class="c-muted" valign="top" style="padding:4px 12px 4px 0;color:${MUTED};font-size:12px;white-space:nowrap;width:76px;">Source</td><td style="padding:4px 0;font-size:13px;"><a class="c-link" href="${e(safeUrl(r.sourceUrl))}" style="color:${LINK};text-decoration:none;">${e(r.sourceLabel)}</a></td></tr>`
           : "";
+      const write = r.resumePath
+        ? ""
+        : `<tr><td class="c-muted" valign="top" style="padding:4px 12px 4px 0;color:${MUTED};font-size:12px;white-space:nowrap;width:76px;">CV</td><td style="padding:4px 0;font-size:13px;"><a class="c-link" href="${e(safeUrl(writeLink(links, r.matchId)))}" style="color:${LINK};text-decoration:none;">Write my CV</a></td></tr>`;
       cards.push(
-        `<table class="c-card" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CARD};border:1px solid ${LINE};border-radius:10px;border-collapse:separate;margin-bottom:10px;"><tr><td style="padding:12px 14px;"><div class="c-head" style="font-weight:700;font-size:14px;color:${HEAD};">${i + 1}. ${e(r.title)} <span class="c-muted" style="color:${MUTED};font-weight:400;">&ndash; ${e(r.company)}</span></div><table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:6px;">${body}${source}</table></td></tr></table>`,
+        `<table class="c-card" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CARD};border:1px solid ${LINE};border-radius:10px;border-collapse:separate;margin-bottom:10px;"><tr><td style="padding:12px 14px;"><div class="c-head" style="font-weight:700;font-size:14px;color:${HEAD};">${i + 1}. ${e(r.title)} <span class="c-muted" style="color:${MUTED};font-weight:400;">&ndash; ${e(r.company)}</span></div><table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:6px;">${body}${source}${write}</table></td></tr></table>`,
       );
     });
     o.push(section(cards.join("")));
@@ -332,6 +340,7 @@ export function renderEmailText(d: DailySummary, links: EmailLinks): string {
     if (r.location) lines.push(`   Location: ${r.location}`);
     if (r.why) lines.push(`   Why: ${r.why}`);
     if (r.note) lines.push(`   Note: ${r.note}`);
+    if (!r.resumePath) lines.push(`   Write my CV: ${writeLink(links, r.matchId)}`);
   });
   if (d.failed.length) {
     lines.push("", "CVs not delivered:");

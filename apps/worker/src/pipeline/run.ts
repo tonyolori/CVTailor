@@ -1,4 +1,4 @@
-import { isEntitled, type Category } from "@jobtailor/core";
+import { type Category } from "@jobtailor/core";
 import { mayUseAi, ZERO_USAGE, type LlmProvider } from "@jobtailor/llm";
 import type { Config } from "../config";
 import { errorInfo, must, type Db } from "../db";
@@ -14,9 +14,8 @@ import { sendDueEmails } from "./deliver";
 import { runDiscovery } from "./discovery";
 import { enrichPending } from "./enrich";
 import { matchUser, type MatchResult } from "./match";
-import { decideRun, isDigestDay, sendAtFor, shouldAlert } from "./schedule";
+import { decideRun, sendAtFor, shouldAlert } from "./schedule";
 import { buildSummary } from "./summary";
-import { tailorUser } from "./tailor";
 import { loadActiveUsers, type ActiveUser } from "./users";
 
 export interface RunDeps {
@@ -40,13 +39,11 @@ export interface RunDeps {
   now?: () => Date;
 }
 
-export { isEntitled };
-
 const ADAPTER_LABELS = [...AGGREGATORS.map((a) => ({ id: a.id, label: a.label })), ...["greenhouse", "lever", "ashby", "workable", "breezy", "recruitee"].map((id) => ({ id, label: atsBoards.label }))];
 
 /**
- * One day's pipeline: collect -> enrich -> match -> verify live -> tailor -> verify facts ->
- * render -> queue email. Every stage is idempotent, so re-running after a crash resumes it.
+ * One day's pipeline: collect -> enrich -> match -> verify live -> queue email. CVs aren't written
+ * here: each one waits until someone asks for it, which is what keeps costs down. Every stage is idempotent, so re-running after a crash resumes it.
  */
 export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users: number; picked: number; failedUsers: number }> {
   const { db, http, provider, config } = deps;
@@ -72,15 +69,10 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
   let picked = 0;
   let failedUsers = 0;
   for (const user of users) {
-    const entitled = isEntitled(user, config.BILLING_ENFORCED, now);
-    if (!entitled && !isDigestDay(now, user.tz)) continue; // Free plan: weekly digest only.
     let match: MatchResult | null = null;
     try {
       match = await matchUser({ db, http, provider, budget, ownerEmail: config.OWNER_EMAIL }, user, runDate, now);
       picked += match.picked;
-      if (entitled && !match.aiBlockedReason) {
-        await tailorUser({ db, provider, budget, ownerEmail: config.OWNER_EMAIL, now }, user);
-      }
     } catch (err) {
       failedUsers++;
       log("run.user_failed", { userId: user.id, ...errorInfo(err) });
@@ -89,7 +81,6 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
     try {
       const gaps = coverageGaps(user.preferences, opts, boards).map((g) => g.message);
       const summary = await buildSummary(db, user, runDate, collected, ADAPTER_LABELS, gaps, match);
-      if (!entitled) summary.notes.push("You're on the free plan, which sends this weekly digest without tailored CVs.");
       // Upsert keeps a sent email sent: only its status row, not its delivery, is rewritten by a re-run.
       const existing = must(await db.from("daily_summaries").select("status").eq("user_id", user.id).eq("run_date", runDate).maybeSingle(), "existing summary") as { status: string } | null;
       if (existing?.status !== "sent") {

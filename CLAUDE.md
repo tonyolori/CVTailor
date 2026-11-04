@@ -1,13 +1,13 @@
 # JobTailor
 
-Invite-only service: collects job postings, matches them to each user's preferences, writes a tailored CV from that user's own fact library, and delivers it by email and dashboard. Any occupation, work mode and location.
+Invite-only service: collects job postings, matches them to each user's preferences and delivers the matches by email and dashboard. When a user asks, it writes a tailored CV from that user's own fact library. Any occupation, work mode and location.
 
 ## Repo map
 
 - `packages/core`: zod schemas, `evaluateGates`, `verifyResume`, pre-filter, prompts. No I/O.
 - `packages/llm`: `LlmProvider` with `claude-subscription`, `anthropic-api` and `fake`.
 - `packages/render`: resume and cover-letter PDF template (`@react-pdf/renderer`).
-- `apps/worker`: pipeline (`collect -> enrich -> match -> verify live -> tailor -> verify facts -> render -> email`), source adapters, scheduler.
+- `apps/worker`: daily pipeline (`collect -> enrich -> match -> verify live -> email`), CVs on request (`tailor -> verify facts -> render`), source adapters, scheduler.
 - `apps/web`: Next.js landing page, waitlist and signed-in app. Design tokens and styles are in `app/globals.css`. `components/CvSheet.tsx` is the on-screen CV.
 - `supabase/`: migrations, RLS, `seed.sql`.
 - `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SOURCE-ISSUES.md`, `SCHEDULING.md`, `BACKUPS.md`.
@@ -20,7 +20,7 @@ npm run typecheck        # all workspaces
 npm test                 # unit tests, no services needed
 npm run db:start         # local Supabase (needs Docker)
 npm run db:reset         # re-apply migrations and seed.sql
-npm run test:rls         # RLS and CV-request suites against local Supabase (test rows only, localhost only)
+npm run test:rls         # RLS and CV-request suites against local Supabase (test rows only, localhost only). Stop any running worker first
 npm run test:integration # whole pipeline, three personas (wipes local data, localhost only)
 npm run seed             # personas, companies and Tony after any db:reset; also resets newuser@jobtailor.test, a blank account for testing signup
 npm run seed:personas    # the three synthetic test users
@@ -67,7 +67,8 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - In client components, use `onSubmit` or `useActionState` for slow forms. React holds back state set inside a plain `<form action={fn}>` until `fn` ends, so a waiting screen set there never shows.
 - Persona fixtures live in `packages/core/src/personas.ts` and are invented. Exercise changes against all three, not only the software one.
 - A job with an `owner_id` was pasted in by that user and is private to them. Pipeline queries over shared jobs must filter `owner_id is null`.
-- CVs on request are paid-only. The web route refuses first for a clear message, and the worker checks the plan and the daily limit again because it's what spends the money. Users can't queue these tasks directly.
+- CVs are written only when someone asks, never in the daily run. Each takes one from the person's allowance (`reserve_cv`), and any outcome but a written CV gives it back (`refund_task_cv`). With billing on, the worker refuses a task holding no reserved CV. Users can't queue these tasks directly.
+- Every payment goes through `record_payment`, so the record, the plan and the CVs change together or not at all.
 - PDF styles live in `packages/render/src/template.tsx`, and their on-screen match in `globals.css`. Change both together. Classic is the original design.
 - The app is light only. Inter for app text, Instrument Serif for headlines and job titles, Instrument Sans on public pages.
 - Commit after each phase with a clear message.

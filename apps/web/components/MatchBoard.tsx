@@ -7,6 +7,7 @@ import type { CvStyle, Resume } from "@jobtailor/core";
 import { setTrackerStatus } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
 import { cancelTask, pollTask } from "@/components/TaskWait";
+import type { CvAllowance } from "@/lib/entitlement";
 import { sourceLabel, STATUS_LABELS, TRACKED_DECISIONS, VIEWS } from "@/lib/views";
 
 export interface BoardRow {
@@ -47,7 +48,7 @@ function failureText(row: BoardRow): string | null {
     case "daily_limit":
       return "You'd reached the daily limit for writing CVs. Try again tomorrow.";
     case "not_entitled":
-      return "Writing a CV on request needs a paid plan.";
+      return "You'd run out of CVs when this was requested. It didn't use one up.";
     default:
       return "A CV couldn't be written for this role. You can still apply.";
   }
@@ -59,14 +60,15 @@ export function MatchBoard(props: {
   initialSelected: number | null;
   initialDetail: Detail | null;
   defaultStyle: CvStyle;
-  paid: boolean;
+  allowance: CvAllowance;
   lastRun: string | null;
   gaps: string[];
   notes: string[];
   closeCalls: { company: string; title: string; reason: string; link?: string }[];
   sources: string[];
 }) {
-  const { viewKey, defaultStyle, paid } = props;
+  const { viewKey, defaultStyle, allowance } = props;
+  const canWrite = allowance.unlimited || allowance.left > 0;
   const router = useRouter();
   const view = VIEWS[viewKey]!;
   const [rows, setRows] = useState(props.rows);
@@ -196,16 +198,16 @@ export function MatchBoard(props: {
       );
     }
     if (!r.hasPosting) return null;
-    if (!paid) {
+    if (!canWrite) {
       return (
         <Link className="button dark" href="/pricing">
-          Write a CV with a paid plan
+          Get more CVs
         </Link>
       );
     }
     return (
       <button className="dark" type="button" onClick={() => void generate(r)}>
-        {r.tailorStatus === "failed" ? "Try writing the CV again" : "Write a CV for this job"}
+        {r.tailorStatus === "failed" ? "Try writing the CV again" : "Write my CV"}
       </button>
     );
   };
@@ -229,7 +231,13 @@ export function MatchBoard(props: {
         </p>
       );
     }
-    return paid ? <p className="hint">We'll write it from this posting and your library, and check it before you see it.</p> : null;
+    if (!canWrite) return <p className="hint">You've used all your CVs. Your matches stay free.</p>;
+    return (
+      <p className="hint">
+        We'll write it from this posting and your library, and check it before you see it.
+        {allowance.unlimited ? null : ` This uses 1 of your ${allowance.left} CVs, and you get it back if it can't be written.`}
+      </p>
+    );
   };
 
   const shownResume = detail?.resume ?? lastResume;
@@ -391,13 +399,19 @@ export function MatchBoard(props: {
               {sourceLabel(detail?.posting.source) ? <span className="from">Found through {sourceLabel(detail?.posting.source)}.</span> : null}
               {!hasCv && !row.taskId ? (
                 row.hasPosting ? (
-                  paid ? (
+                  canWrite ? (
                     <div className="postgen">
                       <button className="dark" type="button" onClick={() => void generate(row)}>
-                        {row.tailorStatus === "failed" ? "Try writing the CV again" : "Write a CV from this posting"}
+                        {row.tailorStatus === "failed" ? "Try writing the CV again" : "Write my CV"}
                       </button>
                     </div>
-                  ) : null
+                  ) : (
+                    <div className="postgen">
+                      <Link className="button dark" href="/pricing">
+                        Get more CVs
+                      </Link>
+                    </div>
+                  )
                 ) : (
                   <div className="postgen">
                     <Link className="button dark" href={`/write?match=${row.id}`}>

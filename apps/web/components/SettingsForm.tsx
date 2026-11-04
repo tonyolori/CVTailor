@@ -35,7 +35,7 @@ export function SettingsForm({ profile, zones }: { profile: SettingsProfile; zon
           </select>
         </label>
         <label>
-          Most CVs per day
+          Most matches per day
           <input type="number" name="daily_cap" min={1} max={10} defaultValue={profile.daily_cap} required />
         </label>
         <label>

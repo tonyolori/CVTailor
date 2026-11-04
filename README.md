@@ -1,6 +1,6 @@
 # JobTailor
 
-An invite-only service that collects job postings every morning, matches them to each user's preferences, writes a tailored CV from that user's own facts, and delivers it by email and a web dashboard. Any occupation, work mode and location: those are per-user data, not assumptions in the code.
+An invite-only service that collects job postings every morning, matches them to each user's preferences and delivers them by email and a web dashboard. When a user asks, it writes a tailored CV from that user's own facts. Any occupation, work mode and location: those are per-user data, not assumptions in the code.
 
 ## How it fits together
 
@@ -24,7 +24,7 @@ flowchart LR
 
 The dashboard, editing and PDF downloads never touch the worker, so they keep working with your PC off. The worker catches up on a missed day when it next starts.
 
-Each morning: `collect -> enrich -> match -> verify live -> tailor -> verify facts -> render -> email`. Collection and enrichment run once per posting and are shared. Only matching and tailoring run per user.
+Each morning: `collect -> enrich -> match -> verify live -> email`. When someone clicks for a CV: `tailor -> verify facts -> render`. Collection and enrichment run once per posting and are shared. Only matching and tailoring run per user.
 
 | Path | What |
 | --- | --- |

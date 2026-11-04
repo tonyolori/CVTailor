@@ -12,11 +12,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return NextResponse.json(data);
 }
 
-/** Drops the user's own task if the worker hasn't started it. That also removes any CV text it holds. */
+/** Drops the user's own task if the worker hasn't started it. That removes any CV text it holds, and gives back any CV it took. */
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  await adminClient().from("ai_tasks").delete().eq("id", Number((await params).id)).eq("user_id", auth.user.id).eq("status", "pending");
+  const admin = adminClient();
+  const { data: dropped } = await admin.from("ai_tasks").delete().eq("id", Number((await params).id)).eq("user_id", auth.user.id).eq("status", "pending").select("cv_bucket").maybeSingle();
+  if (dropped?.cv_bucket && dropped.cv_bucket !== "none") await admin.rpc("return_cv", { uid: auth.user.id, bucket: dropped.cv_bucket });
   return NextResponse.json({ ok: true });
 }

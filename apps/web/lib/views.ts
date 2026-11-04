@@ -18,8 +18,8 @@ export interface View {
 }
 
 export const VIEWS: Record<string, View> = {
-  to_apply: { label: "To apply", sub: "Your best matches, each with its own CV.", empty: "Nothing to apply for right now. New matches arrive in the morning.", holds: (m) => m.decision === "picked" && m.tracker_status === "to_apply" },
-  look: { label: "Worth a look", sub: "Close matches. Ask for a CV on any you want to pursue.", empty: "No close matches yet.", holds: (m) => m.decision === "worth-a-look" },
+  to_apply: { label: "To apply", sub: "Your best matches. Write a CV for any you want to apply to.", empty: "Nothing to apply for right now. New matches arrive in the morning.", holds: (m) => m.decision === "picked" && m.tracker_status === "to_apply" },
+  look: { label: "Worth a look", sub: "Close matches. Write a CV for any you want to pursue.", empty: "No close matches yet.", holds: (m) => m.decision === "worth-a-look" },
   unscored: { label: "Not scored", sub: "Jobs we couldn't score. Check these yourself.", empty: "Everything was scored.", holds: (m) => m.decision === "unscored" },
   pasted: { label: "Pasted jobs", sub: "Jobs you pasted in yourself, each with its own CV.", empty: "Jobs you paste in will appear here.", holds: (m) => m.decision === "pasted" },
   all: { label: "All picks", sub: "Every pick, at any stage.", empty: "No picks yet. They arrive after your next morning run.", holds: (m) => m.decision === "picked" },

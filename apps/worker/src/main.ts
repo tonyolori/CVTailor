@@ -37,21 +37,26 @@ const deps: RunDeps = {
 
 const tasksOnly = process.argv.includes("--tasks-only");
 
+const TICK_MS = 60_000;
+const TASK_MS = 5_000;
+let lastTick = 0;
+
 async function pass(): Promise<void> {
-  const decision = tasksOnly ? "tasks_only" : await tick(deps);
+  // People are waiting on tasks, so those are checked far more often than the daily run needs.
+  const due = !tasksOnly && Date.now() - lastTick >= TICK_MS;
+  const decision = due ? await tick(deps) : undefined;
+  if (due) lastTick = Date.now();
   const budget = new Budget(db, provider.name, { globalUsd: config.GLOBAL_DAILY_BUDGET_USD, userUsd: config.USER_DAILY_BUDGET_USD });
   await budget.load();
   const tasks = await processAiTasks(db, provider, budget, config.OWNER_EMAIL, { billingEnforced: config.BILLING_ENFORCED, cvRequestsPerDay: config.CV_REQUESTS_PER_DAY });
-  log("worker.pass", { decision, tasks });
+  if (due || tasks) log("worker.pass", { decision, tasks });
 }
-
-const TICK_MS = tasksOnly ? 5_000 : 60_000;
 
 if (process.argv.includes("--loop")) {
   log("worker.loop_start", { provider: provider.name });
   for (;;) {
     await pass().catch((err: unknown) => log("worker.pass_failed", { kind: err instanceof Error ? err.name : "unknown" }));
-    await new Promise((resolve) => setTimeout(resolve, TICK_MS));
+    await new Promise((resolve) => setTimeout(resolve, TASK_MS));
   }
 } else {
   await pass();

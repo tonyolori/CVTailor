@@ -132,6 +132,9 @@ td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-a
 .nv.wr { background: #fff; font-weight: 600; margin-bottom: 8px; box-shadow: inset 0 0 0 1.5px var(--blue); color: var(--blue); }
 .nv.wr:hover { background: #fff; color: var(--blue-dark); }
 .nv.wr.on, .nv.wr.on:hover { background: var(--blue); color: #fff; }
+.cvs-left { font-size: 13px; color: var(--soft); padding: 0 11px 8px; margin-top: -3px; text-decoration: none; }
+.cvs-left:hover { text-decoration: underline; }
+.cvs-left.none { color: var(--bad); font-weight: 500; }
 .gp { color: var(--soft); font-size: 13px; padding: 15px 11px 4px; }
 .who { margin-top: auto; padding: 14px 11px 0; font-size: 13px; color: var(--soft); overflow-wrap: anywhere; }
 .who button { color: var(--soft); text-decoration: underline; text-underline-offset: 2px; display: block; margin-top: 2px; font-weight: 400; }

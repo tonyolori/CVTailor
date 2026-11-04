@@ -6,12 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import type { CvStyle, Resume } from "@jobtailor/core";
 import { CvSheet } from "@/components/CvSheet";
 import { pollTask } from "@/components/TaskWait";
+import type { CvAllowance } from "@/lib/entitlement";
 
 type Stage = "form" | "working" | "done";
 
 const STILL_WAITING = "It's taking longer than usual. We'll keep going, and your CV will appear under Pasted jobs when it's ready.";
 
-export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvStyle; forMatch: { id: number; title: string; company: string } | null }) {
+export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance; style: CvStyle; forMatch: { id: number; title: string; company: string } | null }) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("form");
   const [error, setError] = useState<string | null>(null);
@@ -84,12 +85,12 @@ export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvSty
             <p className="sub" style={{ marginBottom: 16 }}>
               {forMatch ? `Paste the posting for ${forMatch.title} and we'll write a CV for it, using only what's in your library.` : "Found a job somewhere else? Paste it here and we'll write a CV for it, using only what's in your library."}
             </p>
-            {!paid ? (
+            {!allowance.unlimited && allowance.left === 0 && stage === "form" && !matchId ? (
               <div className="stack">
-                <div className="notice">Writing a CV for any job is part of the paid plans.</div>
+                <div className="notice">You've used all your CVs. Your matches stay free.</div>
                 <div>
                   <Link className="button primary" href="/pricing">
-                    See plans
+                    Get more CVs
                   </Link>
                 </div>
               </div>
@@ -133,6 +134,7 @@ export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvSty
                 </div>
                 <p className="hint" style={{ marginTop: 0 }}>
                   We check every CV against your library before you see it. We only use what you paste, and we won't open the link.
+                  {allowance.unlimited ? null : ` This uses 1 of your ${allowance.left} CVs, and you get it back if it can't be written.`}
                 </p>
               </form>
             )}

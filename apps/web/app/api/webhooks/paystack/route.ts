@@ -56,23 +56,18 @@ async function apply(db: ReturnType<typeof adminClient>, event: NonNullable<Retu
   const userId = await findUserId(db, action.userId, action.email);
 
   if (action.kind === "payment") {
-    const { error } = await db.from("payments").insert({
-      user_id: userId,
-      event_id: eventKey(event),
-      reference: action.reference,
-      amount_kobo: action.amountKobo,
-      currency: action.currency,
-      status: "success",
+    // All or nothing, and a repeat of the same reference grants nothing: see record_payment.
+    const { error } = await db.rpc("record_payment", {
+      p_user: userId,
+      p_event_id: eventKey(event),
+      p_reference: action.reference,
+      p_amount_kobo: action.amountKobo,
+      p_currency: action.currency,
+      p_days: action.days,
+      p_cvs: action.cvs,
+      p_grant: action.grant,
     });
-    // The same reference twice under another event key is still one payment: don't extend twice.
-    if (error) {
-      if (error.code === "23505") return;
-      throw new Error("store payment");
-    }
-    if (userId) {
-      const extended = await db.rpc("extend_paid_until", { uid: userId, days: action.days });
-      if (extended.error) throw new Error("extend entitlement");
-    }
+    if (error) throw new Error("record payment");
     return;
   }
 

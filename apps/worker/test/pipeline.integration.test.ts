@@ -206,7 +206,7 @@ describe("a full morning run", () => {
   it("remote software persona: picks the worldwide role, near-misses the Germany-only one", async () => {
     const rows = await matchesFor("remote-software");
     expect(byType(rows, "software-pass")?.decision).toBe("picked");
-    expect(byType(rows, "software-pass")?.tailor_status).toBe("rendered");
+    expect(byType(rows, "software-pass")?.tailor_status).toBe("none");
     expect(byType(rows, "software-limited")?.decision).toBe("worth-a-look");
     expect(byType(rows, "nurse-pass")?.decision).toBe("skipped");
   });
@@ -214,46 +214,23 @@ describe("a full morning run", () => {
   it("remote accountant persona: picks the EU role, ignores other professions", async () => {
     const rows = await matchesFor("remote-accountant");
     expect(byType(rows, "accountant-pass")?.decision).toBe("picked");
-    expect(byType(rows, "accountant-pass")?.tailor_status).toBe("rendered");
+    expect(byType(rows, "accountant-pass")?.tailor_status).toBe("none");
     expect(byType(rows, "software-pass")?.decision).toBe("skipped");
   });
 
   it("on-site nurse persona: picks Manchester, near-misses Leeds", async () => {
     const rows = await matchesFor("onsite-nurse");
     expect(byType(rows, "nurse-pass")?.decision).toBe("picked");
-    expect(byType(rows, "nurse-pass")?.tailor_status).toBe("rendered");
+    expect(byType(rows, "nurse-pass")?.tailor_status).toBe("none");
     expect(byType(rows, "nurse-other-city")?.gate_failures).toEqual(["location"]);
   });
 
-  it("a CV with an invented credential is never delivered", async () => {
-    const rows = await matchesFor("onsite-nurse");
-    const bad = byType(rows, "nurse-invent");
-    expect(bad?.tailor_status).toBe("failed");
-    expect(bad?.tailor_error).toBe("failed_fact_check");
-    const { data: versions } = await db.from("resume_versions").select("id").eq("match_id", bad!.id);
+  it("writes no CVs, and spends nothing on them", async () => {
+    expect(provider.requests.filter((r) => r.system.includes("You write a tailored CV"))).toEqual([]);
+    const { data: versions } = await db.from("resume_versions").select("id");
     expect(versions).toEqual([]);
-    const { data: docs } = await db.from("documents").select("id").eq("match_id", bad!.id);
+    const { data: docs } = await db.from("documents").select("id");
     expect(docs).toEqual([]);
-    const { data: summary } = await db.from("daily_summaries").select("data").eq("user_id", ids.get("onsite-nurse")!).eq("run_date", RUN_DATE).single();
-    expect((summary!.data as { failed: unknown[] }).failed).toHaveLength(1);
-  });
-
-  it("stores CVs and PDFs under the user's own folder", async () => {
-    const id = ids.get("remote-software")!;
-    const { data: docs } = await db.from("documents").select("kind,storage_path").eq("user_id", id);
-    expect(docs!.map((d) => d.kind).sort()).toEqual(["cover_letter_pdf", "resume_pdf"]);
-    for (const d of docs!) {
-      expect(d.storage_path.startsWith(`${id}/`)).toBe(true);
-      const dl = await db.storage.from("documents").download(d.storage_path);
-      expect(Buffer.from(await dl.data!.arrayBuffer()).subarray(0, 5).toString()).toBe("%PDF-");
-    }
-    const { data: versions } = await db.from("resume_versions").select("source").eq("user_id", id);
-    expect(versions!.every((v) => v.source === "ai")).toBe(true);
-  });
-
-  it("orders sections for the occupation", async () => {
-    const { data } = await db.from("resume_versions").select("json").eq("user_id", ids.get("onsite-nurse")!).eq("kind", "resume").limit(1).single();
-    expect((data!.json as { sectionOrder: string[] }).sectionOrder[0]).toBe("credentials");
   });
 
   it("surfaces posting instructions in the summary", async () => {
@@ -276,11 +253,78 @@ describe("a full morning run", () => {
   it("records cost per stage in runs", async () => {
     const { data } = await db.from("runs").select("stage,cost_usd,user_id,provider").eq("run_date", RUN_DATE);
     const stages = new Set(data!.map((r) => r.stage));
-    for (const s of ["collect", "enrich", "match", "tailor"]) expect(stages).toContain(s);
-    expect(data!.filter((r) => r.stage === "tailor").every((r) => r.user_id)).toBe(true);
+    for (const s of ["collect", "enrich", "match"]) expect(stages).toContain(s);
     expect(data!.find((r) => r.stage === "enrich")?.user_id).toBeNull();
     const total = data!.reduce((n, r) => n + Number(r.cost_usd), 0);
     expect(total).toBeGreaterThan(0);
+  });
+});
+
+/** What the web route does when someone clicks: billing is off here, so no CV is taken. */
+async function askForCvs(key: string): Promise<void> {
+  const id = ids.get(key)!;
+  for (const r of (await matchesFor(key)).filter((m) => m.decision === "picked")) {
+    await db.from("matches").update({ tailor_status: "pending" }).eq("id", r.id);
+    await db.from("ai_tasks").insert({ user_id: id, kind: "tailor_match", input: {}, match_id: r.id, cv_bucket: "none" });
+  }
+}
+
+async function runTasks(): Promise<void> {
+  const budget = new Budget(db, "fake", { globalUsd: 50, userUsd: 10 }, RUN_DATE);
+  await budget.load();
+  while ((await processAiTasks(db, provider, budget, "owner-not-used@example.com")) > 0);
+}
+
+describe("CVs when someone asks", () => {
+  beforeAll(async () => {
+    for (const p of PERSONAS) await askForCvs(p.key);
+    await runTasks();
+  });
+
+  it("writes a CV for every persona's picks", async () => {
+    expect(byType(await matchesFor("remote-software"), "software-pass")?.tailor_status).toBe("rendered");
+    expect(byType(await matchesFor("remote-accountant"), "accountant-pass")?.tailor_status).toBe("rendered");
+    expect(byType(await matchesFor("onsite-nurse"), "nurse-pass")?.tailor_status).toBe("rendered");
+  });
+
+  it("a CV with an invented credential is never delivered", async () => {
+    const rows = await matchesFor("onsite-nurse");
+    const bad = byType(rows, "nurse-invent");
+    expect(bad?.tailor_status).toBe("failed");
+    expect(bad?.tailor_error).toBe("failed_fact_check");
+    const { data: versions } = await db.from("resume_versions").select("id").eq("match_id", bad!.id);
+    expect(versions).toEqual([]);
+    const { data: docs } = await db.from("documents").select("id").eq("match_id", bad!.id);
+    expect(docs).toEqual([]);
+  });
+
+  it("stores CVs and PDFs under the user's own folder", async () => {
+    const id = ids.get("remote-software")!;
+    const { data: docs } = await db.from("documents").select("kind,storage_path").eq("user_id", id);
+    expect(docs!.map((d) => d.kind).sort()).toEqual(["cover_letter_pdf", "resume_pdf"]);
+    for (const d of docs!) {
+      expect(d.storage_path.startsWith(`${id}/`)).toBe(true);
+      const dl = await db.storage.from("documents").download(d.storage_path);
+      expect(Buffer.from(await dl.data!.arrayBuffer()).subarray(0, 5).toString()).toBe("%PDF-");
+    }
+    const { data: versions } = await db.from("resume_versions").select("source").eq("user_id", id);
+    expect(versions!.every((v) => v.source === "ai")).toBe(true);
+  });
+
+  it("orders sections for the occupation", async () => {
+    const { data } = await db.from("resume_versions").select("json").eq("user_id", ids.get("onsite-nurse")!).eq("kind", "resume").limit(1).single();
+    expect((data!.json as { sectionOrder: string[] }).sectionOrder[0]).toBe("credentials");
+  });
+
+  it("records the cost against the person who asked", async () => {
+    const { data } = await db.from("runs").select("stage,user_id").eq("run_date", RUN_DATE).eq("stage", "tailor");
+    expect(data!.length).toBeGreaterThan(0);
+    expect(data!.every((r) => r.user_id)).toBe(true);
+  });
+
+  it("a later morning run keeps the CV a job already has", async () => {
+    await runDaily(deps(NOW), RUN_DATE);
+    expect(byType(await matchesFor("remote-software"), "software-pass")?.tailor_status).toBe("rendered");
   });
 });
 
@@ -298,7 +342,9 @@ describe("resuming", () => {
     await db.from("documents").delete().eq("user_id", id);
     await db.from("matches").update({ tailor_status: "drafted" }).eq("user_id", id).eq("decision", "picked");
     const before = provider.requests.length;
-    await runDaily(deps(NOW), RUN_DATE);
+    const row = byType(await matchesFor("remote-accountant"), "accountant-pass")!;
+    await db.from("ai_tasks").insert({ user_id: id, kind: "tailor_match", input: {}, match_id: row.id, cv_bucket: "none" });
+    await runTasks();
     expect(provider.requests.length).toBe(before);
     const { data } = await db.from("documents").select("kind").eq("user_id", id);
     expect(data!.map((d) => d.kind)).toEqual(["resume_pdf"]);

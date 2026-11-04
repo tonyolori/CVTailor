@@ -203,17 +203,23 @@ export const SECTION_TITLES: Record<ResumeSection, string> = {
   portfolio: "Portfolio",
 };
 
-/** Paid plan, an unexpired plan, or billing not switched on yet. Web and worker both decide with this. */
-export function isEntitled(user: { plan: string; paidUntil: string | null }, billingEnforced: boolean, now: Date): boolean {
-  if (!billingEnforced) return true;
+/** A paid plan that hasn't run out. */
+export function hasActivePlan(user: { plan: string; paidUntil: string | null }, now: Date): boolean {
   return user.plan === "pro" && user.paidUntil != null && new Date(user.paidUntil).getTime() > now.getTime();
 }
+
+/** CVs included in a paid plan or one-off pass. */
+export const PLAN_CVS = 30;
+/** CVs in one top-up. They never expire. */
+export const TOP_UP_CVS = 10;
+/** CVs every new account gets, once, to try it. The database default in profiles.cv_free_left must match. */
+export const FREE_CVS = 3;
 
 /** What a pasted job is called until the posting has been read for its real title. */
 export const PASTED_JOB_TITLE = "Pasted job";
 
-/** CVs one person can ask for per UTC day, unless CV_REQUESTS_PER_DAY says otherwise. Each one costs money to write. */
-export const DEFAULT_CV_REQUESTS_PER_DAY = 5;
+/** A safeguard against abuse, on top of the allowance: CVs one person can ask for per UTC day. See CV_REQUESTS_PER_DAY. */
+export const DEFAULT_CV_REQUESTS_PER_DAY = 7;
 
 /** Shortest and longest pasted posting. Longer text is what the model is given anyway. */
 export const MIN_POSTING_CHARS = 80;

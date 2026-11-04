@@ -60,15 +60,15 @@ Max, Ultra and Team plans include monthly API credits for a linked Console org (
 
 ## Level 5: paid plans
 
-Daily matches, tailored CVs and Write a CV need a paid plan once billing is on. Until then, every invited user has full service.
+Matches are free for everyone. Once billing is on, each CV uses one from the person's allowance: 3 free to try it, 30 with a plan, and 10 more in each top-up. A CV that can't be written is given back. Until billing is on, nothing is counted. The numbers are constants in `packages/core/src/resume.ts`, and the free one is also the default on `profiles.cv_free_left`.
 
 - [ ] Create a Paystack account and complete its business verification.
 - [ ] Set the webhook URL to `<site>/api/webhooks/paystack`.
-- [ ] Create a monthly plan in Paystack. Put its code in `PAYSTACK_PLAN_CODE_MONTHLY`, and set `PAYSTACK_SECRET_KEY`, `PAYSTACK_PRICE_MONTHLY_KOBO` and `PAYSTACK_PRICE_ONCE_KOBO` on the web host.
+- [ ] Create a monthly plan in Paystack. Put its code in `PAYSTACK_PLAN_CODE_MONTHLY`, and set `PAYSTACK_SECRET_KEY`, `PAYSTACK_PRICE_MONTHLY_KOBO`, `PAYSTACK_PRICE_ONCE_KOBO` and `PAYSTACK_PRICE_TOPUP_KOBO` on the web host.
 - [ ] **TODO(verify): Paystack's docs block automated reading, so I couldn't read them directly.** The signature scheme is confirmed. Event names and payload fields come from secondary sources, so send test events from the Paystack dashboard and confirm `apps/web/lib/paystack.ts` handles them, using test keys, before taking real money.
-- [ ] Make one real test-mode checkout for each plan, and check that the plan shows as paid in Settings. A redirect back from Paystack proves nothing: only the webhook grants a plan.
+- [ ] Make one real test-mode checkout for each plan and a top-up, and check that Settings shows the new CVs. A redirect back from Paystack proves nothing: only the webhook grants a plan.
 - [ ] Decide pricing using cost per user per day on the admin page.
-- [ ] Set `CV_REQUESTS_PER_DAY` on the web host and the worker. It's how many CVs one person can ask for per day, and it defaults to 5.
+- [ ] Set `CV_REQUESTS_PER_DAY` on the web host and the worker. It's a safeguard against abuse, on top of the allowance, and it defaults to 7.
 - [ ] Set `BILLING_ENFORCED=true` on **both the web host and the worker** when you're ready. This also turns off Remotive, whose free API excludes commercial use.
 
 ## Waitlist
@@ -76,9 +76,9 @@ Daily matches, tailored CVs and Write a CV need a paid plan once billing is on. 
 - [ ] The landing page's waitlist needs nothing set up. New signups appear on the admin page.
 - [ ] Set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` and `EMAIL_FROM` on the web host, because inviting someone from the waitlist emails them from there. Without these, the invitation is written to `.local/outbox` instead of being sent.
 
-## CVs on request
+## Writing CVs
 
-- [ ] Keep a worker running with `npm run worker -- --loop`, since the worker writes these CVs. With the worker off, a request waits until it's back. The `--tasks-only` flag checks every 5 seconds rather than every minute, if you want people to wait less.
+- [ ] Keep a worker running with `npm run worker -- --loop`, since the worker writes every CV, within seconds of someone asking. With the worker off, a request waits until it's back.
 
 ## Before inviting anyone who isn't you
 

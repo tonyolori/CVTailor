@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { hasActivePlan } from "@jobtailor/core";
 import { siteUrl } from "@/lib/site";
 import { checkoutBody, PLANS, type PlanId } from "@/lib/paystack";
 import { createClient } from "@/lib/supabase/server";
@@ -14,7 +15,15 @@ export async function POST(request: NextRequest) {
   const planId = String(form.get("plan"));
   if (!secret || !(planId in PLANS)) return NextResponse.redirect(siteUrl("/pricing?error=unavailable", request), 303);
 
-  const envKey = planId === "monthly" ? "PAYSTACK_PRICE_MONTHLY_KOBO" : "PAYSTACK_PRICE_ONCE_KOBO";
+  // Extra CVs top up a plan. They aren't a way around having one.
+  if (planId === "topup") {
+    const { data: profile } = await supabase.from("profiles").select("plan,paid_until").eq("id", data.user.id).maybeSingle();
+    if (!profile || !hasActivePlan({ plan: profile.plan, paidUntil: profile.paid_until }, new Date())) {
+      return NextResponse.redirect(siteUrl("/pricing?error=plan", request), 303);
+    }
+  }
+
+  const envKey = planId === "monthly" ? "PAYSTACK_PRICE_MONTHLY_KOBO" : planId === "topup" ? "PAYSTACK_PRICE_TOPUP_KOBO" : "PAYSTACK_PRICE_ONCE_KOBO";
   const amountKobo = Number(process.env[envKey]);
   if (!Number.isInteger(amountKobo) || amountKobo <= 0) return NextResponse.redirect(siteUrl("/pricing?error=unavailable", request), 303);
 

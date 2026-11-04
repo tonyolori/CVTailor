@@ -2,7 +2,7 @@ import { cvStyleOf } from "@jobtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { WriteCv } from "@/components/WriteCv";
 import { requireOnboarded } from "@/lib/auth";
-import { hasPaidFeatures } from "@/lib/entitlement";
+import { cvAllowance } from "@/lib/entitlement";
 
 export const metadata = { title: "Write a CV - JobTailor" };
 
@@ -18,7 +18,7 @@ export default async function WritePage({ searchParams }: { searchParams: Promis
   }
   return (
     <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="write">
-      <WriteCv paid={hasPaidFeatures(profile)} style={cvStyleOf(profile.cv_style)} forMatch={forMatch} />
+      <WriteCv allowance={cvAllowance(profile)} style={cvStyleOf(profile.cv_style)} forMatch={forMatch} />
     </AppShell>
   );
 }

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
+import { PLAN_CVS, TOP_UP_CVS } from "@jobtailor/core";
 
 /**
  * Paystack helpers. Pure functions, tested with test-mode payloads.
@@ -10,9 +11,11 @@ import { z } from "zod";
  */
 export const PLANS = {
   /** Card subscription that renews itself. Bank transfer can't, so that's the one-off below. */
-  monthly: { id: "monthly", label: "Monthly subscription", kind: "subscription", days: 31 },
+  monthly: { id: "monthly", label: "Monthly subscription", kind: "subscription", days: 31, cvs: PLAN_CVS, grant: "plan_reset" },
   /** A single payment for 30 days. Works with bank transfer and USSD, which can't auto-renew. */
-  once30: { id: "once30", label: "30 days, one payment", kind: "once", days: 30 },
+  once30: { id: "once30", label: "30 days, one payment", kind: "once", days: 30, cvs: PLAN_CVS, grant: "plan_add" },
+  /** Extra CVs that never expire. Changes nothing about the plan itself. */
+  topup: { id: "topup", label: "Extra CVs", kind: "once", days: 0, cvs: TOP_UP_CVS, grant: "extra" },
 } as const;
 export type PlanId = keyof typeof PLANS;
 
@@ -76,7 +79,7 @@ export function metadataOf(e: PaystackEvent): { userId?: string; planId?: string
 }
 
 export type WebhookAction =
-  | { kind: "payment"; reference: string; amountKobo: number; currency: string; userId?: string; email?: string; planId?: string; days: number; subscriptionCode?: string }
+  | { kind: "payment"; reference: string; amountKobo: number; currency: string; userId?: string; email?: string; planId?: string; days: number; cvs: number; grant: "plan_reset" | "plan_add" | "extra"; subscriptionCode?: string }
   | { kind: "subscription_status"; code: string; status: string; email?: string; userId?: string; emailToken?: string; nextPayment?: string | null }
   | { kind: "ignore" };
 
@@ -98,6 +101,8 @@ export function actionFor(e: PaystackEvent): WebhookAction {
         email: d.customer?.email,
         planId: plan.id,
         days: plan.days,
+        cvs: plan.cvs,
+        grant: plan.grant,
         subscriptionCode: d.subscription?.subscription_code,
       };
     }

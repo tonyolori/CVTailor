@@ -2,7 +2,7 @@ import { cvStyleOf, EnrichedJobSchema } from "@jobtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { MatchBoard, type BoardRow } from "@/components/MatchBoard";
 import { requireOnboarded } from "@/lib/auth";
-import { hasPaidFeatures } from "@/lib/entitlement";
+import { cvAllowance } from "@/lib/entitlement";
 import { loadMatchDetail } from "@/lib/match-detail";
 import { safeHref, TRACKED_DECISIONS, VIEWS } from "@/lib/views";
 
@@ -94,7 +94,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         initialSelected={selected}
         initialDetail={detail}
         defaultStyle={cvStyleOf(profile.cv_style)}
-        paid={hasPaidFeatures(profile)}
+        allowance={cvAllowance(profile)}
         lastRun={latest?.run_date ? new Date(`${latest.run_date}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" }) : null}
         gaps={summary?.gaps ?? []}
         notes={summary?.notes ?? []}
