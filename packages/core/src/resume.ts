@@ -208,12 +208,12 @@ export function hasActivePlan(user: { plan: string; paidUntil: string | null }, 
   return user.plan === "pro" && user.paidUntil != null && new Date(user.paidUntil).getTime() > now.getTime();
 }
 
-/** CVs included in a paid plan or one-off pass. */
-export const PLAN_CVS = 30;
-/** CVs in one top-up. They never expire. */
-export const TOP_UP_CVS = 10;
-/** CVs every new account gets, once, to try it. The database default in profiles.cv_free_left must match. */
-export const FREE_CVS = 3;
+/** CVs in a paid plan or one-off pass, unless CVS_PER_PLAN says otherwise. */
+export const DEFAULT_PLAN_CVS = 30;
+/** CVs in one top-up, unless CVS_PER_TOP_UP says otherwise. They never expire. */
+export const DEFAULT_TOP_UP_CVS = 10;
+/** CVs a new account gets, once, unless FREE_CVS says otherwise. Granted at consent. */
+export const DEFAULT_FREE_CVS = 3;
 
 /** What a pasted job is called until the posting has been read for its real title. */
 export const PASTED_JOB_TITLE = "Pasted job";

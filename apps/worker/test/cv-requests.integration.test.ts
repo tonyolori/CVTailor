@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { FREE_CVS, onsiteNursePersona, PASTED_JOB_TITLE, PLAN_CVS, TOP_UP_CVS } from "@jobtailor/core";
+import { DEFAULT_FREE_CVS, DEFAULT_PLAN_CVS, DEFAULT_TOP_UP_CVS, onsiteNursePersona, PASTED_JOB_TITLE } from "@jobtailor/core";
 import { FakeProvider, type LlmRequest } from "@jobtailor/llm";
 import { loadConfig } from "../src/config";
 import { serviceClient } from "../src/db";
@@ -275,7 +275,7 @@ describe("CV styles", () => {
 describe("the CV allowance", () => {
   it("every new account starts with 3 free CVs", async () => {
     const fresh = await makeUser("fresh");
-    expect((await balances(fresh.id)).cv_free_left).toBe(FREE_CVS);
+    expect((await balances(fresh.id)).cv_free_left).toBe(DEFAULT_FREE_CVS);
     await admin.auth.admin.deleteUser(fresh.id);
   });
 
@@ -358,44 +358,44 @@ describe("payments", () => {
 
   it("a first monthly payment starts the plan with its CVs", async () => {
     await setBalances(b.id, 0, 3, 0, false);
-    expect((await pay(b.id, 31, PLAN_CVS, "plan_reset")).data).toBe(true);
+    expect((await pay(b.id, 31, DEFAULT_PLAN_CVS, "plan_reset")).data).toBe(true);
     const p = await balances(b.id);
     expect(p.plan).toBe("pro");
-    expect(p.cv_plan_left).toBe(PLAN_CVS);
+    expect(p.cv_plan_left).toBe(DEFAULT_PLAN_CVS);
     expect(new Date(p.paid_until!).getTime()).toBeGreaterThan(Date.now() + 30 * 86_400_000);
   });
 
   it("a renewal resets the CVs: unused ones don't roll over", async () => {
     await setBalances(b.id, 12, 0, 0);
-    await pay(b.id, 31, PLAN_CVS, "plan_reset");
-    expect((await balances(b.id)).cv_plan_left).toBe(PLAN_CVS);
+    await pay(b.id, 31, DEFAULT_PLAN_CVS, "plan_reset");
+    expect((await balances(b.id)).cv_plan_left).toBe(DEFAULT_PLAN_CVS);
   });
 
   it("a one-off pass bought during a plan adds to it, since it was paid for", async () => {
     await setBalances(b.id, 12, 0, 0);
-    await pay(b.id, 30, PLAN_CVS, "plan_add");
-    expect((await balances(b.id)).cv_plan_left).toBe(12 + PLAN_CVS);
+    await pay(b.id, 30, DEFAULT_PLAN_CVS, "plan_add");
+    expect((await balances(b.id)).cv_plan_left).toBe(12 + DEFAULT_PLAN_CVS);
   });
 
   it("a pass bought after a plan ran out doesn't revive old CVs", async () => {
     await setBalances(b.id, 12, 0, 0, false);
-    await pay(b.id, 30, PLAN_CVS, "plan_add");
-    expect((await balances(b.id)).cv_plan_left).toBe(PLAN_CVS);
+    await pay(b.id, 30, DEFAULT_PLAN_CVS, "plan_add");
+    expect((await balances(b.id)).cv_plan_left).toBe(DEFAULT_PLAN_CVS);
   });
 
   it("a top-up adds extra CVs and leaves the plan alone", async () => {
     await setBalances(b.id, 7, 0, 2);
     const before = (await balances(b.id)).paid_until;
-    await pay(b.id, 0, TOP_UP_CVS, "extra");
-    expect(await balances(b.id)).toMatchObject({ cv_plan_left: 7, cv_extra_left: 2 + TOP_UP_CVS, paid_until: before });
+    await pay(b.id, 0, DEFAULT_TOP_UP_CVS, "extra");
+    expect(await balances(b.id)).toMatchObject({ cv_plan_left: 7, cv_extra_left: 2 + DEFAULT_TOP_UP_CVS, paid_until: before });
   });
 
   it("a repeated payment grants nothing", async () => {
     await setBalances(b.id, 0, 0, 0);
     const ref = randomUUID();
-    expect((await pay(b.id, 0, TOP_UP_CVS, "extra", ref)).data).toBe(true);
-    expect((await pay(b.id, 0, TOP_UP_CVS, "extra", ref)).data).toBe(false);
-    expect((await balances(b.id)).cv_extra_left).toBe(TOP_UP_CVS);
+    expect((await pay(b.id, 0, DEFAULT_TOP_UP_CVS, "extra", ref)).data).toBe(true);
+    expect((await pay(b.id, 0, DEFAULT_TOP_UP_CVS, "extra", ref)).data).toBe(false);
+    expect((await balances(b.id)).cv_extra_left).toBe(DEFAULT_TOP_UP_CVS);
   });
 
   it("a payment from an unknown customer is still recorded", async () => {

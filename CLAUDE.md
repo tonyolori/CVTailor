@@ -68,6 +68,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - Persona fixtures live in `packages/core/src/personas.ts` and are invented. Exercise changes against all three, not only the software one.
 - A job with an `owner_id` was pasted in by that user and is private to them. Pipeline queries over shared jobs must filter `owner_id is null`.
 - CVs are written only when someone asks, never in the daily run. Each takes one from the person's allowance (`reserve_cv`), and any outcome but a written CV gives it back (`refund_task_cv`). With billing on, the worker refuses a task holding no reserved CV. Users can't queue these tasks directly.
+- Prices and CV counts come from env through `apps/web/lib/plan-settings.ts`, with prices in naira. It alone converts to kobo for Paystack.
 - Every payment goes through `record_payment`, so the record, the plan and the CVs change together or not at all.
 - PDF styles live in `packages/render/src/template.tsx`, and their on-screen match in `globals.css`. Change both together. Classic is the original design.
 - The app is light only. Inter for app text, Instrument Serif for headlines and job titles, Instrument Sans on public pages.

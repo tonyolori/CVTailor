@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@jobtailor/core";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { sendInvite } from "@/lib/email";
+import { cvCounts } from "@/lib/plan-settings";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -67,8 +68,9 @@ export async function signOut(): Promise<void> {
 }
 
 export async function giveConsent(): Promise<void> {
-  const { supabase, user } = await requireUser();
-  await supabase.from("profiles").update({ consented_at: new Date().toISOString() }).eq("id", user.id);
+  const { user } = await requireUser();
+  // Only the first consent sets the free CVs, so going through this twice can't top them up.
+  await adminClient().from("profiles").update({ consented_at: new Date().toISOString(), cv_free_left: cvCounts().free }).eq("id", user.id).is("consented_at", null);
   redirect("/onboarding");
 }
 

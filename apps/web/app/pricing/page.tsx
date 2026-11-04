@@ -1,19 +1,20 @@
 import Link from "next/link";
-import { FREE_CVS, PLAN_CVS, TOP_UP_CVS } from "@jobtailor/core";
 import { ALLOWANCE_COLUMNS, cvAllowance, type AllowanceFields } from "@/lib/entitlement";
 import { PLANS } from "@/lib/paystack";
+import { cvCounts, formatNaira, priceNaira, type PricedPlan } from "@/lib/plan-settings";
 import { createClient } from "@/lib/supabase/server";
 
-function naira(kobo: string | undefined): string | null {
-  const n = Number(kobo);
-  return Number.isFinite(n) && n > 0 ? `₦${(n / 100).toLocaleString("en-NG")}` : null;
+function shownPrice(plan: PricedPlan): string | null {
+  const price = priceNaira(plan);
+  return price === null ? null : formatNaira(price);
 }
 
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
-  const monthly = naira(process.env.PAYSTACK_PRICE_MONTHLY_KOBO);
-  const once = naira(process.env.PAYSTACK_PRICE_ONCE_KOBO);
-  const topUp = naira(process.env.PAYSTACK_PRICE_TOPUP_KOBO);
+  const monthly = shownPrice("monthly");
+  const once = shownPrice("once30");
+  const topUp = shownPrice("topup");
+  const counts = cvCounts();
 
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
@@ -41,13 +42,13 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
         <div className="grid2">
           <div className="card">
             <h2>Free</h2>
-            <p>Daily matches by email and on your dashboard, plus {FREE_CVS} CVs to try it.</p>
+            <p>Daily matches by email and on your dashboard, {counts.free ? `plus ${counts.free} CVs to try it` : "no CVs included"}.</p>
           </div>
           {monthly ? (
             <form className="card" action="/api/billing/checkout" method="post">
               <h2>{PLANS.monthly.label}</h2>
               <p>
-                <b>{monthly}</b> a month for {PLAN_CVS} CVs. Unused CVs don't roll over. Renews by card until you cancel.
+                <b>{monthly}</b> a month for {counts.plan} CVs. Unused CVs don't roll over. Renews by card until you cancel.
               </p>
               <input type="hidden" name="plan" value="monthly" />
               <button className="primary" type="submit">
@@ -59,7 +60,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
             <form className="card" action="/api/billing/checkout" method="post">
               <h2>{PLANS.once30.label}</h2>
               <p>
-                <b>{once}</b> for {PLAN_CVS} CVs over 30 days. Pay by card, bank transfer or USSD. It doesn't renew.
+                <b>{once}</b> for {counts.plan} CVs over 30 days. Pay by card, bank transfer or USSD. It doesn't renew.
               </p>
               <input type="hidden" name="plan" value="once30" />
               <button className="primary" type="submit">
@@ -71,18 +72,18 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
         {topUp ? (
           allowance?.planActive ? (
             <form className="card" action="/api/billing/checkout" method="post">
-              <h2>{TOP_UP_CVS} extra CVs</h2>
+              <h2>{counts.topUp} extra CVs</h2>
               <p>
                 <b>{topUp}</b>. These never expire, and they're used after your plan's CVs.
               </p>
               <input type="hidden" name="plan" value="topup" />
               <button className="primary" type="submit">
-                Buy {TOP_UP_CVS} CVs
+                Buy {counts.topUp} CVs
               </button>
             </form>
           ) : (
             <p className="muted">
-              On a plan, you can add {TOP_UP_CVS} extra CVs for {topUp} whenever you need them. They never expire.
+              On a plan, you can add {counts.topUp} extra CVs for {topUp} whenever you need them. They never expire.
             </p>
           )
         ) : null}

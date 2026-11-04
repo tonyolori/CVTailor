@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { PLAN_CVS, TOP_UP_CVS } from "@jobtailor/core";
+import { cvCounts } from "./plan-settings";
 
 /**
  * Paystack helpers. Pure functions, tested with test-mode payloads.
@@ -11,11 +11,11 @@ import { PLAN_CVS, TOP_UP_CVS } from "@jobtailor/core";
  */
 export const PLANS = {
   /** Card subscription that renews itself. Bank transfer can't, so that's the one-off below. */
-  monthly: { id: "monthly", label: "Monthly subscription", kind: "subscription", days: 31, cvs: PLAN_CVS, grant: "plan_reset" },
+  monthly: { id: "monthly", label: "Monthly subscription", kind: "subscription", days: 31, grant: "plan_reset" },
   /** A single payment for 30 days. Works with bank transfer and USSD, which can't auto-renew. */
-  once30: { id: "once30", label: "30 days, one payment", kind: "once", days: 30, cvs: PLAN_CVS, grant: "plan_add" },
+  once30: { id: "once30", label: "30 days, one payment", kind: "once", days: 30, grant: "plan_add" },
   /** Extra CVs that never expire. Changes nothing about the plan itself. */
-  topup: { id: "topup", label: "Extra CVs", kind: "once", days: 0, cvs: TOP_UP_CVS, grant: "extra" },
+  topup: { id: "topup", label: "Extra CVs", kind: "once", days: 0, grant: "extra" },
 } as const;
 export type PlanId = keyof typeof PLANS;
 
@@ -101,7 +101,7 @@ export function actionFor(e: PaystackEvent): WebhookAction {
         email: d.customer?.email,
         planId: plan.id,
         days: plan.days,
-        cvs: plan.cvs,
+        cvs: plan.id === "topup" ? cvCounts().topUp : cvCounts().plan,
         grant: plan.grant,
         subscriptionCode: d.subscription?.subscription_code,
       };

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { FREE_CVS, PLAN_CVS } from "@jobtailor/core";
 import { redirect } from "next/navigation";
 import { CvSheet } from "@/components/CvSheet";
 import { LandingStory } from "@/components/LandingStory";
 import { LandingSignIn } from "@/components/LoginForm";
 import { landingExample } from "@/lib/landing-examples";
+import { cvCounts } from "@/lib/plan-settings";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -13,6 +13,7 @@ export default async function Home() {
   if (data.user) redirect("/dashboard");
 
   const jobs = landingExample();
+  const counts = cvCounts();
   return (
     <main className="lp">
       <section className="hero">
@@ -73,10 +74,10 @@ export default async function Home() {
         </div>
         <div className="plans">
           <div>
-            <b>Free</b>Daily matches, plus {FREE_CVS} CVs to try it.
+            <b>Free</b>Daily matches{counts.free ? `, plus ${counts.free} CVs to try it` : ""}.
           </div>
           <div>
-            <b>Paid</b>{PLAN_CVS} CVs, by the month or for 30 days, for your matches or any job you paste in. Add more whenever you need them.
+            <b>Paid</b>{counts.plan} CVs, by the month or for 30 days, for your matches or any job you paste in. Add more whenever you need them.
           </div>
         </div>
         <div className="foot">

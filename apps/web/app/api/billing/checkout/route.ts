@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hasActivePlan } from "@jobtailor/core";
 import { siteUrl } from "@/lib/site";
 import { checkoutBody, PLANS, type PlanId } from "@/lib/paystack";
+import { nairaToKobo, priceNaira } from "@/lib/plan-settings";
 import { createClient } from "@/lib/supabase/server";
 
 /** Starts a Paystack checkout. Nothing is granted here: only the verified webhook does that. */
@@ -23,9 +24,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const envKey = planId === "monthly" ? "PAYSTACK_PRICE_MONTHLY_KOBO" : planId === "topup" ? "PAYSTACK_PRICE_TOPUP_KOBO" : "PAYSTACK_PRICE_ONCE_KOBO";
-  const amountKobo = Number(process.env[envKey]);
-  if (!Number.isInteger(amountKobo) || amountKobo <= 0) return NextResponse.redirect(siteUrl("/pricing?error=unavailable", request), 303);
+  const price = priceNaira(planId as PlanId);
+  if (price === null) return NextResponse.redirect(siteUrl("/pricing?error=unavailable", request), 303);
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
   const res = await fetch("https://api.paystack.co/transaction/initialize", {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         email: data.user.email,
         userId: data.user.id,
         planId: planId as PlanId,
-        amountKobo,
+        amountKobo: nairaToKobo(price),
         callbackUrl: `${site}/settings?paid=pending`,
         planCode: process.env.PAYSTACK_PLAN_CODE_MONTHLY,
       }),

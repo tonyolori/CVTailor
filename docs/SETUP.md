@@ -54,17 +54,19 @@ Max, Ultra and Team plans include monthly API credits for a linked Console org (
 - [ ] Set `CRON_SECRET`, `OWNER_EMAIL`, `EMAIL_API_KEY` and `EMAIL_FROM`. The daily check in `apps/web/vercel.json` uses them to alert you when no run has finished. On Cloudflare Pages, call `/api/cron/run-check` from a Cron Trigger instead.
 - [ ] Set `SUPABASE_SERVICE_ROLE_KEY` as a server-only variable. Account deletion, unsubscribe, webhooks and admin use it.
 - [ ] Leave `ANTHROPIC_API_KEY` unset on the web host unless you're at Level 3. Without it, onboarding's AI steps queue for the worker.
+- [ ] On Vercel, use the **Pro plan once you take payments**. [Hobby is for non-commercial use only](https://vercel.com/docs/limits/fair-use-guidelines), and requesting payment from visitors counts as commercial.
+- [ ] Vercel runs only the web app. The worker has to run somewhere that stays on, as below.
 
 ### Worker on your PC
 - [ ] Follow `docs/SCHEDULING.md` for Windows Task Scheduler or systemd.
 
 ## Level 5: paid plans
 
-Matches are free for everyone. Once billing is on, each CV uses one from the person's allowance: 3 free to try it, 30 with a plan, and 10 more in each top-up. A CV that can't be written is given back. Until billing is on, nothing is counted. The numbers are constants in `packages/core/src/resume.ts`, and the free one is also the default on `profiles.cv_free_left`.
+Matches are free for everyone. Once billing is on, each CV uses one from the person's allowance: 3 free to try it, 30 with a plan, and 10 more in each top-up. A CV that can't be written is given back. Until billing is on, nothing is counted. Change those numbers with `FREE_CVS`, `CVS_PER_PLAN` and `CVS_PER_TOP_UP`. A change applies to the next signup or payment, not to CVs people already have.
 
 - [ ] Create a Paystack account and complete its business verification.
 - [ ] Set the webhook URL to `<site>/api/webhooks/paystack`.
-- [ ] Create a monthly plan in Paystack. Put its code in `PAYSTACK_PLAN_CODE_MONTHLY`, and set `PAYSTACK_SECRET_KEY`, `PAYSTACK_PRICE_MONTHLY_KOBO`, `PAYSTACK_PRICE_ONCE_KOBO` and `PAYSTACK_PRICE_TOPUP_KOBO` on the web host.
+- [ ] Create a monthly plan in Paystack. Put its code in `PAYSTACK_PLAN_CODE_MONTHLY`, and set `PAYSTACK_SECRET_KEY`, `PRICE_MONTHLY_NAIRA`, `PRICE_PASS_NAIRA` and `PRICE_TOP_UP_NAIRA` on the web host. Prices are in naira, so 5000 means ₦5,000. Keep the monthly price the same as the plan you created in Paystack.
 - [ ] **TODO(verify): Paystack's docs block automated reading, so I couldn't read them directly.** The signature scheme is confirmed. Event names and payload fields come from secondary sources, so send test events from the Paystack dashboard and confirm `apps/web/lib/paystack.ts` handles them, using test keys, before taking real money.
 - [ ] Make one real test-mode checkout for each plan and a top-up, and check that Settings shows the new CVs. A redirect back from Paystack proves nothing: only the webhook grants a plan.
 - [ ] Decide pricing using cost per user per day on the admin page.
