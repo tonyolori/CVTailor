@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   const form = await request.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "Choose a file." }, { status: 400 });
-  if (file.size > MAX_CV_BYTES) return NextResponse.json({ error: "That file is over 5 MB." }, { status: 400 });
+  if (file.size > MAX_CV_BYTES) return NextResponse.json({ error: "That file is over 4 MB." }, { status: 400 });
 
   let text: string;
   try {

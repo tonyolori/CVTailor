@@ -107,7 +107,7 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
       {notice ? <div className="notice bad">{notice}</div> : null}
       <form onSubmit={submit} className="stack">
         <label>
-          CV (PDF or Word .docx, up to 5 MB)
+          CV (PDF or Word .docx, up to 4 MB)
           <input name="file" type="file" accept=".pdf,.docx" required />
         </label>
         <div className="row">

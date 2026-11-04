@@ -1,6 +1,6 @@
 import "server-only";
 
-export const MAX_CV_BYTES = 5 * 1024 * 1024;
+export const MAX_CV_BYTES = 4 * 1024 * 1024;
 
 /** Plain text from an uploaded CV. The file itself is never stored. */
 export async function extractCvText(file: File): Promise<string> {
