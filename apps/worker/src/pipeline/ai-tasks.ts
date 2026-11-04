@@ -1,4 +1,4 @@
-import { DEFAULT_CV_REQUESTS_PER_DAY, isEntitled, type Category } from "@jobtailor/core";
+import { DEFAULT_CV_REQUESTS_PER_DAY, isEntitled, PASTED_JOB_TITLE, type Category } from "@jobtailor/core";
 import {
   EXTRACT_FACTS_SYSTEM,
   extractFactsUserPrompt,
@@ -185,6 +185,3 @@ async function enrichIfNeeded(db: Db, provider: LlmProvider, budget: Budget, use
   );
   return true;
 }
-
-/** What a pasted job is called until the posting has been read for its real title. */
-export const PASTED_JOB_TITLE = "Pasted job";

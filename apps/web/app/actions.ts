@@ -3,8 +3,9 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@jobtailor/core";
+import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@jobtailor/core";
 import { requireAdmin, requireUser } from "@/lib/auth";
+import { sendInvite } from "@/lib/email";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -34,9 +35,29 @@ export async function signIn(_prev: ActionResult | null, form: FormData): Promis
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? `https://${h.get("host")}`;
   const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${site}/auth/callback` } });
   if (error) {
-    return { ok: false, message: /invite-only/i.test(error.message) ? "JobTailor is invite-only right now. Ask for an invitation." : "Couldn't send the link. Try again shortly." };
+    return { ok: false, message: /invite-only/i.test(error.message) ? "JobTailor is invite only for now, and this email isn't on the list yet. Join the waitlist and we'll email you when there's a place." : "Couldn't send the link. Try again shortly." };
   }
   return { ok: true, message: "Check your email for a sign-in link." };
+}
+
+/**
+ * Anyone can register interest. The answer is the same whether or not the address is already
+ * on the list, so this can't be used to find out who has signed up.
+ */
+export async function joinWaitlist(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) return { ok: false, message: "Enter a valid email address." };
+  if (form.get("consent") !== "on") return { ok: false, message: "Tick the box so we can keep your details and email you." };
+  // Filled in only by bots, since people never see this field. They get a normal-looking answer.
+  if (String(form.get("website") ?? "")) return { ok: true };
+  const h = await headers();
+  if (!allow(`waitlist:${clientIp(h)}`, 5, 10 * 60_000)) return { ok: false, message: "Too many attempts. Try again in a few minutes." };
+  const clean = (key: string, max: number) => String(form.get(key) ?? "").trim().slice(0, max) || null;
+  const { error } = await adminClient()
+    .from("waitlist")
+    .upsert({ email, name: clean("name", 120), looking_for: clean("looking_for", 200), consented_at: new Date().toISOString() }, { onConflict: "email", ignoreDuplicates: true });
+  if (error) return { ok: false, message: "Couldn't add you just now. Try again shortly." };
+  return { ok: true };
 }
 
 export async function signOut(): Promise<void> {
@@ -86,6 +107,16 @@ export async function setTrackerStatus(matchId: number, status: string): Promise
   return error ? { ok: false, message: "Couldn't update that." } : { ok: true };
 }
 
+/** A style for this one CV, or null to follow the user's default. */
+export async function setMatchCvStyle(matchId: number, style: string | null): Promise<ActionResult> {
+  const value = style === null ? null : CvStyle.safeParse(style);
+  if (value && !value.success) return { ok: false, message: "Unknown style." };
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("matches").update({ cv_style: value ? value.data : null }).eq("id", matchId).eq("user_id", user.id);
+  revalidatePath("/dashboard");
+  return error ? { ok: false, message: "Couldn't change the style." } : { ok: true };
+}
+
 // --- Resume versions ------------------------------------------------------------
 export async function saveResumeVersion(matchId: number, input: unknown): Promise<ActionResult & { versionId?: number }> {
   const { supabase, user } = await requireUser();
@@ -121,7 +152,16 @@ export async function addToLibrary(addition: { skill?: string; fact?: { text: st
   return error ? { ok: false, message: "Couldn't update your library." } : { ok: true, message: "Added to your library." };
 }
 
-// --- Settings -------------------------------------------------------------------
+// --- Settings ---
+export async function setCvStyle(style: string): Promise<ActionResult> {
+  const parsed = CvStyle.safeParse(style);
+  if (!parsed.success) return { ok: false, message: "Unknown style." };
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("profiles").update({ cv_style: parsed.data }).eq("id", user.id);
+  revalidatePath("/settings/cv-style");
+  revalidatePath("/dashboard");
+  return error ? { ok: false, message: "Couldn't save your CV style." } : { ok: true };
+}
 export async function updateSettings(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const tz = String(form.get("tz") ?? "UTC");
@@ -163,6 +203,26 @@ export async function allowEmail(form: FormData): Promise<void> {
 export async function removeEmail(form: FormData): Promise<void> {
   await requireAdmin();
   await adminClient().from("allowed_emails").delete().eq("email", String(form.get("email")));
+  revalidatePath("/admin");
+}
+
+/** Lets someone from the waitlist sign up, and tells them. A failed email doesn't undo the invitation. */
+export async function inviteFromWaitlist(form: FormData): Promise<void> {
+  await requireAdmin();
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const db = adminClient();
+  const { data } = await db.from("waitlist").select("email,name").eq("email", email).maybeSingle();
+  if (!data) return;
+  await db.from("allowed_emails").upsert({ email, note: data.name ? `Waitlist: ${data.name}` : "Waitlist" });
+  const sent = await sendInvite(email);
+  await db.from("waitlist").update({ invited_at: new Date().toISOString() }).eq("email", email);
+  revalidatePath("/admin");
+  redirect(sent ? "/admin?invited=1" : "/admin?invited=noemail");
+}
+
+export async function removeFromWaitlist(form: FormData): Promise<void> {
+  await requireAdmin();
+  await adminClient().from("waitlist").delete().eq("email", String(form.get("email")));
   revalidatePath("/admin");
 }
 

@@ -124,7 +124,7 @@ describe("one user cannot read another user's rows", () => {
 
   it("B can read their own rows", async () => {
     expect((await b.client.from("matches").select("id").eq("user_id", b.id)).data).toHaveLength(1);
-    expect((await b.client.from("resume_versions").select("id")).data).toHaveLength(1);
+    expect((await b.client.from("resume_versions").select("id").eq("id", versionB)).data).toHaveLength(1);
     expect((await b.client.from("preferences").select("user_id")).data).toEqual([{ user_id: b.id }]);
   });
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { countryOptions } from "@/lib/countries";
@@ -12,6 +13,12 @@ export default async function OnboardingPreferencesPage() {
   if (prefs) redirect("/dashboard");
   const { data: categories } = await supabase.from("categories").select("id,label").order("label");
   return (
+    <div className="public">
+      <div className="public-top">
+        <Link className="logo" href="/">
+          JobTailor
+        </Link>
+      </div>
     <main className="page">
       <div>
         <small className="muted">Step 2 of 2</small>
@@ -19,5 +26,6 @@ export default async function OnboardingPreferencesPage() {
       </div>
       <PreferencesForm initial={null} categories={categories ?? []} tz={profile.tz} countries={countryOptions()} next="/dashboard" saveLabel="Finish" />
     </main>
+    </div>
   );
 }

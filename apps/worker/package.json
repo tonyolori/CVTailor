@@ -6,8 +6,8 @@
   "scripts": {
     "start": "tsx --env-file-if-exists=../../.env src/main.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run --exclude test/rls.test.ts --exclude test/pipeline.integration.test.ts",
-    "test:rls": "node --env-file=../../.env ../../node_modules/vitest/vitest.mjs run test/rls.test.ts",
+    "test": "vitest run --exclude test/rls.test.ts --exclude test/cv-requests.integration.test.ts --exclude test/pipeline.integration.test.ts",
+    "test:rls": "node --env-file=../../.env ../../node_modules/vitest/vitest.mjs run --no-file-parallelism test/rls.test.ts test/cv-requests.integration.test.ts",
     "seed:personas": "tsx --env-file-if-exists=../../.env src/seed/personas.ts",
     "seed:tony": "tsx --env-file-if-exists=../../.env src/seed/tony.ts",
     "seed:companies": "tsx --env-file-if-exists=../../.env src/seed/companies.ts",

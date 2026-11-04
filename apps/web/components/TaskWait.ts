@@ -6,10 +6,11 @@ const GIVE_UP_SECONDS = 300;
 export const WORKER_OFF_MESSAGE = "The background worker didn't pick this up, so it may be off. Try again later, or enter your details by hand.";
 
 /**
- * Waits on an onboarding AI task. Checks less often once it's clearly waiting on the worker,
- * and gives up after a few minutes so a worker that's off can't leave a page polling forever.
+ * Waits on an AI task. Checks less often once it's clearly waiting on the worker, and gives up
+ * after a few minutes so a worker that's off can't leave a page polling forever. Onboarding drops
+ * its task on giving up, since nobody's waiting. A requested CV is left queued, with its own message.
  */
-export async function pollTask<T>(id: number, onTick?: (seconds: number) => void, signal?: AbortSignal): Promise<{ status: string; output?: T; error?: string }> {
+export async function pollTask<T>(id: number, onTick?: (seconds: number) => void, signal?: AbortSignal, keepWithMessage?: string): Promise<{ status: string; output?: T; error?: string }> {
   const started = Date.now();
   for (;;) {
     if (signal?.aborted) return { status: "cancelled" };
@@ -24,6 +25,7 @@ export async function pollTask<T>(id: number, onTick?: (seconds: number) => void
     const seconds = Math.round((Date.now() - started) / 1000);
     onTick?.(seconds);
     if (seconds >= GIVE_UP_SECONDS) {
+      if (keepWithMessage) return { status: "waiting", error: keepWithMessage };
       await cancelTask(id);
       return { status: "failed", error: WORKER_OFF_MESSAGE };
     }

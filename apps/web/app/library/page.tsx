@@ -1,6 +1,6 @@
 import { FactLibrarySchema } from "@jobtailor/core";
+import { AppShell } from "@/components/AppShell";
 import { LibraryEditor } from "@/components/LibraryEditor";
-import { Nav } from "@/components/Nav";
 import { requireOnboarded } from "@/lib/auth";
 
 export default async function LibraryPage() {
@@ -8,8 +8,7 @@ export default async function LibraryPage() {
   const { data } = await supabase.from("fact_library").select("data").eq("user_id", user.id).single();
   const lib = FactLibrarySchema.parse(data?.data);
   return (
-    <>
-      <Nav email={user.email ?? ""} />
+    <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="library">
       <main className="page">
         <div>
           <h1>Your library</h1>
@@ -17,6 +16,6 @@ export default async function LibraryPage() {
         </div>
         <LibraryEditor initial={lib} />
       </main>
-    </>
+    </AppShell>
   );
 }

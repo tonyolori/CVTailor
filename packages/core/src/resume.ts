@@ -209,6 +209,9 @@ export function isEntitled(user: { plan: string; paidUntil: string | null }, bil
   return user.plan === "pro" && user.paidUntil != null && new Date(user.paidUntil).getTime() > now.getTime();
 }
 
+/** What a pasted job is called until the posting has been read for its real title. */
+export const PASTED_JOB_TITLE = "Pasted job";
+
 /** CVs one person can ask for per UTC day, unless CV_REQUESTS_PER_DAY says otherwise. Each one costs money to write. */
 export const DEFAULT_CV_REQUESTS_PER_DAY = 5;
 

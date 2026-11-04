@@ -1,5 +1,5 @@
 import { PreferencesSchema } from "@jobtailor/core";
-import { Nav } from "@/components/Nav";
+import { AppShell } from "@/components/AppShell";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { countryOptions } from "@/lib/countries";
 import { requireOnboarded } from "@/lib/auth";
@@ -11,12 +11,11 @@ export default async function PreferencesPage() {
     supabase.from("categories").select("id,label").order("label"),
   ]);
   return (
-    <>
-      <Nav email={user.email ?? ""} />
+    <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="preferences">
       <main className="page">
         <h1>Preferences</h1>
         <PreferencesForm initial={PreferencesSchema.parse(data?.data)} categories={categories ?? []} tz={profile.tz} countries={countryOptions()} />
       </main>
-    </>
+    </AppShell>
   );
 }

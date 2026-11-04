@@ -39,7 +39,10 @@ export async function POST(request: NextRequest) {
 
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error) return NextResponse.redirect(siteUrl("/settings?error=delete", request), 303);
-  if (auth.user.email) await admin.from("allowed_emails").delete().eq("email", auth.user.email.toLowerCase());
+  if (auth.user.email) {
+    await admin.from("allowed_emails").delete().eq("email", auth.user.email.toLowerCase());
+    await admin.from("waitlist").delete().eq("email", auth.user.email.toLowerCase());
+  }
 
   await supabase.auth.signOut().catch(() => undefined);
   return NextResponse.redirect(siteUrl("/login", request), 303);

@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FactLibrarySchema, ResumeSchema, type Resume } from "@jobtailor/core";
-import { Nav } from "@/components/Nav";
+import { cvStyleOf, FactLibrarySchema, ResumeSchema, type Resume } from "@jobtailor/core";
+import { AppShell } from "@/components/AppShell";
 import { ResumeEditor, type VersionMeta } from "@/components/ResumeEditor";
 import { requireOnboarded } from "@/lib/auth";
+import { safeHref, VIEWS } from "@/lib/views";
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
-  const { supabase, user } = await requireOnboarded();
+  const { supabase, user, profile } = await requireOnboarded();
   const { id } = await params;
   const matchId = Number(id);
   if (!Number.isInteger(matchId)) notFound();
 
-  const { data: match } = await supabase.from("matches").select("id,jobs(title,company,url,apply_url)").eq("id", matchId).eq("user_id", user.id).maybeSingle();
+  const { data: match } = await supabase.from("matches").select("id,decision,tracker_status,cv_style,jobs(title,company,url,apply_url)").eq("id", matchId).eq("user_id", user.id).maybeSingle();
   if (!match) notFound();
   const job = match.jobs as unknown as { title: string; company: string; url: string; apply_url: string | null };
 
@@ -25,44 +26,40 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     const parsed = ResumeSchema.safeParse(v.json);
     return parsed.success ? [{ id: v.id, source: v.source, created_at: v.created_at, json: parsed.data as Resume }] : [];
   });
+
+  const viewKey = Object.keys(VIEWS).find((k) => k !== "all" && VIEWS[k]!.holds({ decision: match.decision, tracker_status: match.tracker_status })) ?? "to_apply";
+  const back = { href: `/dashboard?view=${viewKey}&job=${matchId}`, label: VIEWS[viewKey]!.label };
   const latest = versions[0];
+
   if (!latest) {
     return (
-      <>
-        <Nav email={user.email ?? ""} />
+      <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active={viewKey}>
         <main className="page">
-          <div className="card">
-            <h1>{job.title}</h1>
-            <p className="muted">There's no CV for this role.</p>
-            <Link href="/dashboard">Back to matches</Link>
+          <h1>{job.title}</h1>
+          <p className="muted">There's no CV for this role yet.</p>
+          <div>
+            <Link className="button" href={back.href}>
+              Back to {back.label}
+            </Link>
           </div>
         </main>
-      </>
+      </AppShell>
     );
   }
 
   return (
-    <>
-      <Nav email={user.email ?? ""} />
-      <main className="page wide">
-        <div className="row between">
-          <div>
-            <h1>{job.title}</h1>
-            <span className="muted">{job.company}</span>
-          </div>
-          <div className="row">
-            {letter ? (
-              <a className="button" href={`/api/documents/${matchId}?kind=cover_letter`}>
-                Cover letter PDF
-              </a>
-            ) : null}
-            <a className="button primary" href={job.apply_url ?? job.url} target="_blank" rel="noreferrer">
-              Apply
-            </a>
-          </div>
-        </div>
-        <ResumeEditor matchId={matchId} initial={latest.json} versions={versions} library={FactLibrarySchema.parse(facts?.data)} />
-      </main>
-    </>
+    <ResumeEditor
+      matchId={matchId}
+      title={job.title}
+      company={job.company}
+      apply={safeHref(job.apply_url) ?? safeHref(job.url)}
+      back={back}
+      hasLetter={Boolean(letter)}
+      initial={latest.json}
+      versions={versions}
+      library={FactLibrarySchema.parse(facts?.data)}
+      defaultStyle={cvStyleOf(profile.cv_style)}
+      initialStyle={match.cv_style ? cvStyleOf(match.cv_style) : null}
+    />
   );
 }

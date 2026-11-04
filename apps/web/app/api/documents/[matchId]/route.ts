@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { CoverLetterSchema, ResumeSchema } from "@jobtailor/core";
+import { CoverLetterSchema, cvStyleOf, ResumeSchema } from "@jobtailor/core";
 import { renderCoverLetterPdf, renderResumePdf } from "@jobtailor/render";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,10 +27,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { data } = await query.order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // A style set on this CV wins over the user's default.
+  const [{ data: match }, { data: profile }] = await Promise.all([
+    supabase.from("matches").select("cv_style").eq("id", matchId).maybeSingle(),
+    supabase.from("profiles").select("cv_style").eq("id", auth.user.id).maybeSingle(),
+  ]);
+  const style = cvStyleOf(match?.cv_style ?? profile?.cv_style);
   const rendered =
     kind === "resume"
-      ? await renderResumePdf(ResumeSchema.parse(data.json))
-      : await renderCoverLetterPdf(CoverLetterSchema.parse(data.json));
+      ? await renderResumePdf(ResumeSchema.parse(data.json), style)
+      : await renderCoverLetterPdf(CoverLetterSchema.parse(data.json), style);
   const name = (data.json as { header?: { name?: string } }).header?.name ?? "CV";
   return new NextResponse(new Uint8Array(rendered.pdf), {
     headers: {

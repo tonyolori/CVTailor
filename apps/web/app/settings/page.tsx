@@ -1,17 +1,18 @@
 import Link from "next/link";
-import { Nav } from "@/components/Nav";
+import { AppShell } from "@/components/AppShell";
 import { SettingsForm } from "@/components/SettingsForm";
+import { SettingsTabs } from "@/components/SettingsTabs";
 import { requireOnboarded } from "@/lib/auth";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; paid?: string }> }) {
-  const { user, profile } = await requireOnboarded();
+  const { supabase, user, profile } = await requireOnboarded();
   const { error, paid } = await searchParams;
   const paidUntil = profile.paid_until ? new Date(profile.paid_until) : null;
   return (
-    <>
-      <Nav email={user.email ?? ""} />
+    <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="settings">
       <main className="page">
         <h1>Settings</h1>
+        <SettingsTabs active="general" />
         {paid ? <div className="notice">Thanks. Your plan updates as soon as Paystack confirms the payment, usually within a minute.</div> : null}
         {error === "confirm" ? <div className="notice bad">Type "delete" to confirm.</div> : null}
         {error === "delete" ? <div className="notice bad">Your account couldn't be deleted. Please try again.</div> : null}
@@ -30,7 +31,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         <div className="card">
           <h2>Your data</h2>
-          <p className="muted">Download everything held about you: your library, preferences, matches and CVs. See also the <Link href="/privacy">privacy page</Link>.</p>
+          <p className="muted">Download everything held about you: your library, preferences, matches, jobs you've pasted in and CVs. See also the <Link href="/privacy">privacy page</Link>.</p>
           <div>
             <a className="button" href="/api/export">
               Download my data
@@ -52,6 +53,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </div>
         </form>
       </main>
-    </>
+    </AppShell>
   );
 }

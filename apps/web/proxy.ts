@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { siteUrl } from "./lib/site";
 
-const PUBLIC_PATHS = ["/login", "/auth", "/privacy", "/pricing", "/api/unsubscribe", "/api/webhooks", "/api/cron"];
+const PUBLIC_PATHS = ["/login", "/waitlist", "/auth", "/privacy", "/pricing", "/api/unsubscribe", "/api/webhooks", "/api/cron"];
 
 /** Refreshes the session cookie on each request and sends signed-out visitors to the login page. */
 export async function proxy(request: NextRequest) {

@@ -9,7 +9,7 @@ export async function GET() {
   if (!auth.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const id = auth.user.id;
 
-  const [profile, preferences, facts, matches, versions, documents, summaries, payments, subscriptions] = await Promise.all([
+  const [profile, preferences, facts, matches, versions, documents, summaries, payments, subscriptions, pastedJobs] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single(),
     supabase.from("preferences").select("data,updated_at").eq("user_id", id).maybeSingle(),
     supabase.from("fact_library").select("data,updated_at").eq("user_id", id).maybeSingle(),
@@ -19,6 +19,7 @@ export async function GET() {
     supabase.from("daily_summaries").select("run_date,data,status,sent_at").eq("user_id", id),
     supabase.from("payments").select("*").eq("user_id", id),
     supabase.from("subscriptions").select("*").eq("user_id", id),
+    supabase.from("jobs").select("id,title,company,apply_url,raw_text,first_seen").eq("owner_id", id),
   ]);
 
   const dump = {
@@ -32,6 +33,7 @@ export async function GET() {
     daily_summaries: summaries.data,
     payments: payments.data,
     subscriptions: subscriptions.data,
+    pasted_jobs: pastedJobs.data,
   };
 
   const files: Record<string, Uint8Array> = { "jobtailor-data.json": strToU8(JSON.stringify(dump, null, 2)) };

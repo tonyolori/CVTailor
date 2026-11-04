@@ -7,8 +7,14 @@ export default async function ConsentPage() {
   const { profile } = await requireUser();
   if (profile.consented_at) redirect("/onboarding");
   return (
+    <div className="public">
+      <div className="public-top">
+        <Link className="logo" href="/">
+          JobTailor
+        </Link>
+      </div>
     <main className="page narrow">
-      <div className="card">
+      <div className="stack">
         <h1>Before you start</h1>
         <p>To find roles and write your CVs, JobTailor stores the work history and preferences you give it, and sends your facts and each job posting to an AI model to write the CV.</p>
         <p>
@@ -26,5 +32,6 @@ export default async function ConsentPage() {
         </div>
       </div>
     </main>
+    </div>
   );
 }

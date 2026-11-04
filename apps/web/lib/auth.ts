@@ -16,6 +16,7 @@ export interface Profile {
   plan: string;
   paid_until: string | null;
   consented_at: string | null;
+  cv_style: string;
 }
 
 /** Signed-in user and their profile. Redirects to login otherwise. */

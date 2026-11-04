@@ -72,7 +72,7 @@ describe("no hard-coding", () => {
     if (!existsSync(seedPath)) return;
     const seed = JSON.parse(readFileSync(seedPath, "utf8")) as { accountEmail: string; notifyEmail?: string; facts: { contact: { email: string; phone?: string } } };
     const secrets = [seed.accountEmail, seed.notifyEmail, seed.facts.contact.email, seed.facts.contact.phone].filter((v): v is string => Boolean(v));
-    const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n").filter((f) => /\.(ts|tsx|md|json|sql|toml|yml)$/.test(f));
+    const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n").filter((f) => /\.(ts|tsx|md|json|sql|toml|yml)$/.test(f) && existsSync(join(ROOT, f)));
     const offenders = tracked.filter((f) => secrets.some((v) => readFileSync(join(ROOT, f), "utf8").includes(v)));
     expect(offenders).toEqual([]);
   });

@@ -1,20 +1,22 @@
-import { allowEmail, removeEmail, setKillSwitch } from "@/app/actions";
-import { Nav } from "@/components/Nav";
+import { allowEmail, inviteFromWaitlist, removeEmail, removeFromWaitlist, setKillSwitch } from "@/app/actions";
+import { AppShell } from "@/components/AppShell";
 import { requireAdmin } from "@/lib/auth";
 import { adminClient } from "@/lib/supabase/admin";
 
-export default async function AdminPage() {
-  const { user } = await requireAdmin();
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ invited?: string }> }) {
+  const { supabase, user } = await requireAdmin();
+  const { invited } = await searchParams;
   const db = adminClient();
   const since = new Date(Date.now() - 14 * 86_400_000).toISOString().slice(0, 10);
 
-  const [{ data: allowed }, { data: killSwitch }, { data: dailyRuns }, { data: runs }, { data: profiles }, { data: review }] = await Promise.all([
+  const [{ data: allowed }, { data: killSwitch }, { data: dailyRuns }, { data: runs }, { data: profiles }, { data: review }, { data: waitlist }] = await Promise.all([
     db.from("allowed_emails").select("email,note,created_at").order("created_at", { ascending: false }),
     db.from("app_settings").select("value").eq("key", "kill_switch").maybeSingle(),
     db.from("daily_runs").select("run_date,status,started_at,finished_at,detail").order("run_date", { ascending: false }).limit(7),
     db.from("runs").select("run_date,user_id,stage,status,cost_usd,calls,provider").gte("run_date", since).limit(5000),
     db.from("profiles").select("id,email,plan,paid_until,active,is_synthetic"),
     db.from("category_review").select("raw_value,seen").order("seen", { ascending: false }).limit(20),
+    db.from("waitlist").select("email,name,looking_for,created_at,invited_at").order("created_at", { ascending: true }).limit(1000),
   ]);
 
   const emailById = new Map((profiles ?? []).map((p) => [p.id, p.email]));
@@ -34,12 +36,66 @@ export default async function AdminPage() {
   }
   const failures = (runs ?? []).filter((r) => r.status === "failed").length;
   const killed = killSwitch?.value === true;
+  const waiting = (waitlist ?? []).filter((w) => !w.invited_at).length;
 
   return (
-    <>
-      <Nav email={user.email ?? ""} />
-      <main className="page">
+    <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="admin">
+      <main className="page wide">
         <h1>Admin</h1>
+
+        <div className="card">
+          <h2>Waitlist</h2>
+          <p className="muted">{waiting === 1 ? "1 person is waiting." : `${waiting} people are waiting.`} Inviting someone lets them sign up and emails them.</p>
+          {invited === "1" ? <div className="notice ok">Invited, and the email has gone out.</div> : null}
+          {invited === "noemail" ? <div className="notice warn">Invited, so they can sign up, but the email couldn't be sent. Let them know yourself.</div> : null}
+          {waitlist?.length ? (
+            <div className="table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Looking for</th>
+                    <th>Joined</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {waitlist.map((w) => (
+                    <tr key={w.email}>
+                      <td className="overflow-wrap">{w.email}</td>
+                      <td className="overflow-wrap">{w.name ?? "Not given"}</td>
+                      <td className="overflow-wrap">{w.looking_for ?? "Not given"}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{new Date(w.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
+                      <td>
+                        <div className="row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
+                          {w.invited_at ? (
+                            <span className="chip ok">Invited</span>
+                          ) : (
+                            <form action={inviteFromWaitlist}>
+                              <input type="hidden" name="email" value={w.email} />
+                              <button className="primary" type="submit">
+                                Invite
+                              </button>
+                            </form>
+                          )}
+                          <form action={removeFromWaitlist}>
+                            <input type="hidden" name="email" value={w.email} />
+                            <button type="submit">Remove</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="empty" style={{ border: 0, padding: 0 }}>
+              Nobody is waiting right now.
+            </p>
+          )}
+        </div>
 
         <div className="card">
           <div className="row between">
@@ -158,6 +214,6 @@ export default async function AdminPage() {
           </div>
         ) : null}
       </main>
-    </>
+    </AppShell>
   );
 }

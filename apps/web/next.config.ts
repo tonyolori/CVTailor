@@ -20,7 +20,7 @@ const config: NextConfig = {
   transpilePackages: ["@jobtailor/core", "@jobtailor/llm", "@jobtailor/render"],
   serverExternalPackages: ["@react-pdf/renderer", "unpdf", "mammoth"],
   outputFileTracingIncludes: {
-    "/api/**": ["../../node_modules/@expo-google-fonts/inter/**/*.ttf", "../../node_modules/@expo-google-fonts/lora/**/*.ttf"],
+    "/api/**": ["../../node_modules/@expo-google-fonts/inter/**/*.ttf", "../../node_modules/@expo-google-fonts/lora/**/*.ttf", "../../node_modules/@expo-google-fonts/source-serif-4/**/*.ttf"],
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
