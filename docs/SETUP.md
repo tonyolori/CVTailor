@@ -58,14 +58,27 @@ Max, Ultra and Team plans include monthly API credits for a linked Console org (
 ### Worker on your PC
 - [ ] Follow `docs/SCHEDULING.md` for Windows Task Scheduler or systemd.
 
-## Level 5: paid plans (later)
+## Level 5: paid plans
+
+Daily matches, tailored CVs and Write a CV need a paid plan once billing is on. Until then, every invited user has full service.
 
 - [ ] Create a Paystack account and complete its business verification.
 - [ ] Set the webhook URL to `<site>/api/webhooks/paystack`.
 - [ ] Create a monthly plan in Paystack. Put its code in `PAYSTACK_PLAN_CODE_MONTHLY`, and set `PAYSTACK_SECRET_KEY`, `PAYSTACK_PRICE_MONTHLY_KOBO` and `PAYSTACK_PRICE_ONCE_KOBO` on the web host.
 - [ ] **TODO(verify): Paystack's docs block automated reading, so I couldn't read them directly.** The signature scheme is confirmed. Event names and payload fields come from secondary sources, so send test events from the Paystack dashboard and confirm `apps/web/lib/paystack.ts` handles them, using test keys, before taking real money.
+- [ ] Make one real test-mode checkout for each plan, and check that the plan shows as paid in Settings. A redirect back from Paystack proves nothing: only the webhook grants a plan.
 - [ ] Decide pricing using cost per user per day on the admin page.
-- [ ] Set `BILLING_ENFORCED=true` on the worker when you're ready. This also turns off Remotive, whose free API excludes commercial use.
+- [ ] Set `CV_REQUESTS_PER_DAY` on the web host and the worker. It's how many CVs one person can ask for per day, and it defaults to 5.
+- [ ] Set `BILLING_ENFORCED=true` on **both the web host and the worker** when you're ready. This also turns off Remotive, whose free API excludes commercial use.
+
+## Waitlist
+
+- [ ] The landing page's waitlist needs nothing set up. New signups appear on the admin page.
+- [ ] Set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` and `EMAIL_FROM` on the web host, because inviting someone from the waitlist emails them from there. Without these, the invitation is written to `.local/outbox` instead of being sent.
+
+## CVs on request
+
+- [ ] Keep a worker running with `npm run worker -- --loop`, since the worker writes these CVs. With the worker off, a request waits until it's back. The `--tasks-only` flag checks every 5 seconds rather than every minute, if you want people to wait less.
 
 ## Before inviting anyone who isn't you
 

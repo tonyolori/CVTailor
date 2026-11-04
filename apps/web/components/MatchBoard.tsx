@@ -34,6 +34,7 @@ interface Detail {
   resume: Resume | null;
   hasLetter: boolean;
   posting: { text: string | null; mustHaves: string[]; source: string };
+  job: { title: string; company: string; apply: string | null };
 }
 
 const WORKER_OFF = "The CV hasn't been written yet. It will appear here once it's ready, so you can come back later.";

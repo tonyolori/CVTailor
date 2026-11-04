@@ -95,7 +95,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         initialDetail={detail}
         defaultStyle={cvStyleOf(profile.cv_style)}
         paid={hasPaidFeatures(profile)}
-        lastRun={latest?.run_date ?? null}
+        lastRun={latest?.run_date ? new Date(`${latest.run_date}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" }) : null}
         gaps={summary?.gaps ?? []}
         notes={summary?.notes ?? []}
         closeCalls={viewKey === "to_apply" || viewKey === "all" ? (summary?.closeCalls ?? []).map((c) => ({ ...c, link: safeHref(c.link) ?? undefined })) : []}

@@ -347,7 +347,7 @@ export function ResumeEditor({
           {versions.map((v) => (
             <div className="ver" key={v.id}>
               <span>
-                {new Date(v.created_at).toLocaleString()}, {v.source === "ai" ? "AI draft" : "Your edit"}
+                {new Date(v.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC, {v.source === "ai" ? "AI draft" : "Your edit"}
               </span>
               <div>
                 <button

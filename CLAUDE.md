@@ -8,7 +8,7 @@ Invite-only service: collects job postings, matches them to each user's preferen
 - `packages/llm`: `LlmProvider` with `claude-subscription`, `anthropic-api` and `fake`.
 - `packages/render`: resume and cover-letter PDF template (`@react-pdf/renderer`).
 - `apps/worker`: pipeline (`collect -> enrich -> match -> verify live -> tailor -> verify facts -> render -> email`), source adapters, scheduler.
-- `apps/web`: Next.js dashboard.
+- `apps/web`: Next.js landing page, waitlist and signed-in app. Design tokens and styles are in `app/globals.css`. `components/CvSheet.tsx` is the on-screen CV.
 - `supabase/`: migrations, RLS, `seed.sql`.
 - `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SOURCE-ISSUES.md`, `SCHEDULING.md`, `BACKUPS.md`.
 - `private/`: **gitignored.** `owner.json` holds Tony's real CV facts, preferences and contact details, and is the only source for `seed:tony`. `seen.tsv` holds his past job decisions for the eval. Never copy personal data out of it into a tracked file. This repo stands alone: copy anything it needs in here rather than pointing at another project.
@@ -20,7 +20,7 @@ npm run typecheck        # all workspaces
 npm test                 # unit tests, no services needed
 npm run db:start         # local Supabase (needs Docker)
 npm run db:reset         # re-apply migrations and seed.sql
-npm run test:rls         # RLS suite against local Supabase (wipes test rows, localhost only)
+npm run test:rls         # RLS and CV-request suites against local Supabase (test rows only, localhost only)
 npm run test:integration # whole pipeline, three personas (wipes local data, localhost only)
 npm run seed             # personas, companies and Tony after any db:reset; also resets newuser@jobtailor.test, a blank account for testing signup
 npm run seed:personas    # the three synthetic test users
@@ -29,7 +29,7 @@ npm run seed:tony        # user #1 from private/owner.json (local only)
 npm run llm:check        # one cheap call through the configured provider
 npm run eval:enrich      # enrichment agreement for the personas and Tony's past decisions
 npm run worker           # run today's pipeline if not done, then send due emails
-npm run worker -- --loop --tasks-only  # only onboarding's AI steps, no daily run
+npm run worker -- --loop --tasks-only  # only tasks people wait on (onboarding, CVs on request), no daily run
 npm run web              # dashboard on :3000; magic links land in Mailpit on :54324
 ```
 
@@ -66,4 +66,8 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - Redirects use `siteUrl()`, never the request's own URL, which can name an internal host.
 - In client components, use `onSubmit` or `useActionState` for slow forms. React holds back state set inside a plain `<form action={fn}>` until `fn` ends, so a waiting screen set there never shows.
 - Persona fixtures live in `packages/core/src/personas.ts` and are invented. Exercise changes against all three, not only the software one.
+- A job with an `owner_id` was pasted in by that user and is private to them. Pipeline queries over shared jobs must filter `owner_id is null`.
+- CVs on request are paid-only. The web route refuses first for a clear message, and the worker checks the plan and the daily limit again because it's what spends the money. Users can't queue these tasks directly.
+- PDF styles live in `packages/render/src/template.tsx`, and their on-screen match in `globals.css`. Change both together. Classic is the original design.
+- The app is light only. Inter for app text, Instrument Serif for headlines and job titles, Instrument Sans on public pages.
 - Commit after each phase with a clear message.

@@ -22,6 +22,7 @@ export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvSty
   const [matchId, setMatchId] = useState<number | null>(null);
   const [resume, setResume] = useState<Resume | null>(null);
   const [hasLetter, setHasLetter] = useState(false);
+  const [job, setJob] = useState<{ title: string; company: string; apply: string | null } | null>(null);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => () => abort.current?.abort(), []);
@@ -53,8 +54,9 @@ export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvSty
       return;
     }
     const detail = await fetch(`/api/matches/${body.matchId}`);
-    const d = detail.ok ? ((await detail.json()) as { resume: Resume | null; hasLetter: boolean }) : null;
+    const d = detail.ok ? ((await detail.json()) as { resume: Resume | null; hasLetter: boolean; job: { title: string; company: string; apply: string | null } }) : null;
     setResume(d?.resume ?? null);
+    setJob(d?.job ?? null);
     setHasLetter(Boolean(d?.hasLetter));
     setStage("done");
     router.refresh();
@@ -68,6 +70,7 @@ export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvSty
     setLink("");
     setMatchId(null);
     setResume(null);
+    setJob(null);
     setError(null);
     if (forMatch) router.replace("/write");
   };
@@ -150,11 +153,17 @@ export function WriteCv({ paid, style, forMatch }: { paid: boolean; style: CvSty
         {stage === "done" ? (
           <>
             <p className="pok">Your CV is ready and checked against your library.</p>
-            <div className="ptit">{resume?.header.roleTitle || title}</div>
+            <div className="ptit">{job?.title || title}</div>
+            {job?.company ? <div className="cm" style={{ marginTop: 6 }}>{job.company}</div> : null}
             <div className="acts">
               {matchId ? (
                 <>
-                  <Link className="button primary" href={`/matches/${matchId}`}>
+                  {job?.apply ? (
+                    <a className="button primary" href={job.apply} target="_blank" rel="noreferrer">
+                      Apply
+                    </a>
+                  ) : null}
+                  <Link className={`button ${job?.apply ? "" : "primary"}`} href={`/matches/${matchId}`}>
                     Edit CV
                   </Link>
                   <a className="button" href={`/api/documents/${matchId}?kind=resume`}>

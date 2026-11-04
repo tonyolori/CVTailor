@@ -17,7 +17,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         {error === "confirm" ? <div className="notice bad">Type "delete" to confirm.</div> : null}
         {error === "delete" ? <div className="notice bad">Your account couldn't be deleted. Please try again.</div> : null}
 
-        <SettingsForm profile={profile} />
+        <SettingsForm profile={profile} zones={Intl.supportedValuesOf("timeZone")} />
 
         <div className="card">
           <h2>Plan</h2>

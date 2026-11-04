@@ -96,7 +96,9 @@ legend { padding: 0 8px 0 0; font-weight: 600; font-size: 14.5px; }
 .public .page { margin: 0 auto; }
 .public-top { display: flex; justify-content: space-between; align-items: center; padding: 20px 4vw; font-weight: 500; font-size: 15px; }
 .public-top a:not(.logo) { color: var(--ink); text-decoration: none; }
-.card { border-top: 1px solid var(--line); padding: 18px 0 8px; display: grid; gap: 12px; min-width: 0; }
+.card { border-top: 1px solid var(--line); padding: 18px 0 8px; display: grid; gap: 12px; min-width: 0; align-content: start; }
+.tabs + .card { border-top: 0; padding-top: 6px; }
+.card > button { justify-self: start; }
 .stack { display: grid; gap: 12px; min-width: 0; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .between { justify-content: space-between; }
@@ -320,6 +322,7 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .lp .pin { height: 340vh; }
 .lp .stick { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--bg, #dfebff); transition: background 0.8s; display: grid; grid-template-columns: minmax(0, 1fr) calc(88vh / 1.414); gap: 4vw; padding: 6vh 6vw 6vh 4vw; align-items: center; }
 .lp .stick .sheet { --w: calc(88vh / 1.414); min-height: 0; aspect-ratio: 1 / 1.414; overflow: hidden; transform: rotate(1deg); }
+.lp .stick .cvi, .lp .fan .cvi { font-size: 2.2cqw; padding-block: 6%; }
 .lp .say { font-size: 17px; color: var(--soft); margin-bottom: 3vh; max-width: 30em; }
 .lp .jt { font-size: clamp(56px, 7.2vw, 120px); line-height: 0.94; letter-spacing: -0.018em; min-height: 2.82em; }
 .lp .co { font-size: 19px; margin-top: 16px; font-weight: 500; }
@@ -362,6 +365,7 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .wlc input { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--blue); }
 .wlf button[type="submit"] { background: var(--blue); color: #fff; padding: 12px 22px; text-align: center; width: 100%; font-size: 15px; }
 .wlf button[type="submit"]:hover { background: var(--blue-dark); }
+.wlf .pillform button[type="submit"] { width: auto; padding: 10px 18px; }
 .wlf h2 { font-size: 42px; line-height: 1; }
 .hp { position: absolute; left: -9999px; height: 1px; overflow: hidden; }
 

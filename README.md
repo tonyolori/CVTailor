@@ -48,7 +48,7 @@ npm run seed
 npm test && npm run test:rls && npm run test:integration
 npm run web                       # http://127.0.0.1:3000. Magic links land in Mailpit, http://127.0.0.1:54324
 npm run worker                    # one pass; add -- --loop to stay up
-npm run worker -- --loop --tasks-only   # only onboarding's AI steps, without the daily run
+npm run worker -- --loop --tasks-only   # only tasks people wait on (onboarding, CVs on request), without the daily run
 ```
 
 `test:rls` and `test:integration` wipe and rewrite local data, and refuse to run against anything but localhost. Re-run the seeds afterwards.

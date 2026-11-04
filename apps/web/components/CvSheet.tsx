@@ -41,7 +41,8 @@ function body(section: ResumeSection, r: Resume): React.ReactNode {
       return r.skills.length
         ? r.skills.map((g, i) => (
             <p key={i}>
-              <b style={{ fontWeight: 600 }}>{g.group}: </b>
+              {/* A lone group called Skills would only repeat the heading above it. */}
+              {r.skills.length === 1 && g.group.toLowerCase() === "skills" ? null : <b style={{ fontWeight: 600 }}>{g.group}: </b>}
               {g.items.join(", ")}
             </p>
           ))

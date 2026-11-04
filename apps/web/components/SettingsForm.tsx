@@ -13,9 +13,8 @@ interface SettingsProfile {
   email_paused: boolean;
 }
 
-export function SettingsForm({ profile }: { profile: SettingsProfile }) {
+export function SettingsForm({ profile, zones }: { profile: SettingsProfile; zones: string[] }) {
   const [state, action, pending] = useActionState(updateSettings, null);
-  const zones = Intl.supportedValuesOf("timeZone");
   return (
     <form className="card" action={action}>
       <h2>Daily email</h2>
