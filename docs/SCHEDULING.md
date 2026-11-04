@@ -12,7 +12,7 @@ Create a task that starts the loop at logon and restarts it if it stops:
 
 ```powershell
 $action = New-ScheduledTaskAction -Execute "cmd.exe" `
-  -Argument '/c cd /d C:\path\to\CVTailor && npm run worker -- --loop >> .local\worker.log 2>&1'
+  -Argument '/c cd /d C:\path\to\JobTailor && npm run worker -- --loop >> .local\worker.log 2>&1'
 $triggers = @(New-ScheduledTaskTrigger -AtLogOn)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
   -StartWhenAvailable -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 5) `
@@ -32,7 +32,7 @@ Description=CV Tailor worker
 After=network-online.target
 
 [Service]
-WorkingDirectory=%h/CVTailor
+WorkingDirectory=%h/JobTailor
 ExecStart=/usr/bin/npm run worker -- --loop
 Restart=always
 RestartSec=60

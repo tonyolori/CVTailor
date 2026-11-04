@@ -1,4 +1,4 @@
--- JobTailor initial schema.
+-- CV Tailor initial schema.
 -- The worker uses the service-role key, which bypasses RLS. Browsers only ever
 -- use the anon key + the user's JWT, so everything below is written for that case.
 
@@ -36,7 +36,7 @@ begin
   end if;
   return jsonb_build_object(
     'error', jsonb_build_object(
-      'message', 'JobTailor is invite-only right now.',
+      'message', 'CV Tailor is invite-only right now.',
       'http_code', 403
     )
   );
