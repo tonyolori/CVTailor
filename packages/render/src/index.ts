@@ -2,10 +2,10 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { Font, renderToBuffer } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
-import type { CoverLetter, Resume } from "@jobtailor/core";
+import type { CoverLetter, CvStyle, Resume } from "@jobtailor/core";
 import { CoverLetterDocument, ResumeDocument } from "./template";
 
-export { dateRange, formatDate, orderedSections } from "./template";
+export { dateRange, formatDate, orderedSections } from "@jobtailor/core";
 
 /** Resolved from the working directory, because a bundled module's own location isn't reliable. */
 const require = createRequire(join(process.cwd(), "package.json"));
@@ -33,6 +33,11 @@ function registerFonts(): void {
     family: "Lora",
     fonts: [{ src: fontFile("@expo-google-fonts/lora", "700Bold/Lora_700Bold.ttf"), fontWeight: 700 }],
   });
+  const serif = (weight: number, name: string) => ({
+    src: fontFile("@expo-google-fonts/source-serif-4", `${weight}${name}/SourceSerif4_${weight}${name}.ttf`),
+    fontWeight: weight,
+  });
+  Font.register({ family: "Source Serif", fonts: [serif(400, "Regular"), serif(600, "SemiBold"), serif(700, "Bold")] });
   // No automatic hyphens: an ATS should see whole words.
   Font.registerHyphenationCallback((word) => [word]);
 }
@@ -54,12 +59,12 @@ export function countPages(pdf: Buffer): number {
 }
 
 /** One renderer for email, download and preview. Needs only Node, so the web app can run it with the worker off. */
-export function renderResumePdf(resume: Resume): Promise<RenderedPdf> {
-  return render(createElement(ResumeDocument, { resume }));
+export function renderResumePdf(resume: Resume, style: CvStyle = "classic"): Promise<RenderedPdf> {
+  return render(createElement(ResumeDocument, { resume, style }));
 }
 
-export function renderCoverLetterPdf(letter: CoverLetter): Promise<RenderedPdf> {
-  return render(createElement(CoverLetterDocument, { letter }));
+export function renderCoverLetterPdf(letter: CoverLetter, style: CvStyle = "classic"): Promise<RenderedPdf> {
+  return render(createElement(CoverLetterDocument, { letter, style }));
 }
 
 export const MAX_RESUME_PAGES = 2;

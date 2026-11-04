@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { CoverLetterSchema, ResumeSchema, type ResumeInput } from "@jobtailor/core";
+import { CoverLetterSchema, CV_STYLES, ResumeSchema, type ResumeInput } from "@jobtailor/core";
 import { countPages, dateRange, orderedSections, renderCoverLetterPdf, renderResumePdf } from "./index";
 
 /** Reads text by position, the way PDF parsers and ATS extractors do: a space only where there's a visible gap. */
@@ -155,6 +155,41 @@ describe("renderResumePdf", () => {
     expect(pages).toBeGreaterThan(2);
     const doc = await getDocument({ data: new Uint8Array(pdf), verbosity: 0 }).promise;
     expect(doc.numPages).toBe(pages);
+  });
+});
+
+describe("CV styles", () => {
+  for (const style of CV_STYLES.map((c) => c.id)) {
+    it(`${style}: every fact survives, readable by a parser, on one page`, async () => {
+      const { pdf, pages } = await renderResumePdf(ResumeSchema.parse(base), style);
+      const text = await pdfText(pdf);
+      expect(pages).toBe(1);
+      for (const part of ["Şahin Ñandú Ọlá", "Cared for up to 8 patients per shift.", "Licences and certifications", "NMC Registration", "Experience"]) {
+        expect(text.toLowerCase()).toContain(part.toLowerCase());
+      }
+      expect(text).not.toContain("SECRET-EDITOR-ADVICE");
+    });
+
+    it(`${style}: cover letter renders on one page`, async () => {
+      const header = ResumeSchema.parse(base).header;
+      const { pages } = await renderCoverLetterPdf(
+        CoverLetterSchema.parse({ header, date: "4 November 2026", subject: "Staff Nurse", salutation: "Dear team,", paragraphs: ["First paragraph.", "Second paragraph."], signOff: "Regards,", signature: header.name }),
+        style,
+      );
+      expect(pages).toBe(1);
+    });
+  }
+
+  it("the styles look different from each other", async () => {
+    const resume = ResumeSchema.parse(base);
+    const sizes = await Promise.all(CV_STYLES.map(async (c) => (await renderResumePdf(resume, c.id)).pdf.toString("latin1")));
+    expect(new Set(sizes).size).toBe(CV_STYLES.length);
+  });
+
+  it("uses the original design unless told otherwise", async () => {
+    const resume = ResumeSchema.parse(base);
+    const strip = (b: Buffer) => b.toString("latin1").replace(/\/(CreationDate|ModDate|ID)[^\n]*/g, "");
+    expect(strip((await renderResumePdf(resume)).pdf)).toBe(strip((await renderResumePdf(resume, "classic")).pdf));
   });
 });
 

@@ -149,3 +149,69 @@ export const CoverLetterSchema = z.object({
 export type CoverLetter = z.infer<typeof CoverLetterSchema>;
 
 export const ResumeSource = z.enum(["ai", "user"]);
+
+/** How a CV looks. Chosen per user in settings, and optionally per CV in the editor. */
+export const CvStyle = z.enum(["fitted", "classic", "plain", "compact"]);
+export type CvStyle = z.infer<typeof CvStyle>;
+export const DEFAULT_CV_STYLE: CvStyle = "fitted";
+
+export const CV_STYLES: { id: CvStyle; label: string; description: string }[] = [
+  { id: "fitted", label: "Fitted", description: "A serif design with a blue headline." },
+  { id: "classic", label: "Classic", description: "A centred name with navy headings." },
+  { id: "plain", label: "Plain", description: "Black and white with one simple font. A safe choice for formal applications." },
+  { id: "compact", label: "Compact", description: "Smaller text and tighter spacing, for fitting more on the page." },
+];
+
+/** Reads a stored style, falling back to the default for anything unrecognised. */
+export function cvStyleOf(value: unknown): CvStyle {
+  const parsed = CvStyle.safeParse(value);
+  return parsed.success ? parsed.data : DEFAULT_CV_STYLE;
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+export function formatDate(value: string | null | undefined): string {
+  if (!value) return "";
+  const m = value.match(/^(\d{4})-(\d{2})/);
+  if (m) return `${MONTHS[Number(m[2]) - 1] ?? ""} ${m[1]}`.trim();
+  return value;
+}
+
+export function dateRange(start: string | null | undefined, end: string | null | undefined, open = true): string {
+  const from = formatDate(start);
+  const to = end ? formatDate(end) : open ? "Present" : "";
+  return from && to ? `${from} – ${to}` : from || to;
+}
+
+/** Sections in the chosen order. A section with content that's missing from the order still appears at the end. */
+export function orderedSections(r: Resume): ResumeSection[] {
+  const all: ResumeSection[] = ["summary", "skills", "credentials", "experience", "projects", "education", "languages", "publications", "volunteering", "portfolio"];
+  return [...new Set([...r.sectionOrder, ...all])];
+}
+
+/** Section headings, shared by the PDF templates and the on-screen CV. */
+export const SECTION_TITLES: Record<ResumeSection, string> = {
+  summary: "Summary",
+  skills: "Skills",
+  credentials: "Licences and certifications",
+  experience: "Experience",
+  projects: "Projects",
+  education: "Education",
+  languages: "Languages",
+  publications: "Publications",
+  volunteering: "Volunteering",
+  portfolio: "Portfolio",
+};
+
+/** Paid plan, an unexpired plan, or billing not switched on yet. Web and worker both decide with this. */
+export function isEntitled(user: { plan: string; paidUntil: string | null }, billingEnforced: boolean, now: Date): boolean {
+  if (!billingEnforced) return true;
+  return user.plan === "pro" && user.paidUntil != null && new Date(user.paidUntil).getTime() > now.getTime();
+}
+
+/** CVs one person can ask for per UTC day, unless CV_REQUESTS_PER_DAY says otherwise. Each one costs money to write. */
+export const DEFAULT_CV_REQUESTS_PER_DAY = 5;
+
+/** Shortest and longest pasted posting. Longer text is what the model is given anyway. */
+export const MIN_POSTING_CHARS = 80;
+export const MAX_POSTING_CHARS = 20_000;

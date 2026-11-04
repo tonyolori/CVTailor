@@ -91,7 +91,7 @@ export interface MatchResult {
 async function loadCandidates(deps: MatchDeps, user: ActiveUser, now: Date): Promise<Candidate[]> {
   const since = new Date(now.getTime() - LOOKBACK_DAYS * 86_400_000).toISOString();
   const jobs = must(
-    await deps.db.from("jobs").select("*").in("status", ["enriched", "verified"]).gte("first_seen", since).order("first_seen", { ascending: false }).limit(2000),
+    await deps.db.from("jobs").select("*").in("status", ["enriched", "verified"]).is("owner_id", null).gte("first_seen", since).order("first_seen", { ascending: false }).limit(2000),
     "candidate jobs",
   ) as (JobRow & { enriched: unknown })[];
   const done = must(

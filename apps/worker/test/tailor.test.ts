@@ -23,6 +23,7 @@ function userFrom(p: Persona): ActiveUser {
     paidUntil: null,
     emailPaused: false,
     unsubscribeToken: "t",
+    cvStyle: "classic",
     preferences: p.preferences,
     preferencesVersion: 1,
     facts: p.facts,

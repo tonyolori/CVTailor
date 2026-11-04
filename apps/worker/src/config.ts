@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_CV_REQUESTS_PER_DAY } from "@jobtailor/core";
 import type { LlmConfig } from "@jobtailor/llm";
 
 const bool = z.enum(["true", "false"]).transform((v) => v === "true");
@@ -27,6 +28,8 @@ const ConfigSchema = z.object({
   RUN_START_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(1),
   RUN_ALERT_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(6),
   BILLING_ENFORCED: bool.default(false),
+  /** CVs one person can ask for per UTC day, on top of their daily picks. Each one costs money to write. */
+  CV_REQUESTS_PER_DAY: z.coerce.number().int().min(0).default(DEFAULT_CV_REQUESTS_PER_DAY),
   /** Comma-separated ids of sources with unverified terms that Tony has chosen to enable. */
   ENABLED_UNVERIFIED_SOURCES: z
     .string()

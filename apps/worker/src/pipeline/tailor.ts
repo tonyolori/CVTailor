@@ -116,7 +116,7 @@ export async function draftResume(
       note = regenerationNote(v.issues);
       continue;
     }
-    const { pdf, pages } = await renderResumePdf(doc);
+    const { pdf, pages } = await renderResumePdf(doc, user.cvStyle);
     lastGood = { doc, pdf, pages };
     if (pages <= MAX_RESUME_PAGES) return { ok: true, doc, pdf, pages, issues, attempts: attempt + 1, usage };
     note = regenerationNote([], [`The CV renders to ${pages} pages; the limit is ${MAX_RESUME_PAGES}. Shorten bullets that wrap by a few words first, then drop the weakest bullets.`]);
@@ -153,7 +153,7 @@ export async function draftCoverLetter(
       note = regenerationNote(v.issues);
       continue;
     }
-    const { pdf, pages } = await renderCoverLetterPdf(doc);
+    const { pdf, pages } = await renderCoverLetterPdf(doc, user.cvStyle);
     if (pages <= MAX_LETTER_PAGES) return { ok: true, doc, pdf, pages, issues, attempts: attempt + 1, usage };
     note = regenerationNote([], [`The letter renders to ${pages} pages and must be one. Cut words.`]);
   }
@@ -193,6 +193,7 @@ async function storeDocument(
 interface PendingRow {
   id: number;
   job_id: number;
+  posting_text: string | null;
   jobs: { title: string; company: string; raw_text: string | null; enriched: unknown } | null;
 }
 
@@ -207,21 +208,15 @@ export interface TailorResult {
  * Tailors each pending pick. Idempotent: an AI draft already stored isn't regenerated, only
  * rendered if its PDF is missing, so a crashed run resumes without paying twice.
  */
-export async function tailorUser(deps: TailorDeps, user: ActiveUser): Promise<TailorResult> {
+export async function tailorUser(deps: TailorDeps, user: ActiveUser, only?: { matchId: number }): Promise<TailorResult> {
   const result: TailorResult = { rendered: 0, failed: 0, usage: ZERO_USAGE };
   const access = mayUseAi(deps.provider.name, deps.ownerEmail, { email: user.email, isSynthetic: user.isSynthetic });
   if (!access.allowed) return result;
 
-  const pending = must(
-    await deps.db
-      .from("matches")
-      .select("id,job_id,jobs(title,company,raw_text,enriched)")
-      .eq("user_id", user.id)
-      .eq("decision", "picked")
-      .in("tailor_status", ["pending", "drafted"])
-      .order("score", { ascending: false }),
-    "pending tailor",
-  ) as unknown as PendingRow[];
+  // Normally today's picks. A CV someone asked for names its match, whatever its decision.
+  const base = deps.db.from("matches").select("id,job_id,posting_text,jobs(title,company,raw_text,enriched)").eq("user_id", user.id).in("tailor_status", ["pending", "drafted"]);
+  const scoped = only ? base.eq("id", only.matchId) : base.eq("decision", "picked");
+  const pending = must(await scoped.order("score", { ascending: false }), "pending tailor") as unknown as PendingRow[];
 
   const jobs: TailorJob[] = [];
   for (const row of pending) {
@@ -235,7 +230,7 @@ export async function tailorUser(deps: TailorDeps, user: ActiveUser): Promise<Ta
       matchId: row.id,
       title: row.jobs.title,
       company: row.jobs.company,
-      rawText: (row.jobs.raw_text ?? "").slice(0, MAX_POSTING_CHARS),
+      rawText: (row.posting_text ?? row.jobs.raw_text ?? "").slice(0, MAX_POSTING_CHARS),
       enriched: parsed.data,
     });
   }
@@ -272,7 +267,7 @@ export async function tailorUser(deps: TailorDeps, user: ActiveUser): Promise<Ta
       if (stored) {
         resume = ResumeSchema.parse(stored.json);
         if (!hasPdf(job.matchId, "resume_pdf")) {
-          const { pdf } = await renderResumePdf(resume);
+          const { pdf } = await renderResumePdf(resume, user.cvStyle);
           await storeDocument(deps.db, job.matchId, user.id, "resume_pdf", stored.id, pdf);
         }
       } else {

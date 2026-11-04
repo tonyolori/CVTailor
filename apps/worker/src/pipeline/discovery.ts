@@ -30,7 +30,7 @@ export async function runDiscovery(db: Db, http: Http, now: Date = new Date()): 
 
   const since = new Date(now.getTime() - WEEK_MS).toISOString();
   const jobs = must(
-    await db.from("jobs").select("company,category,country").eq("from_ats", false).gte("first_seen", since).limit(500),
+    await db.from("jobs").select("company,category,country").eq("from_ats", false).is("owner_id", null).gte("first_seen", since).limit(500),
     "recent jobs",
   ) as { company: string; category: string | null; country: string | null }[];
   const known = must(await db.from("companies").select("ats,slug,name").limit(5000), "known companies") as { ats: string; slug: string; name: string | null }[];

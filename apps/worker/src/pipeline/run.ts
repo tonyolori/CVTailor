@@ -1,4 +1,4 @@
-import { type Category } from "@jobtailor/core";
+import { isEntitled, type Category } from "@jobtailor/core";
 import { mayUseAi, ZERO_USAGE, type LlmProvider } from "@jobtailor/llm";
 import type { Config } from "../config";
 import { errorInfo, must, type Db } from "../db";
@@ -40,11 +40,7 @@ export interface RunDeps {
   now?: () => Date;
 }
 
-/** Paid plan, an unexpired plan, or billing not switched on yet. */
-export function isEntitled(user: Pick<ActiveUser, "plan" | "paidUntil">, billingEnforced: boolean, now: Date): boolean {
-  if (!billingEnforced) return true;
-  return user.plan === "pro" && user.paidUntil != null && new Date(user.paidUntil).getTime() > now.getTime();
-}
+export { isEntitled };
 
 const ADAPTER_LABELS = [...AGGREGATORS.map((a) => ({ id: a.id, label: a.label })), ...["greenhouse", "lever", "ashby", "workable", "breezy", "recruitee"].map((id) => ({ id, label: atsBoards.label }))];
 

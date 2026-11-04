@@ -12,6 +12,7 @@
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/lora": "^0.4.2",
+    "@expo-google-fonts/source-serif-4": "^0.4.2",
     "@jobtailor/core": "*",
     "@react-pdf/renderer": "^4.9.0",
     "react": "^19.0.0"

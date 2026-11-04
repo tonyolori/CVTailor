@@ -2,75 +2,146 @@ import { Document, Link, Page, StyleSheet, Text, View } from "@react-pdf/rendere
 // In scope on purpose: tsx applies a tsconfig only to files it includes, so running the worker
 // compiles this file with classic JSX, which needs React here. Other runners ignore the import.
 import * as React from "react";
-import type { CoverLetter, Resume, ResumeSection } from "@jobtailor/core";
+import { dateRange, orderedSections, SECTION_TITLES, type CoverLetter, type CvStyle, type Resume, type ResumeSection } from "@jobtailor/core";
 
-// Ported from the legacy theme: a serif name over a sans body, one navy accent, caps section
-// headings with a hairline rule, dates right-aligned on each role's title line.
 void React;
-const NAVY = "#16304f";
-const ACCENT = "#2d5a8c";
-const BODY = "#1f2937";
-const MUTED = "#4b5563";
-const RULE = "#c7d2df";
-const INK = "#111827";
 
-const s = StyleSheet.create({
-  page: {
-    paddingVertical: 30,
-    paddingHorizontal: 43,
-    fontFamily: "Inter",
-    fontSize: 9.4,
+/** Everything that differs between CV styles. Classic is the original design, unchanged. */
+interface Theme {
+  body: string;
+  head: string;
+  name: { family: string; weight: number; size: number; color: string; align: "center" | "left" };
+  role: { size: number; color: string; weight: number; caps: boolean; spacing: number };
+  headerRule: { width: number; color: string };
+  h2: { size: number; color: string; weight: number; caps: boolean; spacing: number; rule: number; ruleColor: string; marginTop: number };
+  text: string;
+  muted: string;
+  ink: string;
+  accent: string;
+  size: number;
+  lineHeight: number;
+  page: { v: number; h: number };
+  entryGap: number;
+  bulletGap: number;
+}
+
+const THEMES: Record<CvStyle, Theme> = {
+  classic: {
+    body: "Inter",
+    head: "Inter",
+    name: { family: "Lora", weight: 700, size: 25, color: "#16304f", align: "center" },
+    role: { size: 8.8, color: "#2d5a8c", weight: 600, caps: true, spacing: 0.35 },
+    headerRule: { width: 2, color: "#16304f" },
+    // Tracking stays low: wider and PDF text extractors, so ATS parsers, read "S U M M A R Y".
+    h2: { size: 8.6, color: "#16304f", weight: 600, caps: true, spacing: 0.34, rule: 0.75, ruleColor: "#c7d2df", marginTop: 9 },
+    text: "#1f2937",
+    muted: "#4b5563",
+    ink: "#111827",
+    accent: "#2d5a8c",
+    size: 9.4,
     lineHeight: 1.36,
-    color: BODY,
+    page: { v: 30, h: 43 },
+    entryGap: 5,
+    bulletGap: 1.2,
   },
-  header: { alignItems: "center", paddingBottom: 7, borderBottomWidth: 2, borderBottomColor: NAVY, marginBottom: 2 },
-  name: { fontFamily: "Lora", fontWeight: 700, fontSize: 25, color: NAVY, lineHeight: 1.2 },
-  role: { fontWeight: 600, fontSize: 8.8, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.35, marginTop: 2 },
-  contact: { fontSize: 9, color: MUTED, marginTop: 3, textAlign: "center", lineHeight: 1.5 },
-  link: { color: MUTED, textDecoration: "none" },
-  // Tracking stays low: wider and PDF text extractors, so ATS parsers, read "S U M M A R Y".
-  h2: {
-    fontWeight: 600,
-    fontSize: 8.6,
-    color: NAVY,
-    textTransform: "uppercase",
-    letterSpacing: 0.34,
-    borderBottomWidth: 0.75,
-    borderBottomColor: RULE,
-    paddingBottom: 2,
-    marginTop: 9,
-    marginBottom: 4,
+  fitted: {
+    body: "Source Serif",
+    head: "Source Serif",
+    name: { family: "Source Serif", weight: 700, size: 25, color: "#14204A", align: "left" },
+    role: { size: 11, color: "#1546E0", weight: 600, caps: false, spacing: 0 },
+    headerRule: { width: 0, color: "#14204A" },
+    h2: { size: 10, color: "#14204A", weight: 700, caps: false, spacing: 0, rule: 0.75, ruleColor: "#C8D2EA", marginTop: 10 },
+    text: "#14204A",
+    muted: "#5B678C",
+    ink: "#14204A",
+    accent: "#1546E0",
+    size: 10,
+    lineHeight: 1.38,
+    page: { v: 34, h: 46 },
+    entryGap: 6,
+    bulletGap: 1.5,
   },
-  entry: { marginBottom: 5 },
-  entryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
-  entryTitle: { fontWeight: 600, fontSize: 10, color: INK, flexShrink: 1, paddingRight: 8 },
-  entryDate: { fontWeight: 500, fontSize: 8.6, color: MUTED, flexShrink: 0 },
-  org: { fontWeight: 500, color: ACCENT, marginBottom: 1 },
-  bullet: { flexDirection: "row", marginTop: 1.2 },
-  bulletMark: { width: 10, color: ACCENT },
-  bulletText: { flex: 1 },
-  skillGroup: { fontWeight: 600, color: INK },
-  paragraph: { marginBottom: 8.5, lineHeight: 1.5 },
-  letterMeta: { marginTop: 14, marginBottom: 8.5 },
-  strong: { fontWeight: 600, color: INK },
-});
+  plain: {
+    body: "Inter",
+    head: "Inter",
+    name: { family: "Inter", weight: 700, size: 20, color: "#111111", align: "left" },
+    role: { size: 10, color: "#111111", weight: 400, caps: false, spacing: 0 },
+    headerRule: { width: 0, color: "#111111" },
+    h2: { size: 10.5, color: "#111111", weight: 700, caps: false, spacing: 0, rule: 0, ruleColor: "#111111", marginTop: 11 },
+    text: "#111111",
+    muted: "#444444",
+    ink: "#111111",
+    accent: "#111111",
+    size: 9.6,
+    lineHeight: 1.38,
+    page: { v: 36, h: 46 },
+    entryGap: 6,
+    bulletGap: 1.2,
+  },
+  compact: {
+    body: "Inter",
+    head: "Inter",
+    name: { family: "Inter", weight: 700, size: 19, color: "#1546E0", align: "left" },
+    role: { size: 9, color: "#1a2340", weight: 600, caps: false, spacing: 0 },
+    headerRule: { width: 0, color: "#1a2340" },
+    h2: { size: 8.8, color: "#1546E0", weight: 600, caps: false, spacing: 0, rule: 0.5, ruleColor: "#D5DFF5", marginTop: 7 },
+    text: "#1a2340",
+    muted: "#4b5563",
+    ink: "#1a2340",
+    accent: "#1546E0",
+    size: 8.6,
+    lineHeight: 1.28,
+    page: { v: 24, h: 34 },
+    entryGap: 3.5,
+    bulletGap: 0.6,
+  },
+};
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-export function formatDate(value: string | null | undefined): string {
-  if (!value) return "";
-  const m = value.match(/^(\d{4})-(\d{2})/);
-  if (m) return `${MONTHS[Number(m[2]) - 1] ?? ""} ${m[1]}`.trim();
-  return value;
+function stylesFor(t: Theme) {
+  const center = t.name.align === "center";
+  return StyleSheet.create({
+    page: { paddingVertical: t.page.v, paddingHorizontal: t.page.h, fontFamily: t.body, fontSize: t.size, lineHeight: t.lineHeight, color: t.text },
+    header: {
+      alignItems: center ? "center" : "flex-start",
+      paddingBottom: t.headerRule.width ? 7 : 2,
+      borderBottomWidth: t.headerRule.width,
+      borderBottomColor: t.headerRule.color,
+      marginBottom: 2,
+    },
+    name: { fontFamily: t.name.family, fontWeight: t.name.weight as 700, fontSize: t.name.size, color: t.name.color, lineHeight: 1.2 },
+    role: { fontWeight: t.role.weight as 600, fontSize: t.role.size, color: t.role.color, textTransform: t.role.caps ? "uppercase" : "none", letterSpacing: t.role.spacing, marginTop: 2 },
+    contact: { fontSize: t.size - 0.4, color: t.muted, marginTop: 3, textAlign: center ? "center" : "left", lineHeight: 1.5 },
+    link: { color: t.muted, textDecoration: "none" },
+    h2: {
+      fontFamily: t.head,
+      fontWeight: t.h2.weight as 600,
+      fontSize: t.h2.size,
+      color: t.h2.color,
+      textTransform: t.h2.caps ? "uppercase" : "none",
+      letterSpacing: t.h2.spacing,
+      borderBottomWidth: t.h2.rule,
+      borderBottomColor: t.h2.ruleColor,
+      paddingBottom: t.h2.rule ? 2 : 0,
+      marginTop: t.h2.marginTop,
+      marginBottom: 4,
+    },
+    entry: { marginBottom: t.entryGap },
+    entryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+    entryTitle: { fontWeight: 600, fontSize: t.size + 0.6, color: t.ink, flexShrink: 1, paddingRight: 8 },
+    entryDate: { fontWeight: t.body === "Source Serif" ? 400 : 500, fontSize: t.size - 0.8, color: t.muted, flexShrink: 0 },
+    org: { fontWeight: t.body === "Source Serif" ? 400 : 500, color: t.accent, marginBottom: 1 },
+    bullet: { flexDirection: "row", marginTop: t.bulletGap },
+    bulletMark: { width: 10, color: t.accent },
+    bulletText: { flex: 1 },
+    skillGroup: { fontWeight: 600, color: t.ink },
+    paragraph: { marginBottom: 8.5, lineHeight: 1.5 },
+    letterMeta: { marginTop: 14, marginBottom: 8.5 },
+    strong: { fontWeight: 600, color: t.ink },
+  });
 }
+type Styles = ReturnType<typeof stylesFor>;
 
-export function dateRange(start: string | null | undefined, end: string | null | undefined, open = true): string {
-  const from = formatDate(start);
-  const to = end ? formatDate(end) : open ? "Present" : "";
-  return from && to ? `${from} – ${to}` : from || to;
-}
-
-function Header({ header }: { header: Resume["header"] }) {
+function Header({ header, s }: { header: Resume["header"]; s: Styles }) {
   const parts = [header.location, header.phone].filter(Boolean) as string[];
   return (
     <View style={s.header}>
@@ -94,7 +165,7 @@ function Header({ header }: { header: Resume["header"] }) {
   );
 }
 
-function Bullets({ items }: { items: string[] }) {
+function Bullets({ items, s }: { items: string[]; s: Styles }) {
   return (
     <>
       {items.map((b, i) => (
@@ -108,7 +179,7 @@ function Bullets({ items }: { items: string[] }) {
 }
 
 /** Title then date in the text layer, so applicant tracking systems read each entry correctly. */
-function EntryHead({ title, date }: { title: string; date: string }) {
+function EntryHead({ title, date, s }: { title: string; date: string; s: Styles }) {
   return (
     <View style={s.entryRow} wrap={false}>
       <Text style={s.entryTitle}>{title}</Text>
@@ -117,7 +188,7 @@ function EntryHead({ title, date }: { title: string; date: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, s }: { title: string; children: React.ReactNode; s: Styles }) {
   return (
     <View>
       <Text style={s.h2} minPresenceAhead={30}>
@@ -128,17 +199,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function sectionBody(section: ResumeSection, r: Resume): React.ReactNode {
+function sectionBody(section: ResumeSection, r: Resume, s: Styles, accent: string): React.ReactNode {
   switch (section) {
     case "summary":
       return r.summary ? (
-        <Section title="Summary">
+        <Section s={s} title={SECTION_TITLES.summary}>
           <Text>{r.summary}</Text>
         </Section>
       ) : null;
     case "skills":
       return r.skills.length ? (
-        <Section title="Skills">
+        <Section s={s} title={SECTION_TITLES.skills}>
           {r.skills.map((g, i) => (
             <Text key={i} style={{ marginBottom: 1.5 }}>
               <Text style={s.skillGroup}>{g.group}: </Text>
@@ -149,10 +220,10 @@ function sectionBody(section: ResumeSection, r: Resume): React.ReactNode {
       ) : null;
     case "credentials":
       return r.credentials.length ? (
-        <Section title="Licences and certifications">
+        <Section s={s} title={SECTION_TITLES.credentials}>
           {r.credentials.map((c, i) => (
             <View key={i} style={{ marginBottom: 2 }}>
-              <EntryHead title={c.name} date={c.year ?? ""} />
+              <EntryHead s={s} title={c.name} date={c.year ?? ""} />
               {c.issuer || c.reference ? <Text style={s.org}>{[c.issuer, c.reference].filter(Boolean).join(", ")}</Text> : null}
             </View>
           ))}
@@ -160,40 +231,41 @@ function sectionBody(section: ResumeSection, r: Resume): React.ReactNode {
       ) : null;
     case "experience":
       return r.experience.length ? (
-        <Section title="Experience">
+        <Section s={s} title={SECTION_TITLES.experience}>
           {r.experience.map((x, i) => (
             <View key={i} style={s.entry}>
               <View wrap={false}>
-                <EntryHead title={x.title} date={dateRange(x.start, x.end)} />
+                <EntryHead s={s} title={x.title} date={dateRange(x.start, x.end)} />
                 <Text style={s.org}>{[x.company, x.location].filter(Boolean).join(", ")}</Text>
               </View>
-              <Bullets items={x.bullets} />
+              <Bullets s={s} items={x.bullets} />
             </View>
           ))}
         </Section>
       ) : null;
     case "projects":
       return r.projects.length ? (
-        <Section title="Projects">
+        <Section s={s} title={SECTION_TITLES.projects}>
           {r.projects.map((p, i) => (
             <View key={i} style={s.entry}>
-              <EntryHead title={[p.name, p.stack].filter(Boolean).join(" | ")} date="" />
+              <EntryHead s={s} title={[p.name, p.stack].filter(Boolean).join(" | ")} date="" />
               {p.url ? (
-                <Link src={p.url} style={{ ...s.link, color: ACCENT }}>
+                <Link src={p.url} style={{ ...s.link, color: accent }}>
                   {p.url}
                 </Link>
               ) : null}
-              <Bullets items={p.bullets} />
+              <Bullets s={s} items={p.bullets} />
             </View>
           ))}
         </Section>
       ) : null;
     case "education":
       return r.education.length ? (
-        <Section title="Education">
+        <Section s={s} title={SECTION_TITLES.education}>
           {r.education.map((e, i) => (
             <View key={i} style={{ marginBottom: 3 }}>
               <EntryHead
+                s={s}
                 title={[e.degree, e.school, e.location].filter(Boolean).join(", ")}
                 date={dateRange(e.start, e.end, false)}
               />
@@ -203,13 +275,13 @@ function sectionBody(section: ResumeSection, r: Resume): React.ReactNode {
       ) : null;
     case "languages":
       return r.languages.length ? (
-        <Section title="Languages">
+        <Section s={s} title={SECTION_TITLES.languages}>
           <Text>{r.languages.map((l) => (l.level ? `${l.name} (${l.level})` : l.name)).join(" | ")}</Text>
         </Section>
       ) : null;
     case "publications":
       return r.publications.length ? (
-        <Section title="Publications">
+        <Section s={s} title={SECTION_TITLES.publications}>
           {r.publications.map((p, i) => (
             <Text key={i} style={{ marginBottom: 2 }}>
               {[p.title, p.venue, p.year].filter(Boolean).join(", ")}
@@ -219,23 +291,23 @@ function sectionBody(section: ResumeSection, r: Resume): React.ReactNode {
       ) : null;
     case "volunteering":
       return r.volunteering.length ? (
-        <Section title="Volunteering">
+        <Section s={s} title={SECTION_TITLES.volunteering}>
           {r.volunteering.map((v, i) => (
             <View key={i} style={s.entry}>
-              <EntryHead title={`${v.title}, ${v.org}`} date={dateRange(v.start, v.end, Boolean(v.start))} />
-              <Bullets items={v.bullets} />
+              <EntryHead s={s} title={`${v.title}, ${v.org}`} date={dateRange(v.start, v.end, Boolean(v.start))} />
+              <Bullets s={s} items={v.bullets} />
             </View>
           ))}
         </Section>
       ) : null;
     case "portfolio":
       return r.portfolioLinks.length ? (
-        <Section title="Portfolio">
+        <Section s={s} title={SECTION_TITLES.portfolio}>
           <Text>
             {r.portfolioLinks.map((l, i) => (
               <Text key={l.url}>
                 {i > 0 ? " | " : ""}
-                <Link src={l.url} style={{ ...s.link, color: ACCENT }}>
+                <Link src={l.url} style={{ ...s.link, color: accent }}>
                   {l.label}
                 </Link>
               </Text>
@@ -246,30 +318,27 @@ function sectionBody(section: ResumeSection, r: Resume): React.ReactNode {
   }
 }
 
-/** Sections in the chosen order. A section with content that's missing from the order still appears at the end. */
-export function orderedSections(r: Resume): ResumeSection[] {
-  const all: ResumeSection[] = ["summary", "skills", "credentials", "experience", "projects", "education", "languages", "publications", "volunteering", "portfolio"];
-  return [...new Set([...r.sectionOrder, ...all])];
-}
-
-export function ResumeDocument({ resume }: { resume: Resume }) {
+export function ResumeDocument({ resume, style = "classic" }: { resume: Resume; style?: CvStyle }) {
+  const theme = THEMES[style];
+  const s = stylesFor(theme);
   return (
     <Document title={`${resume.header.name} - ${resume.header.roleTitle}`} author={resume.header.name} creator="JobTailor" producer="JobTailor">
       <Page size={resume.template.pageSize} style={s.page}>
-        <Header header={resume.header} />
+        <Header s={s} header={resume.header} />
         {orderedSections(resume).map((section) => (
-          <View key={section}>{sectionBody(section, resume)}</View>
+          <View key={section}>{sectionBody(section, resume, s, theme.accent)}</View>
         ))}
       </Page>
     </Document>
   );
 }
 
-export function CoverLetterDocument({ letter }: { letter: CoverLetter }) {
+export function CoverLetterDocument({ letter, style = "classic" }: { letter: CoverLetter; style?: CvStyle }) {
+  const s = stylesFor(THEMES[style]);
   return (
     <Document title={`${letter.header.name} - ${letter.subject}`} author={letter.header.name} creator="JobTailor" producer="JobTailor">
       <Page size={letter.template.pageSize} style={s.page}>
-        <Header header={letter.header} />
+        <Header s={s} header={letter.header} />
         <View style={s.letterMeta}>
           <Text>{letter.date}</Text>
           <Text style={{ ...s.strong, marginTop: 6 }}>{letter.subject}</Text>

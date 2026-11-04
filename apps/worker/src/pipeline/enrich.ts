@@ -111,6 +111,7 @@ export async function enrichPending(
       .from("jobs")
       .select("*")
       .eq("status", "new")
+      .is("owner_id", null)
       .order("from_ats", { ascending: false })
       .order("posted_at", { ascending: false, nullsFirst: false })
       .limit(maxPerRun),

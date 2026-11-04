@@ -17,3 +17,6 @@ supabase/.branches
 supabase/.temp
 next-env.d.ts
 *.tsbuildinfo
+
+# Brainstorming mockups
+.superpowers/
