@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { FactLibrarySchema } from "@jobtailor/core";
-import { suggestTitlesSystem, suggestTitlesUserPrompt, TitleSuggestionsSchema } from "@jobtailor/core/prompts";
+import { FactLibrarySchema } from "@cvtailor/core";
+import { suggestTitlesSystem, suggestTitlesUserPrompt, TitleSuggestionsSchema } from "@cvtailor/core/prompts";
 import { webProvider } from "@/lib/ai";
 import { allow } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";

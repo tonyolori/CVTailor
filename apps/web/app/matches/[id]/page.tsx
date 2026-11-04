@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cvStyleOf, FactLibrarySchema, ResumeSchema, type Resume } from "@jobtailor/core";
+import { cvStyleOf, FactLibrarySchema, ResumeSchema, type Resume } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { ResumeEditor, type VersionMeta } from "@/components/ResumeEditor";
 import { requireOnboarded } from "@/lib/auth";

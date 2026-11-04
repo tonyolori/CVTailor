@@ -41,8 +41,8 @@ let matchB: number;
 let versionB: number;
 
 beforeAll(async () => {
-  a = await ensureUser("rls.a@jobtailor.test");
-  b = await ensureUser("rls.b@jobtailor.test");
+  a = await ensureUser("rls.a@cvtailor.test");
+  b = await ensureUser("rls.b@cvtailor.test");
 
   for (const u of [a, b]) {
     await admin.from("preferences").upsert({ user_id: u.id, data: { owner: u.id } });
@@ -89,7 +89,7 @@ describe("invite-only signup hook", () => {
   });
 
   it("allows an email on the allow-list, ignoring case", async () => {
-    const email = `invited${Date.now()}@jobtailor.test`;
+    const email = `invited${Date.now()}@cvtailor.test`;
     await admin.from("allowed_emails").insert({ email });
     const { data, error } = await anon().auth.signUp({ email: email.toUpperCase(), password: PASSWORD });
     expect(error).toBeNull();
@@ -251,7 +251,7 @@ describe("shared and internal tables", () => {
 
 describe("account deletion", () => {
   it("cascades through every table", async () => {
-    const email = `gone${Date.now()}@jobtailor.test`;
+    const email = `gone${Date.now()}@cvtailor.test`;
     const u = await ensureUser(email);
     await admin.from("preferences").insert({ user_id: u.id, data: {} });
     await admin.from("matches").insert({ user_id: u.id, job_id: jobId, decision: "picked" });

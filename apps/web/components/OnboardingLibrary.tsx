@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { FactLibrarySchema, type FactLibrary } from "@jobtailor/core";
+import { FactLibrarySchema, type FactLibrary } from "@cvtailor/core";
 import { LibraryEditor } from "./LibraryEditor";
 import { cancelTask, pollTask } from "./TaskWait";
 

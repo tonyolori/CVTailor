@@ -1,10 +1,10 @@
-import { cvStyleOf } from "@jobtailor/core";
+import { cvStyleOf } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { WriteCv } from "@/components/WriteCv";
 import { requireOnboarded } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 
-export const metadata = { title: "Write a CV - JobTailor" };
+export const metadata = { title: "Write a CV - CV Tailor" };
 
 /** Paste any job, get a CV from your own library. `?match=` arrives from a job we hold no text for. */
 export default async function WritePage({ searchParams }: { searchParams: Promise<{ match?: string }> }) {

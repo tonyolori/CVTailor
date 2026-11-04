@@ -1,4 +1,4 @@
-# JobTailor
+# CV Tailor
 
 Invite-only service: collects job postings, matches them to each user's preferences and delivers the matches by email and dashboard. When a user asks, it writes a tailored CV from that user's own fact library. Any occupation, work mode and location.
 
@@ -22,7 +22,7 @@ npm run db:start         # local Supabase (needs Docker)
 npm run db:reset         # re-apply migrations and seed.sql
 npm run test:rls         # RLS and CV-request suites against local Supabase (test rows only, localhost only). Stop any running worker first
 npm run test:integration # whole pipeline, three personas (wipes local data, localhost only)
-npm run seed             # personas, companies and Tony after any db:reset; also resets newuser@jobtailor.test, a blank account for testing signup
+npm run seed             # personas, companies and Tony after any db:reset; also resets newuser@cvtailor.test, a blank account for testing signup
 npm run seed:personas    # the three synthetic test users
 npm run seed:companies   # employer boards to scan
 npm run seed:tony        # user #1 from private/owner.json (local only)

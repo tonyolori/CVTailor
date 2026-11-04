@@ -1,4 +1,4 @@
-import { prefilter, type Category, type Preferences } from "@jobtailor/core";
+import { prefilter, type Category, type Preferences } from "@cvtailor/core";
 import { chunks, must, type Db } from "../db";
 import { log } from "../log";
 import { atsBoards, scanCompanies, type CompanyRow } from "../sources/ats";

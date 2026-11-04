@@ -10,13 +10,13 @@ export default async function ConsentPage() {
     <div className="public">
       <div className="public-top">
         <Link className="logo" href="/">
-          JobTailor
+          CV Tailor
         </Link>
       </div>
     <main className="page narrow">
       <div className="stack">
         <h1>Before you start</h1>
-        <p>To find roles and write your CVs, JobTailor stores the work history and preferences you give it, and sends your facts and each job posting to an AI model to write the CV.</p>
+        <p>To find roles and write your CVs, CV Tailor stores the work history and preferences you give it, and sends your facts and each job posting to an AI model to write the CV.</p>
         <p>
           You can export or delete everything at any time from your settings. The <Link href="/privacy">privacy page</Link> explains who handles your data and your rights.
         </p>

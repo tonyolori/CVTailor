@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
   const key = process.env.EMAIL_API_KEY;
   if (!owner || !key) return NextResponse.json({ ok: false, status: "email_not_configured" }, { status: 500 });
 
-  const text = `JobTailor hasn't finished today's run (${runDate}). Status: ${run?.status ?? "not started"}. Check that the worker is running.`;
+  const text = `CV Tailor hasn't finished today's run (${runDate}). Status: ${run?.status ?? "not started"}. Check that the worker is running.`;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "Idempotency-Key": `alert-${runDate}` },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM, to: owner, subject: `JobTailor: no completed run for ${runDate}`, text }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM, to: owner, subject: `CV Tailor: no completed run for ${runDate}`, text }),
   });
   if (!res.ok) return NextResponse.json({ ok: false, status: "send_failed" }, { status: 502 });
   await db.from("daily_runs").upsert({ run_date: runDate, status: run?.status ?? "failed", alert_sent_at: new Date().toISOString() }, { onConflict: "run_date" });

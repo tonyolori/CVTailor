@@ -7,7 +7,7 @@ import { toStrictJsonSchema, validateReply } from "./schema";
 import { ZERO_USAGE, type LlmConfig, type LlmProvider, type LlmRequest, type LlmResult, type LlmUsage } from "./types";
 
 /** Empty, so the agent can't discover project files, CLAUDE.md, hooks or MCP config. */
-const EMPTY_CWD = mkdtempSync(join(tmpdir(), "jobtailor-llm-"));
+const EMPTY_CWD = mkdtempSync(join(tmpdir(), "cvtailor-llm-"));
 
 /**
  * Runs through the Claude Agent SDK on the machine owner's Claude login, with no API key.

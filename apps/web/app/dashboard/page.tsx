@@ -1,4 +1,4 @@
-import { cvStyleOf, EnrichedJobSchema } from "@jobtailor/core";
+import { cvStyleOf, EnrichedJobSchema } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { MatchBoard, type BoardRow } from "@/components/MatchBoard";
 import { requireOnboarded } from "@/lib/auth";

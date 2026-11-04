@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { cvStyleOf, ResumeSchema } from "@jobtailor/core";
-import { renderResumePdf } from "@jobtailor/render";
+import { cvStyleOf, ResumeSchema } from "@cvtailor/core";
+import { renderResumePdf } from "@cvtailor/render";
 import { createClient } from "@/lib/supabase/server";
 
 /** Live preview for the editor. Renders what it's sent and stores nothing. */

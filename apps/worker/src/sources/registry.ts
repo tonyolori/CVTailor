@@ -1,4 +1,4 @@
-import { countryName, type Preferences } from "@jobtailor/core";
+import { countryName, type Preferences } from "@cvtailor/core";
 import { AGGREGATORS } from "./aggregators";
 import { companyRelevant, type CompanyRow } from "./ats";
 import type { SourceAdapter } from "./types";

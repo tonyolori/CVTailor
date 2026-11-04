@@ -1,4 +1,4 @@
-# JobTailor build plan
+# CV Tailor build plan
 
 Restates the handoff spec's phases, with the adjustments proposed during the build. The spec's decisions stand unless listed here.
 

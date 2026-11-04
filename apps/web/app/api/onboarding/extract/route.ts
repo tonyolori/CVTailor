@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { EXTRACT_FACTS_SYSTEM, extractFactsUserPrompt, ProposedLibrarySchema } from "@jobtailor/core/prompts";
+import { EXTRACT_FACTS_SYSTEM, extractFactsUserPrompt, ProposedLibrarySchema } from "@cvtailor/core/prompts";
 import { webProvider } from "@/lib/ai";
 import { extractCvText, MAX_CV_BYTES } from "@/lib/cv-text";
 import { allow } from "@/lib/rate-limit";

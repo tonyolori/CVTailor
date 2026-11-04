@@ -1,4 +1,4 @@
-import type { Gate } from "@jobtailor/core";
+import type { Gate } from "@cvtailor/core";
 
 /**
  * Hand-labelled postings for the synthetic personas. All invented. The labels record the

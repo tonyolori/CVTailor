@@ -1,4 +1,4 @@
-import { FactLibrarySchema } from "@jobtailor/core";
+import { FactLibrarySchema } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { LibraryEditor } from "@/components/LibraryEditor";
 import { requireOnboarded } from "@/lib/auth";

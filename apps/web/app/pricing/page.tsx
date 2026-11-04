@@ -28,7 +28,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
     <div className="public">
       <div className="public-top">
         <Link className="logo" href="/">
-          JobTailor
+          CV Tailor
         </Link>
         {auth.user ? <Link href="/dashboard">Your matches</Link> : <Link href="/login">Sign in</Link>}
       </div>

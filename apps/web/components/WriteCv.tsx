@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { CvStyle, Resume } from "@jobtailor/core";
+import type { CvStyle, Resume } from "@cvtailor/core";
 import { CvSheet } from "@/components/CvSheet";
 import { pollTask } from "@/components/TaskWait";
 import type { CvAllowance } from "@/lib/entitlement";

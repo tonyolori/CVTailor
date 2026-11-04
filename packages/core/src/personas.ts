@@ -16,7 +16,7 @@ export interface Persona {
 
 export const remoteSoftwarePersona: Persona = {
   key: "remote-software",
-  email: "persona.software@jobtailor.test",
+  email: "persona.software@cvtailor.test",
   displayName: "Sade Testperson",
   tz: "Africa/Lagos",
   preferences: PreferencesSchema.parse({
@@ -36,7 +36,7 @@ export const remoteSoftwarePersona: Persona = {
     contact: {
       name: "Sade Testperson",
       location: "Lagos, Nigeria",
-      email: "persona.software@jobtailor.test",
+      email: "persona.software@cvtailor.test",
       links: [{ label: "Portfolio", url: "https://example.com/sade" }],
     },
     skills: ["TypeScript", "PostgreSQL", "Docker", "Node.js"],
@@ -74,7 +74,7 @@ export const remoteSoftwarePersona: Persona = {
 
 export const remoteAccountantPersona: Persona = {
   key: "remote-accountant",
-  email: "persona.accountant@jobtailor.test",
+  email: "persona.accountant@cvtailor.test",
   displayName: "Marta Exemplo",
   tz: "Europe/Lisbon",
   preferences: PreferencesSchema.parse({
@@ -91,7 +91,7 @@ export const remoteAccountantPersona: Persona = {
     cvTemplate: { convention: "europe", pageSize: "A4" },
   }),
   facts: FactLibrarySchema.parse({
-    contact: { name: "Marta Exemplo", location: "Porto, Portugal", email: "persona.accountant@jobtailor.test" },
+    contact: { name: "Marta Exemplo", location: "Porto, Portugal", email: "persona.accountant@cvtailor.test" },
     skills: ["IFRS", "Excel", "Month-end close", "Consolidation", "SAP"],
     languages: [
       { name: "English", level: "Fluent" },
@@ -128,7 +128,7 @@ export const remoteAccountantPersona: Persona = {
 
 export const onsiteNursePersona: Persona = {
   key: "onsite-nurse",
-  email: "persona.nurse@jobtailor.test",
+  email: "persona.nurse@cvtailor.test",
   displayName: "Grace Sampleton",
   tz: "Europe/London",
   preferences: PreferencesSchema.parse({
@@ -143,7 +143,7 @@ export const onsiteNursePersona: Persona = {
     cvTemplate: { convention: "uk_commonwealth", pageSize: "A4" },
   }),
   facts: FactLibrarySchema.parse({
-    contact: { name: "Grace Sampleton", location: "Manchester, UK", email: "persona.nurse@jobtailor.test" },
+    contact: { name: "Grace Sampleton", location: "Manchester, UK", email: "persona.nurse@cvtailor.test" },
     skills: ["Patient assessment", "Medication administration", "Wound care", "Care planning"],
     languages: [{ name: "English", level: "Native" }],
     credentials: [

@@ -23,7 +23,7 @@ import {
   parseWorkingNomads,
   parseWwr,
 } from "../src/sources/aggregators";
-import { onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona } from "@jobtailor/core";
+import { onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona } from "@cvtailor/core";
 import { capDescription, dedupeRun } from "../src/pipeline/collect";
 import { slugCandidates } from "../src/pipeline/discovery";
 import { coverageGaps, relevantAdapters, searchQueries } from "../src/sources/registry";

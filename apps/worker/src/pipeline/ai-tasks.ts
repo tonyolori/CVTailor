@@ -1,4 +1,4 @@
-import { DEFAULT_CV_REQUESTS_PER_DAY, PASTED_JOB_TITLE, type Category } from "@jobtailor/core";
+import { DEFAULT_CV_REQUESTS_PER_DAY, PASTED_JOB_TITLE, type Category } from "@cvtailor/core";
 import {
   EXTRACT_FACTS_SYSTEM,
   extractFactsUserPrompt,
@@ -6,8 +6,8 @@ import {
   suggestTitlesSystem,
   suggestTitlesUserPrompt,
   TitleSuggestionsSchema,
-} from "@jobtailor/core/prompts";
-import { mayUseAi, type LlmProvider } from "@jobtailor/llm";
+} from "@cvtailor/core/prompts";
+import { mayUseAi, type LlmProvider } from "@cvtailor/llm";
 import { must, type Db } from "../db";
 import { log } from "../log";
 import { BudgetExceeded, type Budget } from "./budget";

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { CoverLetterSchema, cvStyleOf, ResumeSchema } from "@jobtailor/core";
-import { renderCoverLetterPdf, renderResumePdf } from "@jobtailor/render";
+import { CoverLetterSchema, cvStyleOf, ResumeSchema } from "@cvtailor/core";
+import { renderCoverLetterPdf, renderResumePdf } from "@cvtailor/render";
 import { createClient } from "@/lib/supabase/server";
 
 function filename(name: string, kind: string): string {

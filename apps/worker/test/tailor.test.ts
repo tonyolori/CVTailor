@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EnrichedJobSchema, onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona, type Persona } from "@jobtailor/core";
-import { COVER_LETTER_SYSTEM, libraryContext, SCORE_SYSTEM, TAILOR_SYSTEM } from "@jobtailor/core/prompts";
-import { FakeProvider, ZERO_USAGE } from "@jobtailor/llm";
+import { EnrichedJobSchema, onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona, type Persona } from "@cvtailor/core";
+import { COVER_LETTER_SYSTEM, libraryContext, SCORE_SYSTEM, TAILOR_SYSTEM } from "@cvtailor/core/prompts";
+import { FakeProvider, ZERO_USAGE } from "@cvtailor/llm";
 import { totalScore, MISSING_CREDENTIAL_PENALTY, rank, rankNearMisses } from "../src/pipeline/match";
 import { draftCoverLetter, draftResume, MAX_REGENERATIONS, type TailorJob } from "../src/pipeline/tailor";
 import type { Budget } from "../src/pipeline/budget";
@@ -68,7 +68,7 @@ describe("draftResume", () => {
     const provider = new FakeProvider(() => ({ ...honestDraft(), header: { name: "Someone Else", email: "evil@example.com" } }));
     const out = await draftResume({ provider, budget }, job, nurse);
     expect(out.doc?.header.name).toBe("Grace Sampleton");
-    expect(out.doc?.header.email).toBe("persona.nurse@jobtailor.test");
+    expect(out.doc?.header.email).toBe("persona.nurse@cvtailor.test");
     expect(out.doc?.template.pageSize).toBe("A4");
   });
 

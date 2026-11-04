@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { regionsOfCountry, Region, type Preferences, type PreferencesInput, type WorkMode } from "@jobtailor/core";
-import type { TitleSuggestions } from "@jobtailor/core/prompts";
+import { regionsOfCountry, Region, type Preferences, type PreferencesInput, type WorkMode } from "@cvtailor/core";
+import type { TitleSuggestions } from "@cvtailor/core/prompts";
 import type { CountryOption } from "@/lib/countries";
 import { savePreferences } from "@/app/actions";
 import { cancelTask, pollTask } from "./TaskWait";

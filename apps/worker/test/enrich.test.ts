@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EnrichedJobSchema } from "@jobtailor/core";
-import { enrichSystemPrompt, enrichUserPrompt } from "@jobtailor/core/prompts";
+import { EnrichedJobSchema } from "@cvtailor/core";
+import { enrichSystemPrompt, enrichUserPrompt } from "@cvtailor/core/prompts";
 import { buildEnrichRequest, liveUrl, needsLiveCheck, reconcile, type JobRow } from "../src/pipeline/enrich";
 import { extractJsonLd, interpretLivePage } from "../src/pipeline/live";
 

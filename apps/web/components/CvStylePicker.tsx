@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CV_STYLES, type CvStyle, type Resume } from "@jobtailor/core";
+import { CV_STYLES, type CvStyle, type Resume } from "@cvtailor/core";
 import { setCvStyle } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
 import { SettingsTabs } from "@/components/SettingsTabs";

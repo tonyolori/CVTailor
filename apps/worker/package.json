@@ -1,5 +1,5 @@
 {
-  "name": "@jobtailor/worker",
+  "name": "@cvtailor/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,9 +16,9 @@
     "test:integration": "node --env-file=../../.env ../../node_modules/vitest/vitest.mjs run test/pipeline.integration.test.ts"
   },
   "dependencies": {
-    "@jobtailor/core": "*",
-    "@jobtailor/llm": "*",
-    "@jobtailor/render": "*",
+    "@cvtailor/core": "*",
+    "@cvtailor/llm": "*",
+    "@cvtailor/render": "*",
     "@supabase/supabase-js": "^2.118.0",
     "tsx": "^4.21.0",
     "zod": "^4.6.7"

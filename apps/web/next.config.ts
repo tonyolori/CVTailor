@@ -17,7 +17,7 @@ const securityHeaders = [
 const config: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   outputFileTracingRoot: repoRoot,
-  transpilePackages: ["@jobtailor/core", "@jobtailor/llm", "@jobtailor/render"],
+  transpilePackages: ["@cvtailor/core", "@cvtailor/llm", "@cvtailor/render"],
   serverExternalPackages: ["@react-pdf/renderer", "unpdf", "mammoth"],
   outputFileTracingIncludes: {
     "/api/**": ["../../node_modules/@expo-google-fonts/inter/**/*.ttf", "../../node_modules/@expo-google-fonts/lora/**/*.ttf", "../../node_modules/@expo-google-fonts/source-serif-4/**/*.ttf"],

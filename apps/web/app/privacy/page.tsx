@@ -7,7 +7,7 @@ export default function PrivacyPage() {
     <div className="public">
       <div className="public-top">
         <Link className="logo" href="/">
-          JobTailor
+          CV Tailor
         </Link>
       </div>
     <main className="page">
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         <div className="notice warn">Draft policy, pending legal review.</div>
 
         <h2>Who runs this</h2>
-        <p>JobTailor is an invite-only service run by Anthony Olori in Lagos, Nigeria. Contact the person who invited you with any question or request about your data.</p>
+        <p>CV Tailor is an invite-only service run by Anthony Olori in Lagos, Nigeria. Contact the person who invited you with any question or request about your data.</p>
 
         <h2>What we hold</h2>
         <p>Your email address, the work history and other facts you give us, your job-search preferences, the CVs and cover letters written for you, which roles you've applied to, and payment records if you subscribe. An uploaded CV is read once to propose your library. The file isn't kept, and its text is erased after processing.</p>

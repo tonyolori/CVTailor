@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { createProvider } from "@jobtailor/llm";
+import { createProvider } from "@cvtailor/llm";
 import { llmConfig, loadConfig } from "./config";
 import { serviceClient } from "./db";
 import { fileSender, resendSender } from "./email/send";

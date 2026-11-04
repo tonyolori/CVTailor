@@ -16,7 +16,7 @@ export interface HostPolicy {
 const DEFAULT_INTERVAL_MS = 500;
 const MAX_ATTEMPTS = 3;
 const TIMEOUT_MS = 30_000;
-const USER_AGENT = "JobTailor/0.1 (invite-only personal job search; polite polling)";
+const USER_AGENT = "CVTailor/0.1 (invite-only personal job search; polite polling)";
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

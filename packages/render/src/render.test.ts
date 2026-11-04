@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { CoverLetterSchema, CV_STYLES, ResumeSchema, type ResumeInput } from "@jobtailor/core";
+import { CoverLetterSchema, CV_STYLES, ResumeSchema, type ResumeInput } from "@cvtailor/core";
 import { countPages, dateRange, orderedSections, renderCoverLetterPdf, renderResumePdf } from "./index";
 
 /** Reads text by position, the way PDF parsers and ATS extractors do: a space only where there's a visible gap. */

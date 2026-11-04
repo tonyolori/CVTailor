@@ -7,9 +7,9 @@ import {
   type GateResult,
   type Preferences,
   type TitleTier,
-} from "@jobtailor/core";
-import { libraryContext, SCORE_SYSTEM, ScoreSchema, scoreUserPrompt, type Score } from "@jobtailor/core/prompts";
-import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmUsage } from "@jobtailor/llm";
+} from "@cvtailor/core";
+import { libraryContext, SCORE_SYSTEM, ScoreSchema, scoreUserPrompt, type Score } from "@cvtailor/core/prompts";
+import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmUsage } from "@cvtailor/llm";
 import { chunks, must, type Db } from "../db";
 import { log } from "../log";
 import type { Http } from "../sources/http";

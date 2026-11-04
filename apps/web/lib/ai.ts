@@ -1,5 +1,5 @@
 import "server-only";
-import { ApiProvider } from "@jobtailor/llm/api";
+import { ApiProvider } from "@cvtailor/llm/api";
 
 /**
  * AI on the web host only exists with an API key. A personal Claude login can't run here:

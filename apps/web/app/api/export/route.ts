@@ -38,7 +38,7 @@ export async function GET() {
     cv_allowance_history: cvLedger.data,
   };
 
-  const files: Record<string, Uint8Array> = { "jobtailor-data.json": strToU8(JSON.stringify(dump, null, 2)) };
+  const files: Record<string, Uint8Array> = { "cvtailor-data.json": strToU8(JSON.stringify(dump, null, 2)) };
   for (const d of documents.data ?? []) {
     const { data } = await supabase.storage.from("documents").download(d.storage_path);
     if (data) files[`pdfs/${d.storage_path.split("/").slice(1).join("-")}`] = new Uint8Array(await data.arrayBuffer());
@@ -47,7 +47,7 @@ export async function GET() {
   return new NextResponse(zip.buffer as ArrayBuffer, {
     headers: {
       "content-type": "application/zip",
-      "content-disposition": 'attachment; filename="jobtailor-export.zip"',
+      "content-disposition": 'attachment; filename="cvtailor-export.zip"',
       "cache-control": "no-store",
     },
   });

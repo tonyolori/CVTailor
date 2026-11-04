@@ -6,10 +6,10 @@ import { siteUrl } from "./site";
 /** The invitation someone on the waitlist receives. Same provider settings as the worker's email. */
 export async function sendInvite(email: string): Promise<boolean> {
   const link = siteUrl("/login").href;
-  const subject = "You're invited to JobTailor";
-  const text = `You're in.\n\nYour place on JobTailor is ready. Sign in with this email address:\n${link}\n\nWe'll email you a link, so there's no password to remember.`;
-  const html = `<p>You're in.</p><p>Your place on JobTailor is ready. <a href="${link}">Sign in with this email address</a>.</p><p>We'll email you a link, so there's no password to remember.</p>`;
-  const from = process.env.EMAIL_FROM ?? "JobTailor <hello@example.com>";
+  const subject = "You're invited to CV Tailor";
+  const text = `You're in.\n\nYour place on CV Tailor is ready. Sign in with this email address:\n${link}\n\nWe'll email you a link, so there's no password to remember.`;
+  const html = `<p>You're in.</p><p>Your place on CV Tailor is ready. <a href="${link}">Sign in with this email address</a>.</p><p>We'll email you a link, so there's no password to remember.</p>`;
+  const from = process.env.EMAIL_FROM ?? "CV Tailor <hello@example.com>";
 
   if (process.env.EMAIL_PROVIDER === "resend" && process.env.EMAIL_API_KEY) {
     const res = await fetch("https://api.resend.com/emails", {

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { hasActivePlan } from "@jobtailor/core";
+import { hasActivePlan } from "@cvtailor/core";
 import { siteUrl } from "@/lib/site";
 import { checkoutBody, PLANS, type PlanId } from "@/lib/paystack";
 import { nairaToKobo, priceNaira } from "@/lib/plan-settings";

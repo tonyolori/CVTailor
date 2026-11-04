@@ -12,27 +12,27 @@ Create a task that starts the loop at logon and restarts it if it stops:
 
 ```powershell
 $action = New-ScheduledTaskAction -Execute "cmd.exe" `
-  -Argument '/c cd /d C:\path\to\JobTailor && npm run worker -- --loop >> .local\worker.log 2>&1'
+  -Argument '/c cd /d C:\path\to\CVTailor && npm run worker -- --loop >> .local\worker.log 2>&1'
 $triggers = @(New-ScheduledTaskTrigger -AtLogOn)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
   -StartWhenAvailable -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 5) `
   -ExecutionTimeLimit ([TimeSpan]::Zero)
-Register-ScheduledTask -TaskName "JobTailor worker" -Action $action -Trigger $triggers -Settings $settings
+Register-ScheduledTask -TaskName "CV Tailor worker" -Action $action -Trigger $triggers -Settings $settings
 ```
 
 `-StartWhenAvailable` is the part that catches up after the PC was off overnight. In subscription mode, run this as the same Windows user who ran `npm run claude:login`, since the login is stored per user.
 
 ## Linux: systemd
 
-`~/.config/systemd/user/jobtailor.service`:
+`~/.config/systemd/user/cvtailor.service`:
 
 ```ini
 [Unit]
-Description=JobTailor worker
+Description=CV Tailor worker
 After=network-online.target
 
 [Service]
-WorkingDirectory=%h/JobTailor
+WorkingDirectory=%h/CVTailor
 ExecStart=/usr/bin/npm run worker -- --loop
 Restart=always
 RestartSec=60
@@ -42,15 +42,15 @@ WantedBy=default.target
 ```
 
 ```bash
-systemctl --user enable --now jobtailor
+systemctl --user enable --now cvtailor
 loginctl enable-linger "$USER"   # keeps it running while you're logged out
-journalctl --user -u jobtailor -f
+journalctl --user -u cvtailor -f
 ```
 
 If you'd rather not keep a process up, a timer works too, at the cost of emails going out up to one interval late:
 
 ```ini
-# ~/.config/systemd/user/jobtailor.timer, with Type=oneshot and no --loop in the service
+# ~/.config/systemd/user/cvtailor.timer, with Type=oneshot and no --loop in the service
 [Timer]
 OnBootSec=2min
 OnUnitActiveSec=15min

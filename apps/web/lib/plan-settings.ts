@@ -1,4 +1,4 @@
-import { DEFAULT_FREE_CVS, DEFAULT_PLAN_CVS, DEFAULT_TOP_UP_CVS } from "@jobtailor/core";
+import { DEFAULT_FREE_CVS, DEFAULT_PLAN_CVS, DEFAULT_TOP_UP_CVS } from "@cvtailor/core";
 
 type Env = Record<string, string | undefined>;
 

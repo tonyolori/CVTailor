@@ -1,4 +1,4 @@
-import { PreferencesSchema } from "@jobtailor/core";
+import { PreferencesSchema } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { countryOptions } from "@/lib/countries";

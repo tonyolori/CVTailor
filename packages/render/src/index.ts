@@ -2,10 +2,10 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { Font, renderToBuffer } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
-import type { CoverLetter, CvStyle, Resume } from "@jobtailor/core";
+import type { CoverLetter, CvStyle, Resume } from "@cvtailor/core";
 import { CoverLetterDocument, ResumeDocument } from "./template";
 
-export { dateRange, formatDate, orderedSections } from "@jobtailor/core";
+export { dateRange, formatDate, orderedSections } from "@cvtailor/core";
 
 /** Resolved from the working directory, because a bundled module's own location isn't reliable. */
 const require = createRequire(join(process.cwd(), "package.json"));

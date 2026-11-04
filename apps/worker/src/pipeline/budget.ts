@@ -1,4 +1,4 @@
-import type { LlmUsage } from "@jobtailor/llm";
+import type { LlmUsage } from "@cvtailor/llm";
 import { must, type Db } from "../db";
 
 export class BudgetExceeded extends Error {

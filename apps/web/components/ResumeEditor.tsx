@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { CV_STYLES, verifyResume, type CvStyle, type FactLibrary, type Resume, type VerifyIssue } from "@jobtailor/core";
+import { CV_STYLES, verifyResume, type CvStyle, type FactLibrary, type Resume, type VerifyIssue } from "@cvtailor/core";
 import { addToLibrary, saveResumeVersion, setMatchCvStyle } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
 

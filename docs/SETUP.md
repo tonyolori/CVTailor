@@ -15,7 +15,7 @@ Things only Tony can do. Items are ordered so you can stop at any point and stil
 
 - [ ] Be on a paid Claude plan. Pro, Max or Ultra all work; heavier plans give more room, because these runs draw from your normal subscription limits.
 - [ ] Sign in: `npm run claude:login` runs the Claude Code binary's login. It completes in Anthropic's own browser flow.
-- [ ] In `.env`: `LLM_PROVIDER=claude-subscription` and `OWNER_EMAIL=<your account email in JobTailor>`.
+- [ ] In `.env`: `LLM_PROVIDER=claude-subscription` and `OWNER_EMAIL=<your account email in CV Tailor>`.
 - [ ] Check it: `npm run llm:check`
 - [ ] Do **not** set `ANTHROPIC_API_KEY` in this mode. It's ignored for AI calls here, but it's easy to mistake for what's being billed.
 - [ ] If runs stop early with a usage-limit note, lower `ENRICH_MAX_PER_RUN` or `daily_cap`, or run at a quieter time. The next run picks up where it stopped.

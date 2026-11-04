@@ -1,5 +1,5 @@
 {
-  "name": "@jobtailor/llm",
+  "name": "@cvtailor/llm",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,7 +21,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@jobtailor/core": "*",
+    "@cvtailor/core": "*",
     "@types/node": "^24.0.0"
   }
 }

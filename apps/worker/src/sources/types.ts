@@ -1,4 +1,4 @@
-import type { WorkMode } from "@jobtailor/core";
+import type { WorkMode } from "@cvtailor/core";
 import type { Http } from "./http";
 
 /** The common shape every adapter returns. */

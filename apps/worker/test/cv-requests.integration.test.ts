@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DEFAULT_FREE_CVS, DEFAULT_PLAN_CVS, DEFAULT_TOP_UP_CVS, onsiteNursePersona, PASTED_JOB_TITLE } from "@jobtailor/core";
-import { FakeProvider, type LlmRequest } from "@jobtailor/llm";
+import { DEFAULT_FREE_CVS, DEFAULT_PLAN_CVS, DEFAULT_TOP_UP_CVS, onsiteNursePersona, PASTED_JOB_TITLE } from "@cvtailor/core";
+import { FakeProvider, type LlmRequest } from "@cvtailor/llm";
 import { loadConfig } from "../src/config";
 import { serviceClient } from "../src/db";
 import { LIMIT_MESSAGE, NOT_ENTITLED_MESSAGE, processAiTasks } from "../src/pipeline/ai-tasks";
@@ -18,7 +18,7 @@ if (!/^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(config.SUPABASE_URL)) {
 }
 const admin = serviceClient(config);
 const PASSWORD = "local-test-only-password";
-const DOMAIN = "cvreq.jobtailor.test";
+const DOMAIN = "cvreq.cvtailor.test";
 
 const honestDraft = {
   roleTitle: "Staff Nurse",

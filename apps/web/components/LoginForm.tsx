@@ -39,7 +39,7 @@ export function LoginForm({ linkFailed }: { linkFailed: boolean }) {
     <main className="wl">
       <div className="nav">
         <Link className="logo" href="/">
-          JobTailor
+          CV Tailor
         </Link>
         <Link href="/waitlist">Join the waitlist</Link>
       </div>

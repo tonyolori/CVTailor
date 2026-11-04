@@ -1,4 +1,4 @@
-import { EnrichedJobSchema } from "@jobtailor/core";
+import { EnrichedJobSchema } from "@cvtailor/core";
 import { must, type Db } from "../db";
 import { DailySummarySchema, type DailySummary } from "../email/template";
 import type { SourceAdapter } from "../sources/types";

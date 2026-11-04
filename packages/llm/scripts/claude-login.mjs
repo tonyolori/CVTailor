@@ -1,5 +1,5 @@
 // Runs the Claude Code binary's own login, which completes in Anthropic's browser flow.
-// JobTailor never sees or stores the credentials.
+// CV Tailor never sees or stores the credentials.
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 

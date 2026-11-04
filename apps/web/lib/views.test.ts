@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ResumeSchema } from "@jobtailor/core";
+import { ResumeSchema } from "@cvtailor/core";
 import { landingExample } from "./landing-examples";
 import { safeHref, sourceLabel, VIEWS } from "./views";
 

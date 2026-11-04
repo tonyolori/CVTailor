@@ -1,4 +1,4 @@
-# JobTailor
+# CV Tailor
 
 An invite-only service that collects job postings every morning, matches them to each user's preferences and delivers them by email and a web dashboard. When a user asks, it writes a tailored CV from that user's own facts. Any occupation, work mode and location: those are per-user data, not assumptions in the code.
 

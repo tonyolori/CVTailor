@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { MAX_POSTING_CHARS, MIN_POSTING_CHARS, PASTED_JOB_TITLE } from "@jobtailor/core";
+import { MAX_POSTING_CHARS, MIN_POSTING_CHARS, PASTED_JOB_TITLE } from "@cvtailor/core";
 import { billingEnforced, cvRequestsPerDay } from "@/lib/entitlement";
 import { allow } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";

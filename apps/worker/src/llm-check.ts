@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createProvider } from "@jobtailor/llm";
+import { createProvider } from "@cvtailor/llm";
 import { loadConfig, llmConfig } from "./config";
 
 /** One cheap call per model tier through the configured provider, to prove the login or key works. */

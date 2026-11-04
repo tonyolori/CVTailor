@@ -1,4 +1,4 @@
-import { FactLibrarySchema, PreferencesSchema, type FactLibrary, type Preferences } from "@jobtailor/core";
+import { FactLibrarySchema, PreferencesSchema, type FactLibrary, type Preferences } from "@cvtailor/core";
 import { must, type Db } from "../db";
 
 export interface SeedUser {

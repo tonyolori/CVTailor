@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@jobtailor/core";
+import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@cvtailor/core";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { sendInvite } from "@/lib/email";
 import { cvCounts } from "@/lib/plan-settings";
@@ -36,7 +36,7 @@ export async function signIn(_prev: ActionResult | null, form: FormData): Promis
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? `https://${h.get("host")}`;
   const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${site}/auth/callback` } });
   if (error) {
-    return { ok: false, message: /invite-only/i.test(error.message) ? "JobTailor is invite only for now, and this email isn't on the list yet. Join the waitlist and we'll email you when there's a place." : "Couldn't send the link. Try again shortly." };
+    return { ok: false, message: /invite-only/i.test(error.message) ? "CV Tailor is invite only for now, and this email isn't on the list yet. Join the waitlist and we'll email you when there's a place." : "Couldn't send the link. Try again shortly." };
   }
   return { ok: true, message: "Check your email for a sign-in link." };
 }

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { DEFAULT_CV_REQUESTS_PER_DAY } from "@jobtailor/core";
-import type { LlmConfig } from "@jobtailor/llm";
+import { DEFAULT_CV_REQUESTS_PER_DAY } from "@cvtailor/core";
+import type { LlmConfig } from "@cvtailor/llm";
 
 const bool = z.enum(["true", "false"]).transform((v) => v === "true");
 const optional = z
@@ -38,7 +38,7 @@ const ConfigSchema = z.object({
 
   EMAIL_PROVIDER: z.enum(["resend", "file"]).default("file"),
   EMAIL_API_KEY: optional,
-  EMAIL_FROM: z.string().default("JobTailor <hello@example.com>"),
+  EMAIL_FROM: z.string().default("CV Tailor <hello@example.com>"),
   SITE_URL: z.string().url().default("http://127.0.0.1:3000"),
 });
 

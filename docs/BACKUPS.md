@@ -11,12 +11,12 @@ Get the connection string from the Supabase dashboard (Connect > Session pooler)
 # backup.sh. Requires: pg_dump 17+ matching the server, gpg, and rclone set up with a remote called "backups".
 set -euo pipefail
 STAMP=$(date -u +%F)
-FILE="jobtailor-$STAMP.dump.gpg"
+FILE="cvtailor-$STAMP.dump.gpg"
 pg_dump "$SUPABASE_DB_URL" --format=custom --schema=public --schema=auth --no-owner \
-  | gpg --batch --symmetric --cipher-algo AES256 --passphrase-file ~/.jobtailor-backup-pass -o "/tmp/$FILE"
-rclone copy "/tmp/$FILE" backups:jobtailor/
+  | gpg --batch --symmetric --cipher-algo AES256 --passphrase-file ~/.cvtailor-backup-pass -o "/tmp/$FILE"
+rclone copy "/tmp/$FILE" backups:cvtailor/
 rm -f "/tmp/$FILE"
-rclone delete --min-age 30d backups:jobtailor/
+rclone delete --min-age 30d backups:cvtailor/
 ```
 
 Schedule it with cron (`0 3 * * * /path/to/backup.sh`) or Windows Task Scheduler. Any object store works; Cloudflare R2 and Backblaze B2 both have free allowances. Check current limits before relying on them.
@@ -30,7 +30,7 @@ PDFs can always be re-rendered from `resume_versions`, which is in the database 
 **Practise this once before you need it.** An untested backup isn't a backup.
 
 ```bash
-gpg --batch --decrypt --passphrase-file ~/.jobtailor-backup-pass jobtailor-YYYY-MM-DD.dump.gpg > restore.dump
+gpg --batch --decrypt --passphrase-file ~/.cvtailor-backup-pass cvtailor-YYYY-MM-DD.dump.gpg > restore.dump
 pg_restore --clean --if-exists --no-owner -d "$TARGET_DB_URL" restore.dump
 ```
 

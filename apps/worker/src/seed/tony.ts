@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { FactLibrarySchema, PreferencesSchema } from "@jobtailor/core";
+import { FactLibrarySchema, PreferencesSchema } from "@cvtailor/core";
 import { z } from "zod";
 import { loadConfig } from "../config";
 import { serviceClient } from "../db";

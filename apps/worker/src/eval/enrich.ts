@@ -12,8 +12,8 @@ import {
   type Gate,
   type Persona,
   type Preferences,
-} from "@jobtailor/core";
-import { createProvider, type LlmProvider } from "@jobtailor/llm";
+} from "@cvtailor/core";
+import { createProvider, type LlmProvider } from "@cvtailor/llm";
 import { loadConfig, llmConfig } from "../config";
 import { buildEnrichRequest, reconcile, type JobRow } from "../pipeline/enrich";
 import { checkLive, resolveAtsRecord, type LiveCheck } from "../pipeline/live";

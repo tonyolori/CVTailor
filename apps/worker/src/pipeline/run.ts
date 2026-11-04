@@ -1,5 +1,5 @@
-import { type Category } from "@jobtailor/core";
-import { mayUseAi, ZERO_USAGE, type LlmProvider } from "@jobtailor/llm";
+import { type Category } from "@cvtailor/core";
+import { mayUseAi, ZERO_USAGE, type LlmProvider } from "@cvtailor/llm";
 import type { Config } from "../config";
 import { errorInfo, must, type Db } from "../db";
 import type { EmailSender } from "../email/send";
@@ -106,11 +106,11 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
 
 async function sendAlert(deps: RunDeps, runDate: string, now: Date, status: string | undefined): Promise<void> {
   if (!deps.config.OWNER_EMAIL) return;
-  const html = `<p>JobTailor hasn't finished today's run (${runDate}). Status: ${status ?? "not started"}, checked at ${now.toISOString()}.</p><p>Check that the worker is running and look at the runs table.</p>`;
+  const html = `<p>CV Tailor hasn't finished today's run (${runDate}). Status: ${status ?? "not started"}, checked at ${now.toISOString()}.</p><p>Check that the worker is running and look at the runs table.</p>`;
   await deps.sender.send({
     to: deps.config.OWNER_EMAIL,
     from: deps.config.EMAIL_FROM,
-    subject: `JobTailor: no completed run for ${runDate}`,
+    subject: `CV Tailor: no completed run for ${runDate}`,
     html,
     text: html.replace(/<[^>]+>/g, " "),
     idempotencyKey: `alert-${runDate}`,

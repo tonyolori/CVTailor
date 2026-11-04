@@ -1,5 +1,5 @@
 import "server-only";
-import { DEFAULT_CV_REQUESTS_PER_DAY, hasActivePlan } from "@jobtailor/core";
+import { DEFAULT_CV_REQUESTS_PER_DAY, hasActivePlan } from "@cvtailor/core";
 
 export interface CvAllowance {
   /** Billing is off, so nothing is counted. Every invited user has full service. */

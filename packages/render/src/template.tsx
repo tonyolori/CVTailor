@@ -2,7 +2,7 @@ import { Document, Link, Page, StyleSheet, Text, View } from "@react-pdf/rendere
 // In scope on purpose: tsx applies a tsconfig only to files it includes, so running the worker
 // compiles this file with classic JSX, which needs React here. Other runners ignore the import.
 import * as React from "react";
-import { dateRange, orderedSections, SECTION_TITLES, type CoverLetter, type CvStyle, type Resume, type ResumeSection } from "@jobtailor/core";
+import { dateRange, orderedSections, SECTION_TITLES, type CoverLetter, type CvStyle, type Resume, type ResumeSection } from "@cvtailor/core";
 
 void React;
 
@@ -322,7 +322,7 @@ export function ResumeDocument({ resume, style = "classic" }: { resume: Resume; 
   const theme = THEMES[style];
   const s = stylesFor(theme);
   return (
-    <Document title={`${resume.header.name} - ${resume.header.roleTitle}`} author={resume.header.name} creator="JobTailor" producer="JobTailor">
+    <Document title={`${resume.header.name} - ${resume.header.roleTitle}`} author={resume.header.name} creator="CV Tailor" producer="CV Tailor">
       <Page size={resume.template.pageSize} style={s.page}>
         <Header s={s} header={resume.header} />
         {orderedSections(resume).map((section) => (
@@ -336,7 +336,7 @@ export function ResumeDocument({ resume, style = "classic" }: { resume: Resume; 
 export function CoverLetterDocument({ letter, style = "classic" }: { letter: CoverLetter; style?: CvStyle }) {
   const s = stylesFor(THEMES[style]);
   return (
-    <Document title={`${letter.header.name} - ${letter.subject}`} author={letter.header.name} creator="JobTailor" producer="JobTailor">
+    <Document title={`${letter.header.name} - ${letter.subject}`} author={letter.header.name} creator="CV Tailor" producer="CV Tailor">
       <Page size={letter.template.pageSize} style={s.page}>
         <Header s={s} header={letter.header} />
         <View style={s.letterMeta}>

@@ -1,4 +1,4 @@
-import { cvStyleOf, FactLibrarySchema, PreferencesSchema, type CvStyle, type FactLibrary, type Preferences } from "@jobtailor/core";
+import { cvStyleOf, FactLibrarySchema, PreferencesSchema, type CvStyle, type FactLibrary, type Preferences } from "@cvtailor/core";
 import { must, type Db } from "../db";
 import { log } from "../log";
 

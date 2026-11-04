@@ -1,5 +1,5 @@
 {
-  "name": "@jobtailor/web",
+  "name": "@cvtailor/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
-    "@jobtailor/core": "*",
-    "@jobtailor/llm": "*",
-    "@jobtailor/render": "*",
+    "@cvtailor/core": "*",
+    "@cvtailor/llm": "*",
+    "@cvtailor/render": "*",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "fflate": "^0.8.2",

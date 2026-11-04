@@ -1,6 +1,6 @@
-import { EnrichedJobSchema, type Category, type EnrichedJob } from "@jobtailor/core";
-import { enrichSystemPrompt, enrichUserPrompt } from "@jobtailor/core/prompts";
-import { addUsage, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmUsage } from "@jobtailor/llm";
+import { EnrichedJobSchema, type Category, type EnrichedJob } from "@cvtailor/core";
+import { enrichSystemPrompt, enrichUserPrompt } from "@cvtailor/core/prompts";
+import { addUsage, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmUsage } from "@cvtailor/llm";
 import { must, type Db } from "../db";
 import { log } from "../log";
 import type { Http } from "../sources/http";

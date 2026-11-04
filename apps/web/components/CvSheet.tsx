@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useLayoutEffect, useRef } from "react";
-import { dateRange, orderedSections, SECTION_TITLES, type CvStyle, type Resume, type ResumeSection } from "@jobtailor/core";
+import { dateRange, orderedSections, SECTION_TITLES, type CvStyle, type Resume, type ResumeSection } from "@cvtailor/core";
 
 function Entry({ title, date, org }: { title: string; date?: string; org?: string }) {
   return (

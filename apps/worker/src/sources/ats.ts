@@ -1,4 +1,4 @@
-import type { WorkMode } from "@jobtailor/core";
+import type { WorkMode } from "@cvtailor/core";
 import type { Http } from "./http";
 import { guessCountry, htmlToText, toIso } from "./text";
 import type { RawJob, SourceAdapter } from "./types";

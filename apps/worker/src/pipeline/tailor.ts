@@ -7,7 +7,7 @@ import {
   type EnrichedJob,
   type Resume,
   type VerifyIssue,
-} from "@jobtailor/core";
+} from "@cvtailor/core";
 import {
   assembleCoverLetter,
   assembleResume,
@@ -21,9 +21,9 @@ import {
   tailorUserPrompt,
   type CoverLetterDraft,
   type ResumeDraft,
-} from "@jobtailor/core/prompts";
-import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmResult, type LlmUsage } from "@jobtailor/llm";
-import { MAX_LETTER_PAGES, MAX_RESUME_PAGES, renderCoverLetterPdf, renderResumePdf } from "@jobtailor/render";
+} from "@cvtailor/core/prompts";
+import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmResult, type LlmUsage } from "@cvtailor/llm";
+import { MAX_LETTER_PAGES, MAX_RESUME_PAGES, renderCoverLetterPdf, renderResumePdf } from "@cvtailor/render";
 import { must, type Db } from "../db";
 import { log } from "../log";
 import { BudgetExceeded, type Budget } from "./budget";

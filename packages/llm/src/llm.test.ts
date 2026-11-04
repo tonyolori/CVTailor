@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { EnrichedJobSchema, ResumeSchema } from "@jobtailor/core";
+import { EnrichedJobSchema, ResumeSchema } from "@cvtailor/core";
 import { estimateCost, FakeProvider, mayUseAi, stripNulls, toStrictJsonSchema, validateReply } from "./index";
 
 describe("toStrictJsonSchema", () => {
@@ -89,7 +89,7 @@ describe("mayUseAi", () => {
 
   it("subscription mode serves the owner and synthetic personas only", () => {
     expect(mayUseAi("claude-subscription", owner, { email: "OWNER@example.com", isSynthetic: false }).allowed).toBe(true);
-    expect(mayUseAi("claude-subscription", owner, { email: "p@jobtailor.test", isSynthetic: true }).allowed).toBe(true);
+    expect(mayUseAi("claude-subscription", owner, { email: "p@cvtailor.test", isSynthetic: true }).allowed).toBe(true);
     expect(mayUseAi("claude-subscription", owner, { email: "friend@example.com", isSynthetic: false }).allowed).toBe(false);
     expect(mayUseAi("claude-subscription", undefined, { email: "friend@example.com", isSynthetic: false }).allowed).toBe(false);
   });

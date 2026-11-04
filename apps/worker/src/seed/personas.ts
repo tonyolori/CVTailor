@@ -1,4 +1,4 @@
-import { PERSONAS } from "@jobtailor/core";
+import { PERSONAS } from "@cvtailor/core";
 import { loadConfig } from "../config";
 import { must, serviceClient } from "../db";
 import { upsertUser } from "./users";
@@ -20,7 +20,7 @@ for (const p of PERSONAS) {
  * A blank account for trying signup as a new user: consent, CV upload, preferences. It's synthetic
  * so AI steps run in subscription mode, where other accounts are refused. Re-seeding starts it over.
  */
-const BLANK = "newuser@jobtailor.test";
+const BLANK = "newuser@cvtailor.test";
 const existing = must(await db.from("profiles").select("id").eq("email", BLANK).maybeSingle(), "find blank user");
 if (existing) {
   const removed = await db.auth.admin.deleteUser(existing.id);

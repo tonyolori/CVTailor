@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { onsiteNursePersona, PERSONAS, remoteAccountantPersona, remoteSoftwarePersona, type EnrichedJobInput } from "@jobtailor/core";
-import { FakeProvider, type LlmRequest } from "@jobtailor/llm";
+import { onsiteNursePersona, PERSONAS, remoteAccountantPersona, remoteSoftwarePersona, type EnrichedJobInput } from "@cvtailor/core";
+import { FakeProvider, type LlmRequest } from "@cvtailor/llm";
 import { loadConfig } from "../src/config";
 import { serviceClient } from "../src/db";
 import type { EmailSender, OutgoingEmail } from "../src/email/send";
@@ -154,7 +154,7 @@ beforeAll(async () => {
   }
   // A real, non-owner user: subscription mode must not run AI for them.
   realUser = await upsertUser(db, {
-    email: "friend.test@jobtailor.test",
+    email: "friend.test@cvtailor.test",
     displayName: "Friend",
     tz: "UTC",
     isSynthetic: false,

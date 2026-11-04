@@ -10,7 +10,7 @@ export function SideNav({ children }: { children: React.ReactNode }) {
     <>
       <div className="side-head">
         <Link className="logo" href="/dashboard">
-          JobTailor
+          CV Tailor
         </Link>
         <button className="side-toggle" type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
           Menu

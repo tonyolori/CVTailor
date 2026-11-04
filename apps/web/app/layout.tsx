@@ -9,7 +9,7 @@ const cv = Source_Serif_4({ subsets: ["latin", "latin-ext"], variable: "--f-cv",
 const classic = Lora({ weight: "700", subsets: ["latin", "latin-ext"], variable: "--f-classic", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "JobTailor",
+  title: "CV Tailor",
   description: "A new CV for every job, written from your own experience.",
 };
 

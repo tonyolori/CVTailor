@@ -16,7 +16,7 @@ export default async function OnboardingPreferencesPage() {
     <div className="public">
       <div className="public-top">
         <Link className="logo" href="/">
-          JobTailor
+          CV Tailor
         </Link>
       </div>
     <main className="page">

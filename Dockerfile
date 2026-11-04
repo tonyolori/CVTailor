@@ -12,7 +12,7 @@ COPY packages/llm/package.json packages/llm/
 COPY packages/render/package.json packages/render/
 
 # Workspace packages run as TypeScript through tsx, a runtime dependency of the worker.
-RUN npm ci --workspace @jobtailor/worker --ignore-scripts \
+RUN npm ci --workspace @cvtailor/worker --ignore-scripts \
   && rm -rf node_modules/@anthropic-ai/claude-agent-sdk-* node_modules/supabase
 
 COPY packages packages

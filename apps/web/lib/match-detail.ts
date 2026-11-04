@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { EnrichedJobSchema, ResumeSchema, type Resume } from "@jobtailor/core";
+import { EnrichedJobSchema, ResumeSchema, type Resume } from "@cvtailor/core";
 import { safeHref } from "./views";
 
 export interface MatchDetail {

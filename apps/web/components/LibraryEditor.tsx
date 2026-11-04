@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { FactEntry, FactLibrary } from "@jobtailor/core";
+import type { FactEntry, FactLibrary } from "@cvtailor/core";
 import { saveFacts } from "@/app/actions";
 
 const lines = (s: string) => s.split("\n").map((l) => l.trim()).filter(Boolean);

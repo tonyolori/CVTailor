@@ -1,4 +1,4 @@
-import { ResumeSchema, type Resume } from "@jobtailor/core";
+import { ResumeSchema, type Resume } from "@cvtailor/core";
 
 /**
  * Invented people for the landing page. One is chosen per visit, from different occupations,

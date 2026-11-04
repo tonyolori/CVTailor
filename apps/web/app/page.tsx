@@ -18,7 +18,7 @@ export default async function Home() {
     <main className="lp">
       <section className="hero">
         <div className="nav">
-          <span className="logo">JobTailor</span>
+          <span className="logo">CV Tailor</span>
           <Link href="/login">Sign in</Link>
         </div>
         <h1 className="disp">

@@ -1,10 +1,10 @@
-import { cvStyleOf, ResumeSchema, type Resume } from "@jobtailor/core";
+import { cvStyleOf, ResumeSchema, type Resume } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { CvStylePicker } from "@/components/CvStylePicker";
 import { requireOnboarded } from "@/lib/auth";
 import { landingExample } from "@/lib/landing-examples";
 
-export const metadata = { title: "CV style - JobTailor" };
+export const metadata = { title: "CV style - CV Tailor" };
 
 export default async function CvStylePage() {
   const { supabase, user, profile } = await requireOnboarded();
