@@ -13,9 +13,10 @@ const ConfigSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().default(""),
   SUPABASE_ANON_KEY: z.string().default(""),
 
-  LLM_PROVIDER: z.enum(["claude-subscription", "anthropic-api", "fake"]).default("claude-subscription"),
+  LLM_PROVIDER: z.enum(["claude-subscription", "anthropic-api", "deepseek", "fake"]).default("claude-subscription"),
   OWNER_EMAIL: optional,
   ANTHROPIC_API_KEY: optional,
+  DEEPSEEK_API_KEY: optional,
   LLM_MODEL_SMALL: z.string().min(1),
   LLM_MODEL_STRONG: z.string().min(1),
 
@@ -54,6 +55,6 @@ export function llmConfig(c: Config): LlmConfig {
     provider: c.LLM_PROVIDER,
     modelSmall: c.LLM_MODEL_SMALL,
     modelStrong: c.LLM_MODEL_STRONG,
-    apiKey: c.ANTHROPIC_API_KEY,
+    apiKey: c.LLM_PROVIDER === "deepseek" ? c.DEEPSEEK_API_KEY : c.ANTHROPIC_API_KEY,
   };
 }

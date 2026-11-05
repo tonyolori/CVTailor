@@ -38,12 +38,12 @@ export type LlmResult<T> =
   | { ok: false; kind: LlmErrorKind; error: string; usage: LlmUsage };
 
 export interface LlmProvider {
-  readonly name: "claude-subscription" | "anthropic-api" | "fake";
+  readonly name: "claude-subscription" | "anthropic-api" | "deepseek" | "fake";
   /** One request. Output is zod-validated; an invalid reply is retried at most twice. */
   complete<T>(req: LlmRequest<T>): Promise<LlmResult<T>>;
   /**
    * Many independent requests, for stages where timing allows. The API provider uses the
-   * Batch API at half price; others run them in sequence and stop early on a rate limit.
+   * Batch API at half price; others run them directly and stop early on a rate limit.
    */
   completeMany<T>(reqs: LlmRequest<T>[]): Promise<Map<string, LlmResult<T>>>;
 }

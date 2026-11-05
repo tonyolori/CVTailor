@@ -29,7 +29,7 @@ export default function PrivacyPage() {
         <h2>Who else handles it</h2>
         <p>These providers process data for us, and some store it outside Nigeria:</p>
         <ul>
-          <li>Anthropic: writes your CVs. Your facts and the posting are sent to its AI models for this.</li>
+          <li>Anthropic or DeepSeek, whichever we're using at the time: read your uploaded CV, score roles and write your CVs. Your CV, your facts including your contact details, your preferences and the posting are sent to its AI models for this. DeepSeek says it stores data in China.</li>
           <li>Supabase: database, sign-in and file storage.</li>
           <li>Resend: delivers email.</li>
           <li>The web host that serves this site.</li>

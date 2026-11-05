@@ -1,11 +1,13 @@
 import { ApiProvider } from "./api";
+import { DeepSeekProvider } from "./deepseek";
 import type { LlmConfig, LlmProvider } from "./types";
 
 export * from "./types";
 export { ApiProvider, estimateCost } from "./api";
+export { DeepSeekProvider, estimateDeepSeekCost } from "./deepseek";
 export { FakeProvider, type FakeHandler } from "./fake";
 export { withLogging } from "./logging";
-export { toStrictJsonSchema, validateReply, stripNulls } from "./schema";
+export { toPromptJsonSchema, toStrictJsonSchema, validateReply, stripNulls } from "./schema";
 
 /** Loaded dynamically so a web bundle never pulls in the Agent SDK and its native binary. */
 export async function createProvider(config: LlmConfig): Promise<LlmProvider> {
@@ -13,6 +15,9 @@ export async function createProvider(config: LlmConfig): Promise<LlmProvider> {
     case "anthropic-api":
       if (!config.apiKey) throw new Error("LLM_PROVIDER=anthropic-api needs ANTHROPIC_API_KEY");
       return new ApiProvider(config);
+    case "deepseek":
+      if (!config.apiKey) throw new Error("LLM_PROVIDER=deepseek needs DEEPSEEK_API_KEY");
+      return new DeepSeekProvider(config);
     case "claude-subscription": {
       const { SubscriptionProvider } = await import("./subscription");
       return new SubscriptionProvider(config);

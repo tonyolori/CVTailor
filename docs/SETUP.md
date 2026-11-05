@@ -20,7 +20,7 @@ Things only Tony can do. Items are ordered so you can stop at any point and stil
 - [ ] Do **not** set `ANTHROPIC_API_KEY` in this mode. It's ignored for AI calls here, but it's easy to mistake for what's being billed.
 - [ ] If runs stop early with a usage-limit note, lower `ENRICH_MAX_PER_RUN` or `daily_cap`, or run at a quieter time. The next run picks up where it stopped.
 
-**Limits of this mode.** It is for your own testing. Anthropic's terms do not allow routing requests through a personal plan on behalf of other people, so the worker runs AI stages only for `OWNER_EMAIL` and synthetic personas. Real test users need Level 3.
+**Limits of this mode.** It is for your own testing. Anthropic's terms do not allow routing requests through a personal plan on behalf of other people, so the worker runs AI stages only for `OWNER_EMAIL` and synthetic personas. Real test users need Level 3 or 3b.
 
 ## Level 3: API key (any invited user)
 
@@ -30,6 +30,26 @@ Things only Tony can do. Items are ordered so you can stop at any point and stil
 - [ ] `npm run llm:check`, then `npm run eval:enrich -- --limit 10` to see real costs.
 
 Max, Ultra and Team plans include monthly API credits for a linked Console org ([details](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)). Check whether yours does before paying separately.
+
+## Level 3b: DeepSeek API key (any invited user)
+
+An alternative to Level 3. It's cheaper for CVs, but dearer for enrichment and scoring than Haiku with the Batch API.
+
+**Before inviting anyone on this level:**
+
+- [ ] Understand where the data goes. CV uploads, each person's full fact library (name, phone and email included) and their preferences are sent to DeepSeek. Its [privacy policy](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html) says it stores data in China and lists model training as a use, but says apps built on its platform aren't covered. Its [platform terms](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html) don't say where API data is kept or whether it's used for training, and mention no data processing agreement.
+- [ ] Ask `privacy@deepseek.com` to confirm in writing how API data is handled, and to opt your account out of training.
+- [ ] **TODO(verify): get legal advice on the transfer.** The NDPA 2023 (sections 41 to 43) and the 2025 GAID set conditions for sending personal data abroad, and commentary says the GAID requires an impact assessment first. I only found secondary summaries of these, not the text.
+- [ ] Tell test users plainly. The privacy page and consent screen name DeepSeek, but anyone who consented before they did hasn't agreed to this.
+
+**Then:**
+
+- [ ] Create a key on the [DeepSeek platform](https://platform.deepseek.com/) and add a small prepaid balance. That balance is your hard ceiling; when it runs out, stages stop and resume on the next run.
+- [ ] In `.env`: `LLM_PROVIDER=deepseek`, `DEEPSEEK_API_KEY=...`, `LLM_MODEL_SMALL=deepseek-flash`, `LLM_MODEL_STRONG=deepseek-v4-pro`.
+- [ ] Set `RUN_START_HOUR_UTC=4`. The default of 1 lands in DeepSeek's peak hours, weekdays 01:00-04:00 and 06:00-10:00 UTC, which cost double. A run still going at 06:00 may trigger the late-run alert.
+- [ ] `npm run llm:check`, then `npm run eval:enrich -- --limit 10`. **Compare the results with Claude's before relying on it**, and check a few CVs by hand. The prompts were written for Claude.
+
+To switch back, put the Level 2 or Level 3 values back and restart the worker. Nothing else depends on the provider.
 
 ## Level 4: cloud (dashboard reachable from anywhere)
 
@@ -53,7 +73,7 @@ Max, Ultra and Team plans include monthly API credits for a linked Console org (
 - [ ] Set `NEXT_PUBLIC_SITE_URL` to the deployed URL. Sign-in redirects depend on it.
 - [ ] Set `CRON_SECRET`, `OWNER_EMAIL`, `EMAIL_API_KEY` and `EMAIL_FROM`. The daily check in `apps/web/vercel.json` uses them to alert you when no run has finished. On Cloudflare Pages, call `/api/cron/run-check` from a Cron Trigger instead.
 - [ ] Set `SUPABASE_SERVICE_ROLE_KEY` as a server-only variable. Account deletion, unsubscribe, webhooks and admin use it.
-- [ ] Leave `ANTHROPIC_API_KEY` unset on the web host unless you're at Level 3. Without it, onboarding's AI steps queue for the worker.
+- [ ] Leave `ANTHROPIC_API_KEY` unset on the web host unless you're at Level 3, and `DEEPSEEK_API_KEY` unless you're at Level 3b. Without a key, onboarding's AI steps queue for the worker. With one, also set `LLM_PROVIDER` and `LLM_MODEL_*` there.
 - [ ] On Vercel, use the **Pro plan once you take payments**. [Hobby is for non-commercial use only](https://vercel.com/docs/limits/fair-use-guidelines), and requesting payment from visitors counts as commercial.
 - [ ] Vercel runs only the web app. The worker has to run somewhere that stays on, as below.
 

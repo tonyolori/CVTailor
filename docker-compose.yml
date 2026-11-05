@@ -4,7 +4,8 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      LLM_PROVIDER: anthropic-api
+      # Takes LLM_PROVIDER from .env. Subscription mode can't work in a container.
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic-api}
     volumes:
       - outbox:/app/.local
     # Local Supabase runs on the host during development.

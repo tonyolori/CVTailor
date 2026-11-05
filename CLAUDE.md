@@ -5,7 +5,7 @@ Invite-only service: collects job postings, matches them to each user's preferen
 ## Repo map
 
 - `packages/core`: zod schemas, `evaluateGates`, `verifyResume`, pre-filter, prompts. No I/O.
-- `packages/llm`: `LlmProvider` with `claude-subscription`, `anthropic-api` and `fake`.
+- `packages/llm`: `LlmProvider` with `claude-subscription`, `anthropic-api`, `deepseek` and `fake`.
 - `packages/render`: resume and cover-letter PDF template (`@react-pdf/renderer`).
 - `apps/worker`: daily pipeline (`collect -> enrich -> match -> verify live -> email`), CVs on request (`tailor -> verify facts -> render`), source adapters, scheduler.
 - `apps/web`: Next.js landing page, waitlist and signed-in app. Design tokens and styles are in `app/globals.css`. `components/CvSheet.tsx` is the on-screen CV.
@@ -55,7 +55,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 
 - TypeScript strict, ESM, npm workspaces. `tsx` runs the worker; there is no build step for it.
 - Model IDs come from env (`LLM_MODEL_SMALL`, `LLM_MODEL_STRONG`), never literals in code.
-- Keep costs down: Haiku (small tier) for enrichment, scoring and title suggestions; Sonnet (strong tier) for CVs, cover letters and CV import. Don't use Opus or anything pricier.
+- Keep costs down: Haiku (small tier) for enrichment, scoring and title suggestions; Sonnet (strong tier) for CVs, cover letters and CV import. Don't use Opus or anything pricier. On `deepseek`, the tiers are `deepseek-flash` and `deepseek-v4-pro`.
 - All config goes through the zod-validated `loadConfig()`; do not read `process.env` elsewhere in the worker.
 - Anything that can fail logs when it does. In the web app, wrap new route handlers and server actions in `logged()`, and use `loggedFetch` instead of `fetch`. Don't leave a `catch` silent unless failing there is normal.
 - Every pipeline stage is idempotent: a crashed run resumes by re-running the same date.

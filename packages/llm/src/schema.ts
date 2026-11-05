@@ -67,6 +67,15 @@ export function toStrictJsonSchema(schema: ZodType): { schema: Json; anyOfCount:
   return { schema: walk(raw) as Json, anyOfCount };
 }
 
+/**
+ * JSON Schema to show a model in the prompt, for providers with no schema parameter. Nothing
+ * here restricts what it can express, so limits stay visible and fewer replies need a retry.
+ */
+export function toPromptJsonSchema(schema: ZodType): Json {
+  const { $schema: _, ...rest } = z.toJSONSchema(schema, { target: "draft-7", io: "input" }) as Json;
+  return rest;
+}
+
 function allowsNull(node: Json): boolean {
   if (node.type === "null") return true;
   if (Array.isArray(node.type) && node.type.includes("null")) return true;

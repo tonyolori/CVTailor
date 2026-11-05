@@ -1,5 +1,5 @@
 # Worker image. Stateless: all config comes from env vars, so it can move to a cheap VPS unchanged.
-# Needs LLM_PROVIDER=anthropic-api. Subscription mode relies on a Claude login on the host.
+# Needs LLM_PROVIDER=anthropic-api or deepseek. Subscription mode relies on a Claude login on the host.
 FROM node:24-slim
 ENV NODE_ENV=production
 

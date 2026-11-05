@@ -29,7 +29,7 @@ Each morning: `collect -> enrich -> match -> verify live -> email`. When someone
 | Path | What |
 | --- | --- |
 | `packages/core` | Schemas, gates, fact verifier, pre-filter, prompts. No I/O. |
-| `packages/llm` | Provider interface: `claude-subscription`, `anthropic-api`, `fake`. |
+| `packages/llm` | Provider interface: `claude-subscription`, `anthropic-api`, `deepseek`, `fake`. |
 | `packages/render` | The one CV and cover-letter PDF template. |
 | `apps/worker` | Pipeline, source adapters, scheduler. |
 | `apps/web` | Dashboard, onboarding, editor, billing. |
@@ -61,6 +61,7 @@ Set by `LLM_PROVIDER`. Pipeline code doesn't know which is active.
 | --- | --- | --- | --- |
 | `claude-subscription` | `npm run claude:login`, no API key | **You (`OWNER_EMAIL`) and synthetic personas only** | Draws on your Claude plan's limits. Runs one call at a time. Costs in `runs` are estimates. |
 | `anthropic-api` | `ANTHROPIC_API_KEY` | Any invited user | Prompt caching, Batch API at half price, refusal fallback. Set a spend limit in the Console. |
+| `deepseek` | `DEEPSEEK_API_KEY`, and DeepSeek names in `LLM_MODEL_*` | Any invited user | No Batch API. Prefix caching is automatic. Weekday peak hours cost double, and budgets allow for that. Data goes to DeepSeek, so read [Level 3b](docs/SETUP.md) first. |
 | `fake` | Nothing | Tests | Deterministic. |
 
 Why the limit: [Anthropic's terms](https://code.claude.com/docs/en/legal-and-compliance) don't allow routing requests through a Free, Pro, Max or Ultra plan on behalf of other users. In subscription mode, anyone else still gets the code-only filters and a dashboard, with a note saying why they weren't scored.

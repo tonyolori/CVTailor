@@ -70,7 +70,7 @@ WantedBy=timers.target
 docker compose up -d worker
 ```
 
-Docker needs `LLM_PROVIDER=anthropic-api`. Subscription mode relies on a Claude login on the host, so it isn't meant for a container.
+Docker needs `LLM_PROVIDER=anthropic-api` or `deepseek` in `.env`. Subscription mode relies on a Claude login on the host, so it isn't meant for a container.
 
 ## When the PC is off
 
