@@ -14,6 +14,17 @@ interface ExampleJob {
   skills: string[];
 }
 
+/** The posting for a person's first job, as a job board would show it. */
+interface ExamplePosting {
+  employer: string;
+  location: string;
+  workMode: string;
+  pay: string;
+  about: string[];
+  doing: string[];
+  needs: string[];
+}
+
 interface ExamplePerson {
   name: string;
   email: string;
@@ -24,6 +35,7 @@ interface ExamplePerson {
   credential?: { name: string };
   languages: string[];
   jobs: ExampleJob[];
+  posting: ExamplePosting;
 }
 
 const PEOPLE: ExamplePerson[] = [
@@ -36,6 +48,30 @@ const PEOPLE: ExamplePerson[] = [
     education: { degree: "BSc Nursing Science", school: "University of Ibadan", start: "2011", end: "2015" },
     credential: { name: "Registered Nurse, current registration" },
     languages: ["English", "Yoruba", "French (conversational)"],
+    posting: {
+      employer: "Harbour Health",
+      location: "Lagos",
+      workMode: "On site, weekdays",
+      pay: "₦14m to ₦18m a year",
+      about: [
+        "Harbour Health runs four private hospitals and a growing network of day clinics across Lagos. We're hiring a Clinical Operations Lead to keep our wards safely staffed, on budget and ready for inspection.",
+        "You'll report to the Director of Nursing and work closely with ward managers, finance and our quality team.",
+      ],
+      doing: [
+        "Plan staffing across four wards, day and night, and bring down our reliance on agency nurses.",
+        "Own the clinical operations budget and report against it every month.",
+        "Improve patient flow from admission to discharge.",
+        "Prepare wards for external audits and follow up on what they find.",
+        "Coach ward managers, and step in on the wards when it's busy.",
+      ],
+      needs: [
+        "A current nursing registration.",
+        "At least five years running a ward or clinical unit.",
+        "Experience managing a budget and a staff rota.",
+        "A track record with external audits or inspections.",
+        "Calm, clear communication with clinicians and managers alike.",
+      ],
+    },
     jobs: [
       { title: "Clinical Operations Lead", company: "Harbour Health, Lagos", why: "Your ward management experience answers their main ask, and the salary clears your floor.", roleTitle: "Clinical operations and ward leadership", summary: "Nurse manager with nine years of running busy wards, budgets and staffing.", skills: ["Staffing", "Budgeting", "Patient flow", "Audit readiness"], bullets: ["Led a ward of fourteen nurses across day and night shifts.", "Managed a yearly ward budget and came in under target two years running.", "Cut average discharge time by a fifth by redesigning patient handover.", "Built a staffing rota that cut agency shifts by a third.", "Prepared the hospital for three external audits, all passed with no major findings."] },
       { title: "Quality and Compliance Manager", company: "Aster Clinics, Nairobi", why: "Your three clean audits are what they ask for first. They want one certificate you don't hold, and the CV doesn't claim it.", roleTitle: "Clinical quality and compliance", summary: "Registered nurse who has led teams through three external audits and rewritten the procedures behind them.", skills: ["Audit preparation", "Procedure writing", "Incident reporting", "Staff training"], bullets: ["Prepared the hospital for three external audits, all passed with no major findings.", "Rewrote twelve clinical procedures to match new national standards.", "Set up an incident reporting process now used on four wards.", "Trained more than two hundred staff in infection control across three sites.", "Tracked ward performance in monthly reports for the senior team."] },
@@ -51,6 +87,30 @@ const PEOPLE: ExamplePerson[] = [
     education: { degree: "MSc Civil Engineering", school: "Delft University of Technology", start: "2014", end: "2016" },
     credential: { name: "Chartered Civil Engineer" },
     languages: ["Dutch", "English", "Polish"],
+    posting: {
+      employer: "Northline Rail",
+      location: "Utrecht",
+      workMode: "On site, with travel between projects",
+      pay: "€64,000 to €74,000 a year",
+      about: [
+        "Northline Rail renews bridges, track and stations across the central Netherlands, mostly while trains keep running. We're looking for a Senior Site Engineer to lead the engineering on a bridge replacement programme starting next spring.",
+        "You'll join a site team of about twenty and report to the Project Manager.",
+      ],
+      doing: [
+        "Supervise engineers, surveyors and subcontractors on a live railway site.",
+        "Keep the works on programme, and raise risks early.",
+        "Review method statements and temporary works designs.",
+        "Lead the daily safety briefing and site inspections.",
+        "Track costs against the package budget.",
+      ],
+      needs: [
+        "Chartered status, or close to it.",
+        "Several years as a site engineer on civil or infrastructure work.",
+        "Experience working next to live traffic or railways.",
+        "Confidence with setting out and site surveys.",
+        "Fluent Dutch and good English.",
+      ],
+    },
     jobs: [
       { title: "Senior Site Engineer", company: "Northline Rail, Utrecht", why: "You've led the kind of live-site work they describe, and it's an easy commute from your city.", roleTitle: "Site engineering on live infrastructure", summary: "Chartered engineer with nine years of running complex sites safely and on programme.", skills: ["Site supervision", "Setting out", "Programme control", "Safety management"], bullets: ["Supervised a team of twenty on a live rail bridge replacement.", "Brought a delayed flood defence scheme back on programme within eight weeks.", "Introduced a daily safety briefing that halved reportable incidents.", "Reviewed subcontractor method statements across four work packages.", "Managed a package budget of two million euros."] },
       { title: "Project Engineer, Flood Defence", company: "Waterways Agency, The Hague", why: "Your flood defence work is the exact experience they ask for, and the contract length suits what you asked for.", roleTitle: "Flood defence project engineering", summary: "Civil engineer who has delivered flood defence works from early design through to handover.", skills: ["Flood defence", "Contract administration", "Stakeholder liaison", "Cost control"], bullets: ["Brought a delayed flood defence scheme back on programme within eight weeks.", "Worked with local councils and residents through two public consultations.", "Managed a package budget of two million euros.", "Reviewed subcontractor method statements across four work packages.", "Prepared handover records accepted first time by the client."] },
@@ -66,6 +126,30 @@ const PEOPLE: ExamplePerson[] = [
     education: { degree: "BSc Physics", school: "University of Valencia", start: "2007", end: "2011" },
     credential: { name: "Qualified Teacher Status" },
     languages: ["Spanish", "English", "Catalan"],
+    posting: {
+      employer: "Northgate International School",
+      location: "Madrid",
+      workMode: "On site, full time, from September",
+      pay: "€48,000 to €55,000 a year, with help to relocate",
+      about: [
+        "Northgate is a bilingual international school of 900 students aged 3 to 18. We're appointing a Deputy Head of Secondary to lead teaching and learning across the upper school.",
+        "You'll sit on the senior leadership team, teach a reduced timetable in your own subject and line-manage heads of department.",
+      ],
+      doing: [
+        "Lead the quality of teaching across the secondary school.",
+        "Line-manage and coach heads of department.",
+        "Track student progress and report to governors each term.",
+        "Lead the curriculum review as we adopt the new national framework.",
+        "Teach your own subject for about a third of the week.",
+      ],
+      needs: [
+        "Qualified teacher status and a degree in your subject.",
+        "Experience leading a department or a whole-school area.",
+        "A record of raising exam results.",
+        "Confidence with data on student progress.",
+        "Fluent English. Spanish is a plus.",
+      ],
+    },
     jobs: [
       { title: "Deputy Head of Secondary", company: "Northgate International School, Madrid", why: "You've led a department and improved results, which is what they want in a deputy.", roleTitle: "Secondary school leadership", summary: "Science leader with thirteen years in the classroom and a record of raising results across a department.", skills: ["School leadership", "Staff development", "Curriculum design", "Data tracking"], bullets: ["Led a department of nine teachers across three science subjects.", "Raised top exam grades in science by a quarter over three years.", "Introduced a coaching programme now used across the school.", "Tracked student progress termly and reported to governors.", "Rewrote the science curriculum to match a new national framework."] },
       { title: "Curriculum Lead, Science", company: "Brightpath Education, remote within Europe", why: "Your curriculum rewrite and bilingual teaching fit their brief, and the role is fully remote.", roleTitle: "Science curriculum design", summary: "Physics teacher and department head who designs courses that work for students and teachers alike.", skills: ["Curriculum design", "Bilingual education", "Assessment", "Teacher training"], bullets: ["Rewrote the science curriculum to match a new national framework.", "Designed end-of-unit assessments later adopted by three partner schools.", "Taught physics to students aged 12 to 18 in English and Spanish.", "Introduced a coaching programme now used across the school.", "Ran training days for forty teachers on practical science."] },
@@ -97,7 +181,25 @@ function resumeFor(p: ExamplePerson, j: ExampleJob): Resume {
   });
 }
 
-export function landingExample(pick: number = Math.floor(Math.random() * PEOPLE.length)): LandingJob[] {
+/** One person per visit. Pass the same pick to the hero and the demo so they show the same person. */
+export function pickExample(): number {
+  return Math.floor(Math.random() * PEOPLE.length);
+}
+
+export function landingExample(pick: number = pickExample()): LandingJob[] {
   const person = PEOPLE[pick % PEOPLE.length]!;
   return person.jobs.map((j) => ({ title: j.title, company: j.company, why: j.why, resume: resumeFor(person, j) }));
+}
+
+export interface LandingDemo {
+  posting: ExamplePosting & { title: string };
+  why: string;
+  resume: Resume;
+}
+
+/** A posting and the CV written for it: the person's first job. */
+export function landingDemo(pick: number = pickExample()): LandingDemo {
+  const person = PEOPLE[pick % PEOPLE.length]!;
+  const job = person.jobs[0]!;
+  return { posting: { ...person.posting, title: job.title }, why: job.why, resume: resumeFor(person, job) };
 }

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CvSheet } from "@/components/CvSheet";
-import { LandingStory } from "@/components/LandingStory";
+import { LandingDemo } from "@/components/LandingDemo";
 import { LandingSignIn } from "@/components/LoginForm";
-import { landingExample } from "@/lib/landing-examples";
+import { landingDemo, landingExample, pickExample } from "@/lib/landing-examples";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -11,7 +11,8 @@ export default async function Home() {
   const { data } = await supabase.auth.getUser();
   if (data.user) redirect("/dashboard");
 
-  const jobs = landingExample();
+  const pick = pickExample();
+  const jobs = landingExample(pick);
   return (
     <main className="lp">
       <section className="hero">
@@ -41,7 +42,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <LandingStory jobs={jobs} />
+      <LandingDemo demo={landingDemo(pick)} />
 
       <section className="truth">
         <h2 className="disp">Nothing on it that you didn't tell us.</h2>

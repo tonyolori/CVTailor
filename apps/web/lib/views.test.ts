@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ResumeSchema } from "@cvtailor/core";
-import { landingExample } from "./landing-examples";
+import { landingDemo, landingExample } from "./landing-examples";
 import { safeHref, sourceLabel, VIEWS } from "./views";
 
 describe("safeHref", () => {
@@ -55,5 +55,22 @@ describe("landing examples", () => {
 
   it("come from different occupations", () => {
     expect(new Set(people.map((jobs) => jobs[0]!.resume.experience[0]!.title)).size).toBe(people.length);
+  });
+});
+
+describe("the landing demo", () => {
+  it("pairs a full posting with the CV written for that job", () => {
+    for (const i of [0, 1, 2]) {
+      const demo = landingDemo(i);
+      expect(demo.resume).toEqual(landingExample(i)[0]!.resume);
+      expect(demo.posting.title).toBe(landingExample(i)[0]!.title);
+      expect(demo.posting.about.length).toBeGreaterThan(0);
+      expect(demo.posting.doing.length).toBeGreaterThanOrEqual(3);
+      expect(demo.posting.needs.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("shows the same person as the rest of the page", () => {
+    expect(landingDemo(1).resume.header.name).toBe(landingExample(1)[0]!.resume.header.name);
   });
 });
