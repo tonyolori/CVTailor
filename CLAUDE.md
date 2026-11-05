@@ -40,7 +40,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 3. **Validate every LLM output with zod** before it touches the database. Retry at most twice, then mark the stage failed and continue.
 4. **Fact integrity.** The generator uses only the user's library. `verifyResume` runs on every AI draft; errors regenerate with the issues fed back (max 2 retries); if it still fails the resume is not delivered and the summary says so.
 5. **Service-role key only in the worker and server-side web code.** RLS stays on for every table. Never a `NEXT_PUBLIC_` variable.
-6. **No CVs, emails or fact text in logs.** Log ids and counts. Use `log()` from `apps/worker/src/log.ts`, which refuses free-text fields.
+6. **No CVs, emails or fact text in logs.** Log ids and counts. Use `log()` from `apps/worker/src/log.ts` or `apps/web/lib/log.ts`, which refuse free-text fields, and `errorFields()` rather than an error's message.
 7. **Webhooks:** verify the HMAC, idempotent by event id, never trust the checkout redirect.
 8. **Privacy:** consent at signup, data export, account deletion that cascades to storage. NDPA 2023 applies.
 9. **Respect source terms.** Credit Remote OK. Polite rates: pauses between Ashby requests, backoff on 401 and 429.
@@ -57,6 +57,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - Model IDs come from env (`LLM_MODEL_SMALL`, `LLM_MODEL_STRONG`), never literals in code.
 - Keep costs down: Haiku (small tier) for enrichment, scoring and title suggestions; Sonnet (strong tier) for CVs, cover letters and CV import. Don't use Opus or anything pricier.
 - All config goes through the zod-validated `loadConfig()`; do not read `process.env` elsewhere in the worker.
+- Anything that can fail logs when it does. In the web app, wrap new route handlers and server actions in `logged()`, and use `loggedFetch` instead of `fetch`. Don't leave a `catch` silent unless failing there is normal.
 - Every pipeline stage is idempotent: a crashed run resumes by re-running the same date.
 - Budget check before every LLM call (`Budget.assertAvailable`); tokens and cost recorded in `runs`.
 - Tests run offline. Parsers test against `apps/worker/fixtures/`; LLM code uses the `fake` provider.

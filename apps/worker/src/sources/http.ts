@@ -1,3 +1,4 @@
+import { errorFields } from "@cvtailor/core/log";
 import { log } from "../log";
 import { blockedBySourceRules } from "./restricted";
 
@@ -34,9 +35,9 @@ export function politeHttp(
   const queues = new Map<string, Promise<unknown>>();
 
   async function request(url: string, accept: string): Promise<Response | null> {
-    const host = new URL(url).host;
+    const { host, pathname: path } = new URL(url);
     if (blockedBySourceRules(url)) {
-      log("http.blocked_by_source_rules", { host });
+      log("http.blocked_by_source_rules", { host }, "warn");
       return null;
     }
     const interval = policies[host]?.minIntervalMs ?? DEFAULT_INTERVAL_MS;
@@ -44,25 +45,34 @@ export function politeHttp(
       const wait = (nextAllowed.get(host) ?? 0) - Date.now();
       if (wait > 0) await pause(wait);
       nextAllowed.set(host, Date.now() + interval);
+      const started = Date.now();
       try {
         const res = await fetchFn(url, {
           headers: { "user-agent": USER_AGENT, accept },
           redirect: "follow",
           signal: AbortSignal.timeout(TIMEOUT_MS),
         });
-        if (res.ok) return res;
+        const fields = { host, path, status: res.status, attempt, ms: Date.now() - started };
+        if (res.ok) {
+          log("http.response", fields);
+          return res;
+        }
         if (res.status === 401 || res.status === 429 || res.status >= 500) {
           const retryAfter = Number(res.headers.get("retry-after"));
           const backoff = retryAfter > 0 ? retryAfter * 1000 : 2000 * attempt * attempt;
-          log("http.backoff", { host, status: res.status, attempt });
+          log("http.backoff", fields, "warn");
           if (attempt < MAX_ATTEMPTS) await pause(backoff);
           continue;
         }
+        log("http.response", fields, "warn");
         return null;
-      } catch {
+      } catch (err) {
+        const { errorType, code } = errorFields(err);
+        log("http.failed", { host, path, attempt, ms: Date.now() - started, kind: errorType, code }, "warn");
         if (attempt < MAX_ATTEMPTS) await pause(1000 * attempt);
       }
     }
+    log("http.gave_up", { host, path, attempts: MAX_ATTEMPTS }, "error");
     return null;
   }
 
@@ -82,7 +92,8 @@ export function politeHttp(
         if (!res) return null;
         try {
           return (await res.json()) as T;
-        } catch {
+        } catch (err) {
+          log("http.bad_body", { host: new URL(url).host, path: new URL(url).pathname, kind: errorFields(err).errorType }, "warn");
           return null;
         }
       }),

@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { hasActivePlan } from "@cvtailor/core";
+import { logged, loggedFetch } from "@/lib/log";
 import { siteUrl } from "@/lib/site";
 import { checkoutBody, PLANS, type PlanId } from "@/lib/paystack";
 import { nairaToKobo, priceNaira } from "@/lib/plan-settings";
 import { createClient } from "@/lib/supabase/server";
 
 /** Starts a Paystack checkout. Nothing is granted here: only the verified webhook does that. */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/billing/checkout", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user?.email) return NextResponse.redirect(siteUrl("/login", request), 303);
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
   if (price === null) return NextResponse.redirect(siteUrl("/pricing?error=unavailable", request), 303);
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
-  const res = await fetch("https://api.paystack.co/transaction/initialize", {
+  const res = await loggedFetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
     headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
     body: JSON.stringify(
@@ -46,4 +47,4 @@ export async function POST(request: NextRequest) {
   const url = body?.data?.authorization_url;
   if (!res.ok || !url) return NextResponse.redirect(siteUrl("/pricing?error=checkout", request), 303);
   return NextResponse.redirect(url, 303);
-}
+});

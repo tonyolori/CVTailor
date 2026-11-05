@@ -1,7 +1,7 @@
 import { join } from "node:path";
-import { createProvider } from "@cvtailor/llm";
+import { createProvider, withLogging } from "@cvtailor/llm";
 import { llmConfig, loadConfig } from "./config";
-import { serviceClient } from "./db";
+import { errorInfo, serviceClient } from "./db";
 import { fileSender, resendSender } from "./email/send";
 import { log } from "./log";
 import { processAiTasks } from "./pipeline/ai-tasks";
@@ -19,7 +19,7 @@ import { politeHttp } from "./sources/http";
  */
 const config = loadConfig();
 const db = serviceClient(config);
-const provider = await createProvider(llmConfig(config));
+const provider = withLogging(await createProvider(llmConfig(config)), log);
 const policies = {
   ...ATS_HOST_POLICIES,
   ...Object.fromEntries(AGGREGATORS.map((a) => [a.rateLimit.host, { minIntervalMs: a.rateLimit.minIntervalMs }])),
@@ -55,7 +55,7 @@ async function pass(): Promise<void> {
 if (process.argv.includes("--loop")) {
   log("worker.loop_start", { provider: provider.name });
   for (;;) {
-    await pass().catch((err: unknown) => log("worker.pass_failed", { kind: err instanceof Error ? err.name : "unknown" }));
+    await pass().catch((err: unknown) => log("worker.pass_failed", errorInfo(err), "error"));
     await new Promise((resolve) => setTimeout(resolve, TASK_MS));
   }
 } else {

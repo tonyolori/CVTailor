@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
+import { errorFields, log } from "./log";
 import { cvCounts } from "./plan-settings";
 
 /**
@@ -70,7 +71,8 @@ export function metadataOf(e: PaystackEvent): { userId?: string; planId?: string
   if (typeof meta === "string") {
     try {
       meta = JSON.parse(meta);
-    } catch {
+    } catch (err) {
+      log("paystack.bad_metadata", errorFields(err), "warn");
       return {};
     }
   }

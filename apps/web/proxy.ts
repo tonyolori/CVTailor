@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { log, loggedFetch } from "./lib/log";
 import { siteUrl } from "./lib/site";
 
 const PUBLIC_PATHS = ["/login", "/waitlist", "/auth", "/privacy", "/pricing", "/api/unsubscribe", "/api/webhooks", "/api/cron"];
@@ -17,6 +18,7 @@ export async function proxy(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    global: { fetch: loggedFetch },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(toSet) {
@@ -27,10 +29,14 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
   const path = request.nextUrl.pathname;
+  // The path only: query strings can hold sign-in codes and unsubscribe tokens.
+  log("request", { method: request.method, path, signedIn: Boolean(data?.claims), action: request.headers.has("next-action") });
+  if (error && error.name !== "AuthSessionMissingError") log("auth.claims_failed", { errorType: error.name, code: error.code, status: error.status }, "warn");
   const isPublic = path === "/" || PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
   if (!data?.claims && !isPublic) {
+    log("request.signed_out", { method: request.method, path });
     if (path.startsWith("/api/")) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
     return NextResponse.redirect(siteUrl("/login", request));
   }

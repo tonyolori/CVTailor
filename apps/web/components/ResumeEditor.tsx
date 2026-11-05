@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { CV_STYLES, verifyResume, type CvStyle, type FactLibrary, type Resume, type VerifyIssue } from "@cvtailor/core";
 import { addToLibrary, saveResumeVersion, setMatchCvStyle } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
+import { loggedFetch } from "@/lib/log";
 
 const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
@@ -125,7 +126,7 @@ export function ResumeEditor({
   const countPages = useCallback(
     async (doc: Resume) => {
       const id = ++requestId.current;
-      const res = await fetch(`/api/resume/preview?style=${style}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(doc) }).catch(() => null);
+      const res = await loggedFetch(`/api/resume/preview?style=${style}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(doc) }).catch(() => null);
       if (res?.ok && id === requestId.current) setPages(Number(res.headers.get("x-pdf-pages")) || null);
     },
     [style],

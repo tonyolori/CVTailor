@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FactLibrarySchema, type FactLibrary } from "@cvtailor/core";
 import { LibraryEditor } from "./LibraryEditor";
 import { cancelTask, pollTask } from "./TaskWait";
+import { errorFields, log, loggedFetch } from "@/lib/log";
 
 type Step = "choose" | "working" | "review";
 
@@ -37,7 +38,7 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
       setStep("choose");
     };
     try {
-      const res = await fetch("/api/onboarding/extract", { method: "POST", body: form });
+      const res = await loggedFetch("/api/onboarding/extract", { method: "POST", body: form });
       const body = (await res.json()) as { error?: string; library?: unknown; taskId?: number };
       if (!res.ok || body.error) return failed(body.error);
       if (body.library) return accept(body.library);
@@ -46,7 +47,8 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
       const done = await pollTask<unknown>(body.taskId!, setWaited, abort.current.signal);
       if (done.status === "done") return accept(done.output);
       if (done.status !== "cancelled") failed(done.error);
-    } catch {
+    } catch (err) {
+      log("onboarding.upload_failed", errorFields(err), "error");
       failed();
     }
   }

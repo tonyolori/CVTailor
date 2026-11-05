@@ -1,6 +1,7 @@
 import "server-only";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { errorFields, log, loggedFetch } from "./log";
 import { siteUrl } from "./site";
 
 /** The invitation someone on the waitlist receives. Same provider settings as the worker's email. */
@@ -12,7 +13,7 @@ export async function sendInvite(email: string): Promise<boolean> {
   const from = process.env.EMAIL_FROM ?? "CV Tailor <hello@example.com>";
 
   if (process.env.EMAIL_PROVIDER === "resend" && process.env.EMAIL_API_KEY) {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await loggedFetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.EMAIL_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `invite-${email}` },
       body: JSON.stringify({ from, to: email, subject, html, text }),
@@ -28,7 +29,8 @@ export async function sendInvite(email: string): Promise<boolean> {
     writeFileSync(join(dir, `${id}.html`), html);
     writeFileSync(join(dir, `${id}.txt`), `To: ${email}\nSubject: ${subject}\n\n${text}`);
     return true;
-  } catch {
+  } catch (err) {
+    log("email.outbox_failed", errorFields(err), "error");
     return false;
   }
 }

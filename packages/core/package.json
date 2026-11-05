@@ -18,6 +18,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./log": "./src/log.ts",
     "./prompts": "./src/prompts/index.ts"
   }
 }

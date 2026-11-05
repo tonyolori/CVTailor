@@ -6,6 +6,7 @@ import type { TitleSuggestions } from "@cvtailor/core/prompts";
 import type { CountryOption } from "@/lib/countries";
 import { savePreferences } from "@/app/actions";
 import { cancelTask, pollTask } from "./TaskWait";
+import { errorFields, log, loggedFetch } from "@/lib/log";
 
 const commas = (s: string) => s.split(",").map((l) => l.trim()).filter(Boolean);
 
@@ -95,7 +96,7 @@ export function PreferencesForm({
     setSuggesting(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/onboarding/titles", {
+      const res = await loggedFetch("/api/onboarding/titles", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ targetTitles: commas(titles) }),
@@ -119,6 +120,7 @@ export function PreferencesForm({
         categories: [...new Set([...(p.categories ?? []), ...s.categories.filter((c) => valid.has(c))])],
       });
     } catch (err) {
+      log("preferences.suggest_failed", errorFields(err), "warn");
       setMessage({ ok: false, text: err instanceof Error ? err.message : "Couldn't get suggestions." });
     } finally {
       setSuggesting(false);

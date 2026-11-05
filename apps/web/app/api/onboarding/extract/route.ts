@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { EXTRACT_FACTS_SYSTEM, extractFactsUserPrompt, ProposedLibrarySchema } from "@cvtailor/core/prompts";
 import { webProvider } from "@/lib/ai";
 import { extractCvText, MAX_CV_BYTES } from "@/lib/cv-text";
+import { errorFields, log, logged } from "@/lib/log";
 import { allow } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 const MAX_CV_CHARS = 60_000;
 
 /** Reads an uploaded CV and proposes a library. Inline with an API key, otherwise queued for the worker. */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/onboarding/extract", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
   try {
     text = (await extractCvText(file)).trim();
   } catch (err) {
+    log("cv.read_failed", { bytes: file.size, ...errorFields(err) }, "warn");
     return NextResponse.json({ error: err instanceof Error && /PDF or Word/.test(err.message) ? err.message : "That file couldn't be read." }, { status: 400 });
   }
   if (text.length < 50) {
@@ -56,4 +58,4 @@ export async function POST(request: NextRequest) {
     .single();
   if (error) return NextResponse.json({ error: "Couldn't queue that. You can enter your details by hand." }, { status: 500 });
   return NextResponse.json({ taskId: task.id });
-}
+});

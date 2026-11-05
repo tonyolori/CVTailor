@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CoverLetterSchema, cvStyleOf, ResumeSchema } from "@cvtailor/core";
 import { renderCoverLetterPdf, renderResumePdf } from "@cvtailor/render";
+import { logged } from "@/lib/log";
 import { createClient } from "@/lib/supabase/server";
 
 function filename(name: string, kind: string): string {
@@ -12,7 +13,7 @@ function filename(name: string, kind: string): string {
  * PDF of a saved version. Rendered here rather than fetched, so a user editing at 2pm gets
  * their own edits even when the worker's PC is off. RLS limits the query to the user's rows.
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ matchId: string }> }) {
+export const GET = logged("GET /api/documents/[matchId]", async (request: NextRequest, { params }: { params: Promise<{ matchId: string }> }) => {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -45,4 +46,4 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       "cache-control": "no-store",
     },
   });
-}
+});

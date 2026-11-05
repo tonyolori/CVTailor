@@ -4,6 +4,7 @@ import type { LlmConfig, LlmProvider } from "./types";
 export * from "./types";
 export { ApiProvider, estimateCost } from "./api";
 export { FakeProvider, type FakeHandler } from "./fake";
+export { withLogging } from "./logging";
 export { toStrictJsonSchema, validateReply, stripNulls } from "./schema";
 
 /** Loaded dynamically so a web bundle never pulls in the Agent SDK and its native binary. */

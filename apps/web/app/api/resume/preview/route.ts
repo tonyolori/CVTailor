@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cvStyleOf, ResumeSchema } from "@cvtailor/core";
 import { renderResumePdf } from "@cvtailor/render";
+import { logged } from "@/lib/log";
 import { createClient } from "@/lib/supabase/server";
 
 /** Live preview for the editor. Renders what it's sent and stores nothing. */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/resume/preview", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -14,4 +15,4 @@ export async function POST(request: NextRequest) {
   return new NextResponse(new Uint8Array(pdf), {
     headers: { "content-type": "application/pdf", "content-disposition": "inline", "x-pdf-pages": String(pages), "cache-control": "no-store" },
   });
-}
+});

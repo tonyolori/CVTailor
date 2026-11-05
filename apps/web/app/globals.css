@@ -349,8 +349,7 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .lp .end .pillform { color: var(--ink); box-shadow: none; }
 .lp .end .pillform button { background: var(--ink); }
 .lp .end .pub-note { color: #fff; }
-.lp .plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4vw; max-width: 780px; margin-top: 8vh; }
-.lp .plans b { display: block; font: 400 28px var(--f-serif), Georgia, serif; }
+.lp .plans { margin-top: 8vh; font: 400 28px var(--f-serif), Georgia, serif; }
 .lp .foot { margin-top: 8vh; font-size: 14px; display: flex; gap: 20px; }
 .lp .foot a { color: inherit; }
 

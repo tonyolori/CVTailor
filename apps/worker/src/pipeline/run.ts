@@ -60,7 +60,7 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
   if (users.length > 0) {
     collected = await collect(db, http, allPrefs, categories, opts, now);
     await budget.record("collect", ZERO_USAGE, "ok");
-    await runDiscovery(db, http, now).catch((err: unknown) => log("discovery.failed", { kind: err instanceof Error ? err.name : "unknown" }));
+    await runDiscovery(db, http, now).catch((err: unknown) => log("discovery.failed", errorInfo(err), "error"));
     await enrichPending(db, http, provider, budget, categories, config.ENRICH_MAX_PER_RUN);
   }
 
@@ -75,7 +75,7 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
       picked += match.picked;
     } catch (err) {
       failedUsers++;
-      log("run.user_failed", { userId: user.id, ...errorInfo(err) });
+      log("run.user_failed", { userId: user.id, ...errorInfo(err) }, "error");
       await budget.record("match", ZERO_USAGE, "failed", user.id, "stage_error");
     }
     try {
@@ -97,7 +97,7 @@ export async function runDaily(deps: RunDeps, runDate: string): Promise<{ users:
       }
     } catch (err) {
       failedUsers++;
-      log("run.summary_failed", { userId: user.id, ...errorInfo(err) });
+      log("run.summary_failed", { userId: user.id, ...errorInfo(err) }, "error");
     }
   }
   log("run.done", { runDate, users: users.length, picked, failedUsers, spentUsd: budget.spent() });
@@ -141,7 +141,7 @@ export async function tick(deps: RunDeps): Promise<string> {
         "finish run",
       );
     } catch (err) {
-      log("run.failed", { runDate, ...errorInfo(err) });
+      log("run.failed", { runDate, ...errorInfo(err) }, "error");
       must(await db.from("daily_runs").update({ status: "failed", finished_at: new Date().toISOString(), detail: errorInfo(err) }).eq("run_date", runDate), "fail run");
     }
   }
@@ -153,7 +153,7 @@ export async function tick(deps: RunDeps): Promise<string> {
     "daily run after",
   ) as { status: string; alert_sent_at: string | null } | null;
   if (shouldAlert(after, deps.now?.() ?? new Date(), config.RUN_ALERT_HOUR_UTC)) {
-    await sendAlert(deps, runDate, deps.now?.() ?? new Date(), after?.status).catch(() => log("alert.failed", { runDate }));
+    await sendAlert(deps, runDate, deps.now?.() ?? new Date(), after?.status).catch((err: unknown) => log("alert.failed", { runDate, ...errorInfo(err) }, "error"));
   }
   return decision;
 }

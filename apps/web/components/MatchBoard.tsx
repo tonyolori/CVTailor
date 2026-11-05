@@ -8,6 +8,7 @@ import { setTrackerStatus } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
 import { cancelTask, pollTask } from "@/components/TaskWait";
 import type { CvAllowance } from "@/lib/entitlement";
+import { loggedFetch } from "@/lib/log";
 import { sourceLabel, STATUS_LABELS, TRACKED_DECISIONS, VIEWS } from "@/lib/views";
 
 export interface BoardRow {
@@ -92,7 +93,7 @@ export function MatchBoard(props: {
 
   const load = useCallback(async (id: number, force = false) => {
     if (!force && details.has(id)) return details.get(id)!;
-    const res = await fetch(`/api/matches/${id}`);
+    const res = await loggedFetch(`/api/matches/${id}`);
     if (!res.ok) return null;
     const d = (await res.json()) as Detail;
     setDetails((m) => new Map(m).set(id, d));
@@ -160,7 +161,7 @@ export function MatchBoard(props: {
       n.delete(r.id);
       return n;
     });
-    const res = await fetch("/api/cv-requests", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ matchId: r.id }) });
+    const res = await loggedFetch("/api/cv-requests", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ matchId: r.id }) });
     const body = (await res.json().catch(() => ({}))) as { taskId?: number; error?: string };
     if (!res.ok || !body.taskId) {
       setErrors((m) => new Map(m).set(r.id, body.error ?? "Couldn't start that. Try again shortly."));

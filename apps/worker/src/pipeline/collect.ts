@@ -1,5 +1,5 @@
 import { prefilter, type Category, type Preferences } from "@cvtailor/core";
-import { chunks, must, type Db } from "../db";
+import { chunks, errorInfo, must, type Db } from "../db";
 import { log } from "../log";
 import { atsBoards, scanCompanies, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
@@ -116,7 +116,7 @@ export async function collect(
       log("collect.source", { source: adapter.id, found: jobs.length });
     } catch (err) {
       sources.push({ id: adapter.id, label: adapter.label, found: 0, failed: true });
-      log("collect.source_failed", { source: adapter.id, kind: err instanceof Error ? err.name : "unknown" });
+      log("collect.source_failed", { source: adapter.id, ...errorInfo(err) }, "error");
     }
   }
 

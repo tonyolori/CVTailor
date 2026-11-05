@@ -8,7 +8,7 @@ import {
   TitleSuggestionsSchema,
 } from "@cvtailor/core/prompts";
 import { mayUseAi, type LlmProvider } from "@cvtailor/llm";
-import { must, type Db } from "../db";
+import { errorInfo, must, type Db } from "../db";
 import { log } from "../log";
 import { BudgetExceeded, type Budget } from "./budget";
 import { buildEnrichRequest, reconcile, type JobRow } from "./enrich";
@@ -98,7 +98,7 @@ async function runTask(db: Db, provider: LlmProvider, budget: Budget, ownerEmail
     }
     log("ai_task.done", { taskId: task.id, userId: task.user_id, kind: task.kind });
   } catch (err) {
-    log("ai_task.failed", { taskId: task.id, kind: err instanceof Error ? err.name : "unknown" });
+    log("ai_task.failed", { taskId: task.id, ...errorInfo(err) }, "error");
     if (task.kind === "tailor_match") {
       if (task.match_id) await markMatch(db, task.match_id, err instanceof BudgetExceeded ? "budget" : "failed");
       await finish({ status: "failed", error: err instanceof BudgetExceeded ? BUDGET_MESSAGE : RETRY_MESSAGE });

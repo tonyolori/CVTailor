@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { logged, loggedFetch } from "@/lib/log";
 import { adminClient } from "@/lib/supabase/admin";
 
 /**
  * Daily check from the web host's cron. The worker can't report that it's off, so this
  * alerts the owner when no run has finished. Protected by CRON_SECRET.
  */
-export async function GET(request: NextRequest) {
+export const GET = logged("GET /api/cron/run-check", async (request: NextRequest) => {
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
   if (!owner || !key) return NextResponse.json({ ok: false, status: "email_not_configured" }, { status: 500 });
 
   const text = `CV Tailor hasn't finished today's run (${runDate}). Status: ${run?.status ?? "not started"}. Check that the worker is running.`;
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await loggedFetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "Idempotency-Key": `alert-${runDate}` },
     body: JSON.stringify({ from: process.env.EMAIL_FROM, to: owner, subject: `CV Tailor: no completed run for ${runDate}`, text }),
@@ -29,4 +30,4 @@ export async function GET(request: NextRequest) {
   if (!res.ok) return NextResponse.json({ ok: false, status: "send_failed" }, { status: 502 });
   await db.from("daily_runs").upsert({ run_date: runDate, status: run?.status ?? "failed", alert_sent_at: new Date().toISOString() }, { onConflict: "run_date" });
   return NextResponse.json({ ok: true, status: "alerted" });
-}
+});

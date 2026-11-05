@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@cvtailor/core";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { sendInvite } from "@/lib/email";
+import { logged } from "@/lib/log";
 import { cvCounts } from "@/lib/plan-settings";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
@@ -25,7 +26,7 @@ function issuesMessage(error: { issues: { path: PropertyKey[]; message: string }
 }
 
 // --- Auth -------------------------------------------------------------------
-export async function signIn(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+export const signIn = logged("action.signIn", async (_prev: ActionResult | null, form: FormData): Promise<ActionResult> => {
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, message: "Enter a valid email address." };
   const h = await headers();
@@ -39,13 +40,13 @@ export async function signIn(_prev: ActionResult | null, form: FormData): Promis
     return { ok: false, message: /invite-only/i.test(error.message) ? "CV Tailor is invite only for now, and this email isn't on the list yet. Join the waitlist and we'll email you when there's a place." : "Couldn't send the link. Try again shortly." };
   }
   return { ok: true, message: "Check your email for a sign-in link." };
-}
+});
 
 /**
  * Anyone can register interest. The answer is the same whether or not the address is already
  * on the list, so this can't be used to find out who has signed up.
  */
-export async function joinWaitlist(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+export const joinWaitlist = logged("action.joinWaitlist", async (_prev: ActionResult | null, form: FormData): Promise<ActionResult> => {
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) return { ok: false, message: "Enter a valid email address." };
   if (form.get("consent") !== "on") return { ok: false, message: "Tick the box so we can keep your details and email you." };
@@ -59,23 +60,23 @@ export async function joinWaitlist(_prev: ActionResult | null, form: FormData): 
     .upsert({ email, name: clean("name", 120), looking_for: clean("looking_for", 200), consented_at: new Date().toISOString() }, { onConflict: "email", ignoreDuplicates: true });
   if (error) return { ok: false, message: "Couldn't add you just now. Try again shortly." };
   return { ok: true };
-}
+});
 
-export async function signOut(): Promise<void> {
+export const signOut = logged("action.signOut", async (): Promise<void> => {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
-}
+});
 
-export async function giveConsent(): Promise<void> {
+export const giveConsent = logged("action.giveConsent", async (): Promise<void> => {
   const { user } = await requireUser();
   // Only the first consent sets the free CVs, so going through this twice can't top them up.
   await adminClient().from("profiles").update({ consented_at: new Date().toISOString(), cv_free_left: cvCounts().free }).eq("id", user.id).is("consented_at", null);
   redirect("/onboarding");
-}
+});
 
 // --- Library and preferences --------------------------------------------------
-export async function saveFacts(input: unknown, next?: string): Promise<ActionResult> {
+export const saveFacts = logged("action.saveFacts", async (input: unknown, next?: string): Promise<ActionResult> => {
   const { supabase, user } = await requireUser();
   const parsed = FactLibrarySchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: issuesMessage(parsed.error) };
@@ -84,9 +85,9 @@ export async function saveFacts(input: unknown, next?: string): Promise<ActionRe
   revalidatePath("/library");
   if (next) redirect(next);
   return { ok: true, message: "Saved." };
-}
+});
 
-export async function savePreferences(input: unknown, next?: string): Promise<ActionResult> {
+export const savePreferences = logged("action.savePreferences", async (input: unknown, next?: string): Promise<ActionResult> => {
   const { supabase, user } = await requireUser();
   const parsed = PreferencesSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: issuesMessage(parsed.error) };
@@ -96,31 +97,31 @@ export async function savePreferences(input: unknown, next?: string): Promise<Ac
   revalidatePath("/preferences");
   if (next) redirect(next);
   return { ok: true, message: "Saved. Changes apply from the next daily run." };
-}
+});
 
 // --- Matches ------------------------------------------------------------------
 const STATUSES = ["to_apply", "applied", "interview", "offer", "rejected", "dismissed"];
 
-export async function setTrackerStatus(matchId: number, status: string): Promise<ActionResult> {
+export const setTrackerStatus = logged("action.setTrackerStatus", async (matchId: number, status: string): Promise<ActionResult> => {
   if (!STATUSES.includes(status)) return { ok: false, message: "Unknown status." };
   const { supabase, user } = await requireUser();
   const { error } = await supabase.from("matches").update({ tracker_status: status }).eq("id", matchId).eq("user_id", user.id);
   revalidatePath("/dashboard");
   return error ? { ok: false, message: "Couldn't update that." } : { ok: true };
-}
+});
 
 /** A style for this one CV, or null to follow the user's default. */
-export async function setMatchCvStyle(matchId: number, style: string | null): Promise<ActionResult> {
+export const setMatchCvStyle = logged("action.setMatchCvStyle", async (matchId: number, style: string | null): Promise<ActionResult> => {
   const value = style === null ? null : CvStyle.safeParse(style);
   if (value && !value.success) return { ok: false, message: "Unknown style." };
   const { supabase, user } = await requireUser();
   const { error } = await supabase.from("matches").update({ cv_style: value ? value.data : null }).eq("id", matchId).eq("user_id", user.id);
   revalidatePath("/dashboard");
   return error ? { ok: false, message: "Couldn't change the style." } : { ok: true };
-}
+});
 
 // --- Resume versions ------------------------------------------------------------
-export async function saveResumeVersion(matchId: number, input: unknown): Promise<ActionResult & { versionId?: number }> {
+export const saveResumeVersion = logged("action.saveResumeVersion", async (matchId: number, input: unknown): Promise<ActionResult & { versionId?: number }> => {
   const { supabase, user } = await requireUser();
   const parsed = ResumeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: issuesMessage(parsed.error) };
@@ -132,10 +133,10 @@ export async function saveResumeVersion(matchId: number, input: unknown): Promis
   if (error) return { ok: false, message: "Couldn't save this version." };
   revalidatePath(`/matches/${matchId}`);
   return { ok: true, message: "Saved.", versionId: data.id };
-}
+});
 
 /** "Add to my library" from an editor warning. Adds the term or fact the user confirmed. */
-export async function addToLibrary(addition: { skill?: string; fact?: { text: string; org: string } }): Promise<ActionResult> {
+export const addToLibrary = logged("action.addToLibrary", async (addition: { skill?: string; fact?: { text: string; org: string } }): Promise<ActionResult> => {
   const { supabase, user } = await requireUser();
   const { data } = await supabase.from("fact_library").select("data").eq("user_id", user.id).single();
   const parsed = FactLibrarySchema.safeParse(data?.data);
@@ -152,10 +153,10 @@ export async function addToLibrary(addition: { skill?: string; fact?: { text: st
   }
   const { error } = await supabase.from("fact_library").update({ data: lib }).eq("user_id", user.id);
   return error ? { ok: false, message: "Couldn't update your library." } : { ok: true, message: "Added to your library." };
-}
+});
 
 // --- Settings ---
-export async function setCvStyle(style: string): Promise<ActionResult> {
+export const setCvStyle = logged("action.setCvStyle", async (style: string): Promise<ActionResult> => {
   const parsed = CvStyle.safeParse(style);
   if (!parsed.success) return { ok: false, message: "Unknown style." };
   const { supabase, user } = await requireUser();
@@ -163,8 +164,8 @@ export async function setCvStyle(style: string): Promise<ActionResult> {
   revalidatePath("/settings/cv-style");
   revalidatePath("/dashboard");
   return error ? { ok: false, message: "Couldn't save your CV style." } : { ok: true };
-}
-export async function updateSettings(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+});
+export const updateSettings = logged("action.updateSettings", async (_prev: ActionResult | null, form: FormData): Promise<ActionResult> => {
   const { supabase, user } = await requireUser();
   const tz = String(form.get("tz") ?? "UTC");
   try {
@@ -191,25 +192,25 @@ export async function updateSettings(_prev: ActionResult | null, form: FormData)
     .eq("id", user.id);
   revalidatePath("/settings");
   return error ? { ok: false, message: "Couldn't save your settings." } : { ok: true, message: "Saved." };
-}
+});
 
 // --- Admin ----------------------------------------------------------------------
-export async function allowEmail(form: FormData): Promise<void> {
+export const allowEmail = logged("action.allowEmail", async (form: FormData): Promise<void> => {
   await requireAdmin();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   if (!email.includes("@")) return;
   await adminClient().from("allowed_emails").upsert({ email, note: String(form.get("note") ?? "") || null });
   revalidatePath("/admin");
-}
+});
 
-export async function removeEmail(form: FormData): Promise<void> {
+export const removeEmail = logged("action.removeEmail", async (form: FormData): Promise<void> => {
   await requireAdmin();
   await adminClient().from("allowed_emails").delete().eq("email", String(form.get("email")));
   revalidatePath("/admin");
-}
+});
 
 /** Lets someone from the waitlist sign up, and tells them. A failed email doesn't undo the invitation. */
-export async function inviteFromWaitlist(form: FormData): Promise<void> {
+export const inviteFromWaitlist = logged("action.inviteFromWaitlist", async (form: FormData): Promise<void> => {
   await requireAdmin();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const db = adminClient();
@@ -220,16 +221,16 @@ export async function inviteFromWaitlist(form: FormData): Promise<void> {
   await db.from("waitlist").update({ invited_at: new Date().toISOString() }).eq("email", email);
   revalidatePath("/admin");
   redirect(sent ? "/admin?invited=1" : "/admin?invited=noemail");
-}
+});
 
-export async function removeFromWaitlist(form: FormData): Promise<void> {
+export const removeFromWaitlist = logged("action.removeFromWaitlist", async (form: FormData): Promise<void> => {
   await requireAdmin();
   await adminClient().from("waitlist").delete().eq("email", String(form.get("email")));
   revalidatePath("/admin");
-}
+});
 
-export async function setKillSwitch(form: FormData): Promise<void> {
+export const setKillSwitch = logged("action.setKillSwitch", async (form: FormData): Promise<void> => {
   await requireAdmin();
   await adminClient().from("app_settings").update({ value: form.get("on") === "true" }).eq("key", "kill_switch");
   revalidatePath("/admin");
-}
+});

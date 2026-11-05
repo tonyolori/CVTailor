@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { MAX_POSTING_CHARS, MIN_POSTING_CHARS, PASTED_JOB_TITLE } from "@cvtailor/core";
 import { billingEnforced, cvRequestsPerDay } from "@/lib/entitlement";
+import { logged } from "@/lib/log";
 import { allow } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -24,7 +25,7 @@ const TOO_SHORT = "That looks too short to be a full job posting. Paste the whol
  * allowance, and the worker gives it back if the CV isn't written. The worker checks again
  * before it spends anything, so these checks are for a clear answer.
  */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/cv-requests", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -119,4 +120,4 @@ export async function POST(request: NextRequest) {
   const { data: task, error } = await admin.from("ai_tasks").insert({ user_id: userId, kind: "tailor_match", input: {}, match_id: matchId, cv_bucket: bucket }).select("id").single();
   if (error || !task) return fail("Couldn't start that. Try again shortly.");
   return NextResponse.json({ taskId: task.id, matchId });
-}
+});

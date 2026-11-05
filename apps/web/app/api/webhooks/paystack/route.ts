@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { errorFields, log, logged } from "@/lib/log";
 import { actionFor, eventKey, parseEvent, verifySignature } from "@/lib/paystack";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
@@ -7,7 +8,7 @@ import { adminClient } from "@/lib/supabase/admin";
  * The only place entitlement is ever granted. The HMAC is checked against the raw body,
  * each event runs once by its key, and the checkout redirect is never trusted.
  */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/webhooks/paystack", async (request: NextRequest) => {
   if (!allow(`webhook:${clientIp(request.headers)}`, 120, 60_000)) return NextResponse.json({ error: "slow down" }, { status: 429 });
 
   const raw = await request.text();
@@ -30,12 +31,13 @@ export async function POST(request: NextRequest) {
   try {
     await apply(db, event);
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    log("webhook.apply_failed", { eventType: event.event, ...errorFields(err) }, "error");
     // Release the claim, so Paystack's retry can finish the work.
     await db.from("webhook_events").delete().eq("event_key", key);
     return NextResponse.json({ error: "try again" }, { status: 500 });
   }
-}
+});
 
 async function findUserId(db: ReturnType<typeof adminClient>, userId?: string, email?: string): Promise<string | null> {
   if (userId) {

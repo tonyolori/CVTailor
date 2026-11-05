@@ -7,6 +7,7 @@ import type { CvStyle, Resume } from "@cvtailor/core";
 import { CvSheet } from "@/components/CvSheet";
 import { pollTask } from "@/components/TaskWait";
 import type { CvAllowance } from "@/lib/entitlement";
+import { loggedFetch } from "@/lib/log";
 
 type Stage = "form" | "working" | "done";
 
@@ -31,7 +32,7 @@ export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const res = await fetch("/api/cv-requests", {
+    const res = await loggedFetch("/api/cv-requests", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ text, title, company, link, ...(forMatch ? { matchId: forMatch.id } : {}) }),
@@ -54,7 +55,7 @@ export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance
       router.refresh();
       return;
     }
-    const detail = await fetch(`/api/matches/${body.matchId}`);
+    const detail = await loggedFetch(`/api/matches/${body.matchId}`);
     const d = detail.ok ? ((await detail.json()) as { resume: Resume | null; hasLetter: boolean; job: { title: string; company: string; apply: string | null } }) : null;
     setResume(d?.resume ?? null);
     setJob(d?.job ?? null);

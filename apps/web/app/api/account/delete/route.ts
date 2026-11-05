@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { errorFields, log, logged } from "@/lib/log";
 import { siteUrl } from "@/lib/site";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
  * every table. Payment rows keep an amount and reference with the user link removed, as
  * the schema's on-delete rule sets, for financial records.
  */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/account/delete", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.redirect(siteUrl("/login", request), 303);
@@ -44,6 +45,6 @@ export async function POST(request: NextRequest) {
     await admin.from("waitlist").delete().eq("email", auth.user.email.toLowerCase());
   }
 
-  await supabase.auth.signOut().catch(() => undefined);
+  await supabase.auth.signOut().catch((err: unknown) => log("account.signout_failed", errorFields(err), "warn"));
   return NextResponse.redirect(siteUrl("/login", request), 303);
-}
+});

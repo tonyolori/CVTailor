@@ -24,7 +24,7 @@ import {
 } from "@cvtailor/core/prompts";
 import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmResult, type LlmUsage } from "@cvtailor/llm";
 import { MAX_LETTER_PAGES, MAX_RESUME_PAGES, renderCoverLetterPdf, renderResumePdf } from "@cvtailor/render";
-import { must, type Db } from "../db";
+import { errorInfo, must, type Db } from "../db";
 import { log } from "../log";
 import { BudgetExceeded, type Budget } from "./budget";
 import type { ActiveUser } from "./users";
@@ -316,7 +316,7 @@ export async function tailorMatch(deps: TailorDeps, user: ActiveUser, matchId: n
         break;
       }
       result.failed++;
-      log("tailor.error", { matchId: job.matchId, userId: user.id, kind: err instanceof Error ? err.name : "unknown" });
+      log("tailor.error", { matchId: job.matchId, userId: user.id, ...errorInfo(err) }, "error");
       must(await deps.db.from("matches").update({ tailor_status: "failed", tailor_error: "render_or_store_failed" }).eq("id", job.matchId), "mark failed");
     }
   }

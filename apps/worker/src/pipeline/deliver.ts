@@ -1,4 +1,4 @@
-import { must, type Db } from "../db";
+import { errorInfo, must, type Db } from "../db";
 import { DailySummarySchema, emailSubject, renderEmailHtml, renderEmailText } from "../email/template";
 import type { EmailSender } from "../email/send";
 import { log } from "../log";
@@ -86,7 +86,7 @@ export async function sendDueEmails(deps: DeliverDeps, now: Date = new Date()): 
       out.sent++;
     } catch (err) {
       const message = err instanceof Error ? err.message.slice(0, 200) : "send failed";
-      log("email.failed", { userId: row.user_id, runDate: row.run_date });
+      log("email.failed", { userId: row.user_id, runDate: row.run_date, ...errorInfo(err) }, "error");
       const age = now.getTime() - new Date(`${row.run_date}T00:00:00Z`).getTime();
       await mark(age > 36 * 3_600_000 ? { status: "failed", error: message } : { error: message });
       out.failed++;

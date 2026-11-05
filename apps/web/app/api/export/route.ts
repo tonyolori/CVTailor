@@ -1,9 +1,10 @@
 import { strToU8, zipSync } from "fflate";
 import { NextResponse } from "next/server";
+import { logged } from "@/lib/log";
 import { createClient } from "@/lib/supabase/server";
 
 /** Everything held about the user: JSON and PDFs in one zip. Uses their own session, so RLS scopes it. */
-export async function GET() {
+export const GET = logged("GET /api/export", async () => {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -51,4 +52,4 @@ export async function GET() {
       "cache-control": "no-store",
     },
   });
-}
+});

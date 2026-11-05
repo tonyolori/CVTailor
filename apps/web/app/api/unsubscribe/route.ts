@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { logged } from "@/lib/log";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 
@@ -12,14 +13,14 @@ function page(body: string, status = 200) {
 }
 
 /** A page with a button, not an instant pause, because mail scanners follow every link in an email. */
-export async function GET(request: NextRequest) {
+export const GET = logged("GET /api/unsubscribe", async (request: NextRequest) => {
   const token = request.nextUrl.searchParams.get("token") ?? "";
   if (!UUID.test(token)) return page("<p>This link isn't valid.</p>", 400);
   return page(`<h1>Pause these emails?</h1><p>Your matches stay on your dashboard, and you can turn email back on in your settings.</p><form method="post"><input type="hidden" name="token" value="${token}"><button type="submit">Pause emails</button></form>`);
-}
+});
 
 /** Also serves one-click List-Unsubscribe, which POSTs to the URL in the header. */
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/unsubscribe", async (request: NextRequest) => {
   if (!allow(`unsub:${clientIp(request.headers)}`, 20, 60_000)) return page("<p>Too many requests. Try again shortly.</p>", 429);
   const fromQuery = request.nextUrl.searchParams.get("token");
   const form = fromQuery ? null : await request.formData().catch(() => null);
@@ -28,4 +29,4 @@ export async function POST(request: NextRequest) {
   const { error } = await adminClient().from("profiles").update({ email_paused: true }).eq("unsubscribe_token", token);
   if (error) return page("<p>Something went wrong. Please try again.</p>", 500);
   return page("<h1>Emails paused</h1><p>You won't get the daily email. You can turn it back on in your settings.</p>");
-}
+});

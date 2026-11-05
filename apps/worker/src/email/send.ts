@@ -1,5 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { bodyErrorCode } from "@cvtailor/core/log";
+import { log } from "../log";
 
 export interface OutgoingEmail {
   to: string;
@@ -38,7 +40,10 @@ export function resendSender(apiKey: string, fetchFn: typeof fetch = fetch): Ema
           attachments: email.attachments?.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })),
         }),
       });
-      if (!res.ok) throw new Error(`Resend answered ${res.status}`);
+      if (!res.ok) {
+        log("email.refused", { status: res.status, code: bodyErrorCode(await res.clone().json().catch(() => null)) }, "error");
+        throw new Error(`Resend answered ${res.status}`);
+      }
       return { id: ((await res.json()) as { id: string }).id };
     },
   };

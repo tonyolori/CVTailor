@@ -1,3 +1,4 @@
+import { errorFields, log, loggedFetch } from "@/lib/log";
 const FAST_MS = 3_000;
 const SLOW_MS = 10_000;
 const FAST_FOR_SECONDS = 30;
@@ -15,12 +16,13 @@ export async function pollTask<T>(id: number, onTick?: (seconds: number) => void
   for (;;) {
     if (signal?.aborted) return { status: "cancelled" };
     try {
-      const res = await fetch(`/api/tasks/${id}`, { signal });
+      const res = await loggedFetch(`/api/tasks/${id}`, { signal });
       const body = (await res.json()) as { status: string; output?: T; error?: string };
       if (body.status !== "pending" && body.status !== "running") return body;
-    } catch {
+    } catch (err) {
       // A dropped connection isn't the task failing, so keep waiting unless this was cancelled.
       if (signal?.aborted) return { status: "cancelled" };
+      log("task.poll_failed", { taskId: id, ...errorFields(err) }, "warn");
     }
     const seconds = Math.round((Date.now() - started) / 1000);
     onTick?.(seconds);
@@ -35,5 +37,5 @@ export async function pollTask<T>(id: number, onTick?: (seconds: number) => void
 
 /** Drops a task nobody is waiting for, so the worker doesn't spend on it. A task already running finishes. */
 export async function cancelTask(id: number): Promise<void> {
-  await fetch(`/api/tasks/${id}`, { method: "DELETE" }).catch(() => undefined);
+  await loggedFetch(`/api/tasks/${id}`, { method: "DELETE" }).catch(() => undefined);
 }

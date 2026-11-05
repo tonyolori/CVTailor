@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { errorFields } from "@cvtailor/core/log";
 import type { Config } from "./config";
+import { failureLoggingFetch } from "./log";
 
 export type Db = SupabaseClient;
 
@@ -8,6 +10,7 @@ export function serviceClient(config: Pick<Config, "SUPABASE_URL" | "SUPABASE_SE
   if (!config.SUPABASE_SERVICE_ROLE_KEY) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
   return createClient(config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: failureLoggingFetch },
   });
 }
 
@@ -36,7 +39,8 @@ export function chunks<T>(items: T[], size = 50): T[][] {
 }
 
 /** What to log about an error: its step when it has one, never free text from elsewhere. */
-export function errorInfo(err: unknown): { kind: string; detail?: string } {
+export function errorInfo(err: unknown): { kind: string; detail?: string; code?: string; at?: string } {
   if (err instanceof DbError) return { kind: "DbError", detail: err.message };
-  return { kind: err instanceof Error ? err.name : "unknown" };
+  const { errorType, code, at } = errorFields(err);
+  return { kind: errorType, code, at };
 }

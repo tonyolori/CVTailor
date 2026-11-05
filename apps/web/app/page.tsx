@@ -4,7 +4,6 @@ import { CvSheet } from "@/components/CvSheet";
 import { LandingStory } from "@/components/LandingStory";
 import { LandingSignIn } from "@/components/LoginForm";
 import { landingExample } from "@/lib/landing-examples";
-import { cvCounts } from "@/lib/plan-settings";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -13,7 +12,6 @@ export default async function Home() {
   if (data.user) redirect("/dashboard");
 
   const jobs = landingExample();
-  const counts = cvCounts();
   return (
     <main className="lp">
       <section className="hero">
@@ -72,17 +70,9 @@ export default async function Home() {
         <div className="join">
           <LandingSignIn />
         </div>
-        <div className="plans">
-          <div>
-            <b>Free</b>Daily matches{counts.free ? `, plus ${counts.free} CVs to try it` : ""}.
-          </div>
-          <div>
-            <b>Paid</b>{counts.plan} CVs, by the month or for 30 days, for your matches or any job you paste in. Add more whenever you need them.
-          </div>
-        </div>
+        <p className="plans">Plans coming soon.</p>
         <div className="foot">
           <Link href="/privacy">Privacy</Link>
-          <Link href="/pricing">Plans</Link>
           <Link href="/login">Sign in</Link>
           <Link href="/waitlist">Join the waitlist</Link>
         </div>

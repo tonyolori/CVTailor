@@ -1,3 +1,5 @@
+import { log } from "../log";
+
 /** Offset of a time zone from UTC at a given instant, in milliseconds. */
 function zoneOffsetMs(instant: Date, tz: string): number {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -20,6 +22,7 @@ function validZone(tz: string): string {
     new Intl.DateTimeFormat("en-US", { timeZone: tz });
     return tz;
   } catch {
+    log("schedule.bad_timezone", {}, "warn");
     return "UTC";
   }
 }

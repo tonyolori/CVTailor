@@ -20,7 +20,7 @@ const NOT_TESTS = SOURCES.filter((f) => !f.endsWith(".test.ts"));
 const rel = (f: string) => relative(ROOT, f);
 
 /** One-off scripts run by hand print their results. Pipeline code goes through log(), which refuses free text. */
-const MAY_PRINT = /apps\/worker\/src\/(log\.ts|llm-check\.ts|render-check\.ts|seed\/|eval\/)/;
+const MAY_PRINT = /apps\/web\/lib\/log\.ts|apps\/worker\/src\/(log\.ts|llm-check\.ts|render-check\.ts|seed\/|eval\/)/;
 
 describe("log hygiene", () => {
   it("pipeline and web code never call console directly", () => {

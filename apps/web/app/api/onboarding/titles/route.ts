@@ -3,12 +3,13 @@ import { z } from "zod";
 import { FactLibrarySchema } from "@cvtailor/core";
 import { suggestTitlesSystem, suggestTitlesUserPrompt, TitleSuggestionsSchema } from "@cvtailor/core/prompts";
 import { webProvider } from "@/lib/ai";
+import { logged } from "@/lib/log";
 import { allow } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 const Body = z.object({ targetTitles: z.array(z.string().min(1).max(120)).min(1).max(20) });
 
-export async function POST(request: NextRequest) {
+export const POST = logged("POST /api/onboarding/titles", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -43,4 +44,4 @@ export async function POST(request: NextRequest) {
     .single();
   if (error) return NextResponse.json({ error: "Suggestions aren't available right now. You can type your own." }, { status: 500 });
   return NextResponse.json({ taskId: task.id });
-}
+});
