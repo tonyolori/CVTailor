@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { expireCvRequests } from "@cvtailor/ai/cv-request";
 import { logged, loggedFetch } from "@/lib/log";
 import { adminClient } from "@/lib/supabase/admin";
 
@@ -12,6 +13,8 @@ export const GET = logged("GET /api/cron/run-check", async (request: NextRequest
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const db = adminClient();
+  // CVs cut off with their function give back what they took, even for people who don't come back.
+  await expireCvRequests(db, null);
   const runDate = new Date().toISOString().slice(0, 10);
   const { data: run } = await db.from("daily_runs").select("status,alert_sent_at").eq("run_date", runDate).maybeSingle();
   if (run?.status === "ok") return NextResponse.json({ ok: true, status: "ok" });

@@ -1,9 +1,10 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+import { DbError, type Db } from "@cvtailor/ai/db";
 import { errorFields } from "@cvtailor/core/log";
 import type { Config } from "./config";
 import { failureLoggingFetch } from "./log";
 
-export type Db = SupabaseClient;
+export { DbError, must, type Db } from "@cvtailor/ai/db";
 
 /** Service-role client. Bypasses RLS, so it exists only in the worker. */
 export function serviceClient(config: Pick<Config, "SUPABASE_URL" | "SUPABASE_SERVICE_ROLE_KEY">): Db {
@@ -12,23 +13,6 @@ export function serviceClient(config: Pick<Config, "SUPABASE_URL" | "SUPABASE_SE
     auth: { persistSession: false, autoRefreshToken: false },
     global: { fetch: failureLoggingFetch },
   });
-}
-
-/** Names the step that failed, with quoted values removed so it's safe to log. */
-export class DbError extends Error {
-  constructor(
-    readonly step: string,
-    message: string,
-  ) {
-    super(`${step}: ${message.replace(/"[^"]*"/g, '"…"').slice(0, 120)}`);
-    this.name = "DbError";
-  }
-}
-
-/** Throws on a Supabase error so a failed write can't pass silently. */
-export function must<T>(result: { data: T; error: { message: string } | null }, what: string): T {
-  if (result.error) throw new DbError(what, result.error.message);
-  return result.data;
 }
 
 /** Filter values go in the request URL, and a long list fails with "URI too long". */

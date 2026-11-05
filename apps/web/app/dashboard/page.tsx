@@ -1,9 +1,11 @@
 import { cvStyleOf, EnrichedJobSchema } from "@cvtailor/core";
+import { expireCvRequests } from "@cvtailor/ai/cv-request";
 import { AppShell } from "@/components/AppShell";
 import { MatchBoard, type BoardRow } from "@/components/MatchBoard";
 import { requireOnboarded } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 import { loadMatchDetail } from "@/lib/match-detail";
+import { adminClient } from "@/lib/supabase/admin";
 import { safeHref, TRACKED_DECISIONS, VIEWS } from "@/lib/views";
 
 interface Row {
@@ -21,11 +23,10 @@ interface Row {
   jobs: { title: string; company: string; url: string; apply_url: string | null; source: string; enriched: unknown; raw_text: string | null } | null;
 }
 
-/** A worker that died mid-task shouldn't leave a job saying "writing" forever. */
-const WORKING_FOR_MS = 15 * 60_000;
-
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ view?: string; job?: string }> }) {
   const { supabase, user, profile } = await requireOnboarded();
+  // A CV cut off with its function shouldn't say "writing" forever, or keep the CV it took.
+  await expireCvRequests(adminClient(), user.id);
   const params = await searchParams;
   const viewKey = VIEWS[params.view ?? ""] ? params.view! : "to_apply";
 
@@ -43,14 +44,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   else if (viewKey === "all") query = query.eq("decision", "picked");
   else query = query.in("decision", TRACKED_DECISIONS).eq("tracker_status", viewKey);
 
-  const [{ data }, { data: latest }, { data: tasks }] = await Promise.all([
+  const [{ data }, { data: latest }, { data: running }] = await Promise.all([
     query,
     supabase.from("daily_summaries").select("run_date,data").eq("user_id", user.id).order("run_date", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("ai_tasks").select("id,match_id,created_at").eq("user_id", user.id).eq("kind", "tailor_match").in("status", ["pending", "running"]),
+    supabase.from("cv_requests").select("id,match_id").eq("user_id", user.id).eq("status", "running"),
   ]);
   const summary = latest?.data as { gaps?: string[]; notes?: string[]; sources?: { label: string }[]; closeCalls?: { company: string; title: string; reason: string; link?: string }[] } | undefined;
-  const now = Date.now();
-  const working = new Map((tasks ?? []).filter((t) => t.match_id && now - new Date(t.created_at).getTime() < WORKING_FOR_MS).map((t) => [t.match_id as number, t.id as number]));
+  const working = new Map((running ?? []).map((r) => [r.match_id as number, r.id as number]));
 
   const rows: BoardRow[] = ((data ?? []) as unknown as Row[]).flatMap((r) => {
     const job = r.jobs;
@@ -76,7 +76,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         locationQuote: e?.locationQuote ?? "",
         instructions: e?.applicantInstructions ?? [],
         hasPosting: Boolean(r.posting_text || job.raw_text?.trim()),
-        taskId: working.get(r.id) ?? null,
+        requestId: working.get(r.id) ?? null,
       },
     ];
   });

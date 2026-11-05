@@ -73,7 +73,8 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 - [ ] Set `NEXT_PUBLIC_SITE_URL` to the deployed URL. Sign-in redirects depend on it.
 - [ ] Set `CRON_SECRET`, `OWNER_EMAIL`, `EMAIL_API_KEY` and `EMAIL_FROM`. The daily check in `apps/web/vercel.json` uses them to alert you when no run has finished. On Cloudflare Pages, call `/api/cron/run-check` from a Cron Trigger instead.
 - [ ] Set `SUPABASE_SERVICE_ROLE_KEY` as a server-only variable. Account deletion, unsubscribe, webhooks and admin use it.
-- [ ] Leave `ANTHROPIC_API_KEY` unset on the web host unless you're at Level 3, and `DEEPSEEK_API_KEY` unless you're at Level 3b. Without a key, onboarding's AI steps queue for the worker. With one, also set `LLM_PROVIDER` and `LLM_MODEL_*` there.
+- [ ] Set the AI provider on the web host too, because it writes CVs and reads uploads as people ask: `LLM_PROVIDER`, its key (`DEEPSEEK_API_KEY` at Level 3b, `ANTHROPIC_API_KEY` at Level 3), `LLM_MODEL_SMALL`, `LLM_MODEL_STRONG`, `GLOBAL_DAILY_BUDGET_USD` and `USER_DAILY_BUDGET_USD`. Use the same values as the worker: both count against one daily budget. Without a key, people can still onboard by hand but can't get CVs.
+- [ ] Writing a CV runs for up to 300 seconds after the request, the most the Hobby plan allows. If CVs time out, Pro allows longer: raise `maxDuration` in `apps/web/app/api/cv-requests/route.ts`.
 - [ ] On Vercel, use the **Pro plan once you take payments**. [Hobby is for non-commercial use only](https://vercel.com/docs/limits/fair-use-guidelines), and requesting payment from visitors counts as commercial.
 - [ ] Vercel runs only the web app. The worker has to run somewhere that stays on, as below.
 

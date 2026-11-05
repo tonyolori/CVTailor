@@ -15,7 +15,7 @@ import {
 } from "@cvtailor/core";
 import { createProvider, type LlmProvider } from "@cvtailor/llm";
 import { loadConfig, llmConfig } from "../config";
-import { buildEnrichRequest, reconcile, type JobRow } from "../pipeline/enrich";
+import { buildEnrichRequest, reconcile, type JobRow } from "@cvtailor/ai/enrich";
 import { checkLive, resolveAtsRecord, type LiveCheck } from "../pipeline/live";
 import { ATS_HOST_POLICIES } from "../sources/ats";
 import { politeHttp } from "../sources/http";

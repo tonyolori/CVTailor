@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EnrichedJobSchema } from "@cvtailor/core";
 import { enrichSystemPrompt, enrichUserPrompt } from "@cvtailor/core/prompts";
-import { buildEnrichRequest, liveUrl, needsLiveCheck, reconcile, type JobRow } from "../src/pipeline/enrich";
+import { buildEnrichRequest, reconcile, type JobRow } from "@cvtailor/ai/enrich";
+import { liveUrl, needsLiveCheck } from "../src/pipeline/enrich";
 import { extractJsonLd, interpretLivePage } from "../src/pipeline/live";
 
 const row = (over: Partial<JobRow> = {}): JobRow => ({

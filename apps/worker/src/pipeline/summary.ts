@@ -4,7 +4,7 @@ import { DailySummarySchema, type DailySummary } from "../email/template";
 import type { SourceAdapter } from "../sources/types";
 import type { CollectResult } from "./collect";
 import type { MatchResult } from "./match";
-import type { ActiveUser } from "./users";
+import type { ActiveUser } from "@cvtailor/ai/users";
 
 interface MatchRow {
   id: number;

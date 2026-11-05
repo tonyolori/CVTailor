@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
+    "@cvtailor/ai": "*",
     "@cvtailor/core": "*",
     "@cvtailor/llm": "*",
     "@cvtailor/render": "*",

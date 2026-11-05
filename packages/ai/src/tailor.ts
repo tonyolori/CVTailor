@@ -22,11 +22,12 @@ import {
   type CoverLetterDraft,
   type ResumeDraft,
 } from "@cvtailor/core/prompts";
-import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmResult, type LlmUsage } from "@cvtailor/llm";
+import { errorFields } from "@cvtailor/core/log";
+import { addUsage, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmResult, type LlmUsage } from "@cvtailor/llm";
 import { MAX_LETTER_PAGES, MAX_RESUME_PAGES, renderCoverLetterPdf, renderResumePdf } from "@cvtailor/render";
-import { errorInfo, must, type Db } from "../db";
-import { log } from "../log";
 import { BudgetExceeded, type Budget } from "./budget";
+import { must, type Db } from "./db";
+import { log } from "./log";
 import type { ActiveUser } from "./users";
 
 export const MAX_REGENERATIONS = 2;
@@ -36,7 +37,6 @@ export interface TailorDeps {
   db: Db;
   provider: LlmProvider;
   budget: Budget;
-  ownerEmail?: string;
   now?: Date;
 }
 
@@ -210,9 +210,6 @@ export interface TailorResult {
  */
 export async function tailorMatch(deps: TailorDeps, user: ActiveUser, matchId: number): Promise<TailorResult> {
   const result: TailorResult = { rendered: 0, failed: 0, usage: ZERO_USAGE };
-  const access = mayUseAi(deps.provider.name, deps.ownerEmail, { email: user.email, isSynthetic: user.isSynthetic });
-  if (!access.allowed) return result;
-
   const pending = must(
     await deps.db.from("matches").select("id,job_id,posting_text,jobs(title,company,raw_text,enriched)").eq("id", matchId).eq("user_id", user.id).in("tailor_status", ["pending", "drafted"]),
     "pending tailor",
@@ -248,7 +245,7 @@ export async function tailorMatch(deps: TailorDeps, user: ActiveUser, matchId: n
   const draftFor = (m: number) => existing.find((e) => e.match_id === m && e.kind === "resume");
   const hasPdf = (m: number, kind: string) => docs.some((d) => d.match_id === m && d.kind === kind);
 
-  // First drafts run together where the provider can batch at half price. Regeneration runs one by one.
+  // First drafts run together where the provider can batch. Regeneration runs one by one.
   const needDraft = jobs.filter((j) => !draftFor(j.matchId));
   let firsts = new Map<string, LlmResult<ResumeDraft>>();
   try {
@@ -316,7 +313,7 @@ export async function tailorMatch(deps: TailorDeps, user: ActiveUser, matchId: n
         break;
       }
       result.failed++;
-      log("tailor.error", { matchId: job.matchId, userId: user.id, ...errorInfo(err) }, "error");
+      log("tailor.error", { matchId: job.matchId, userId: user.id, ...errorFields(err) }, "error");
       must(await deps.db.from("matches").update({ tailor_status: "failed", tailor_error: "render_or_store_failed" }).eq("id", job.matchId), "mark failed");
     }
   }

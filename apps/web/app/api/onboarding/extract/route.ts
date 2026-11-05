@@ -1,15 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { EXTRACT_FACTS_SYSTEM, extractFactsUserPrompt, ProposedLibrarySchema } from "@cvtailor/core/prompts";
-import { webProvider } from "@/lib/ai";
+import { BudgetExceeded } from "@cvtailor/ai/budget";
+import { extractFacts } from "@cvtailor/ai/onboarding";
+import { AI_UNAVAILABLE, webBudget, webProvider } from "@/lib/ai";
 import { extractCvText, MAX_CV_BYTES } from "@/lib/cv-text";
 import { errorFields, log, logged } from "@/lib/log";
 import { allow } from "@/lib/rate-limit";
-import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-const MAX_CV_CHARS = 60_000;
+/** Reading a long CV can take a few minutes. The most a Hobby plan allows. */
+export const maxDuration = 300;
 
-/** Reads an uploaded CV and proposes a library. Inline with an API key, otherwise queued for the worker. */
+/** Reads an uploaded CV and proposes a library. The CV's text is used for this call only, never stored. */
 export const POST = logged("POST /api/onboarding/extract", async (request: NextRequest) => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -35,27 +36,13 @@ export const POST = logged("POST /api/onboarding/extract", async (request: NextR
   }
 
   const provider = webProvider();
-  if (provider) {
-    const r = await provider.complete({
-      id: "extract",
-      tier: "strong",
-      effort: "low",
-      system: EXTRACT_FACTS_SYSTEM,
-      user: extractFactsUserPrompt(text.slice(0, MAX_CV_CHARS), data.user.email ?? ""),
-      schema: ProposedLibrarySchema,
-    });
+  if (!provider) return NextResponse.json({ error: AI_UNAVAILABLE }, { status: 503 });
+  try {
+    const r = await extractFacts({ provider, budget: await webBudget(provider) }, data.user.id, data.user.email ?? "", text);
     if (!r.ok) return NextResponse.json({ error: "That couldn't be processed. You can enter your details by hand." }, { status: 502 });
     return NextResponse.json({ library: r.data });
+  } catch (err) {
+    if (err instanceof BudgetExceeded) return NextResponse.json({ error: "We can't read more CVs today. You can enter your details by hand." }, { status: 429 });
+    throw err;
   }
-
-  // A newer upload replaces any still waiting, such as one from before a page reload.
-  await adminClient().from("ai_tasks").delete().eq("user_id", data.user.id).eq("kind", "extract_facts").eq("status", "pending");
-
-  const { data: task, error } = await supabase
-    .from("ai_tasks")
-    .insert({ user_id: data.user.id, kind: "extract_facts", input: { cvText: text.slice(0, MAX_CV_CHARS) } })
-    .select("id")
-    .single();
-  if (error) return NextResponse.json({ error: "Couldn't queue that. You can enter your details by hand." }, { status: 500 });
-  return NextResponse.json({ taskId: task.id });
 });

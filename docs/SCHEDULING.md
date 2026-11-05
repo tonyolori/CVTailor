@@ -1,6 +1,8 @@
 # Running the worker
 
-`npm run worker` makes one pass: it runs today's pipeline if it hasn't finished, sends any emails that are due, and picks up onboarding tasks. Run it again and it resumes, without paying for finished work twice, so a power or internet cut only delays things.
+The worker finds jobs, scores them for each person and sends their emails. CVs and onboarding's AI steps run on the web host as people ask, not here.
+
+`npm run worker` makes one pass: it runs today's pipeline if it hasn't finished and sends any emails that are due. Run it again and it resumes, without paying for finished work twice, so a power or internet cut only delays things.
 
 `npm run worker -- --loop` stays up and repeats that pass each minute. **Prefer this**, because each email goes at the user's own send time only while the worker is up. Otherwise it goes out on the next pass.
 
@@ -74,4 +76,4 @@ Docker needs `LLM_PROVIDER=anthropic-api` or `deepseek` in `.env`. Subscription 
 
 ## When the PC is off
 
-The dashboard, editing and PDF downloads keep working, because they don't touch the worker. Onboarding's AI steps wait in a queue, and users can fill those in by hand. A worker can't alert anyone while it's down, so the web app has its own daily check at `/api/cron/run-check`, called by Vercel Cron, which emails `OWNER_EMAIL` if no run has finished by 06:00 UTC.
+Everything people do themselves keeps working, because none of it touches the worker: signing up, onboarding, writing CVs, editing and downloads. Only new matches and the morning emails wait for it. A worker can't alert anyone while it's down, so the web app has its own daily check at `/api/cron/run-check`, called by Vercel Cron, which emails `OWNER_EMAIL` if no run has finished by 06:00 UTC.

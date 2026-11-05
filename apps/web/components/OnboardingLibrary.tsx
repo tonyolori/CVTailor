@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FactLibrarySchema, type FactLibrary } from "@cvtailor/core";
 import { LibraryEditor } from "./LibraryEditor";
-import { cancelTask, pollTask } from "./TaskWait";
 import { errorFields, log, loggedFetch } from "@/lib/log";
 
 type Step = "choose" | "working" | "review";
@@ -17,9 +16,15 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
   const [waited, setWaited] = useState(0);
   const abort = useRef<AbortController | null>(null);
 
-  const taskId = useRef<number | null>(null);
-
   useEffect(() => () => abort.current?.abort(), []);
+
+  // Counts the seconds while the CV is read, so a slow read can offer the way out.
+  useEffect(() => {
+    if (step !== "working") return;
+    const started = Date.now();
+    const t = setInterval(() => setWaited(Math.round((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [step]);
 
   // A submit handler, not <form action>: React holds back state set inside a form action until
   // the action ends, which here is the whole extraction, so the waiting screen would never show.
@@ -37,17 +42,14 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
       setNotice(message ?? "That didn't work. You can enter your details by hand.");
       setStep("choose");
     };
+    abort.current = new AbortController();
     try {
-      const res = await loggedFetch("/api/onboarding/extract", { method: "POST", body: form });
-      const body = (await res.json()) as { error?: string; library?: unknown; taskId?: number };
-      if (!res.ok || body.error) return failed(body.error);
-      if (body.library) return accept(body.library);
-      taskId.current = body.taskId!;
-      abort.current = new AbortController();
-      const done = await pollTask<unknown>(body.taskId!, setWaited, abort.current.signal);
-      if (done.status === "done") return accept(done.output);
-      if (done.status !== "cancelled") failed(done.error);
+      const res = await loggedFetch("/api/onboarding/extract", { method: "POST", body: form, signal: abort.current.signal });
+      const body = (await res.json().catch(() => ({}))) as { error?: string; library?: unknown };
+      if (!res.ok || body.error || !body.library) return failed(body.error);
+      return accept(body.library);
     } catch (err) {
+      if (abort.current.signal.aborted) return;
       log("onboarding.upload_failed", errorFields(err), "error");
       failed();
     }
@@ -55,7 +57,6 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
 
   function enterByHand() {
     abort.current?.abort();
-    if (taskId.current !== null) void cancelTask(taskId.current);
     setStep("review");
   }
 
@@ -87,11 +88,11 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
           <h2>Reading your CV...</h2>
         </div>
         <p className="muted">
-          {waited >= 30
-            ? `Still waiting after ${waited} seconds. This step needs the background worker, which may be busy or off. You can keep waiting, or carry on by hand.`
-            : "This usually takes under a minute. You can stay on this page while it works."}
+          {waited >= 45
+            ? `Still reading after ${waited} seconds. A long CV can take a couple of minutes. You can keep waiting, or carry on by hand.`
+            : "This usually takes under a minute. Stay on this page while it works."}
         </p>
-        {waited >= 30 ? (
+        {waited >= 45 ? (
           <div>
             <button type="button" onClick={enterByHand}>
               Enter my details by hand

@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { CvStyle, Resume } from "@cvtailor/core";
 import { CvSheet } from "@/components/CvSheet";
-import { pollTask } from "@/components/TaskWait";
+import { pollCvRequest } from "@/components/CvWait";
 import type { CvAllowance } from "@/lib/entitlement";
 import { loggedFetch } from "@/lib/log";
 
 type Stage = "form" | "working" | "done";
-
-const STILL_WAITING = "It's taking longer than usual. We'll keep going, and your CV will appear under Pasted jobs when it's ready.";
 
 export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance; style: CvStyle; forMatch: { id: number; title: string; company: string } | null }) {
   const router = useRouter();
@@ -37,8 +35,8 @@ export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ text, title, company, link, ...(forMatch ? { matchId: forMatch.id } : {}) }),
     });
-    const body = (await res.json().catch(() => ({}))) as { taskId?: number; matchId?: number; error?: string };
-    if (!res.ok || !body.taskId || !body.matchId) {
+    const body = (await res.json().catch(() => ({}))) as { requestId?: number; matchId?: number; error?: string };
+    if (!res.ok || !body.requestId || !body.matchId) {
       setError(body.error ?? "Couldn't start that. Try again shortly.");
       return;
     }
@@ -47,7 +45,7 @@ export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance
     router.refresh();
 
     abort.current = new AbortController();
-    const result = await pollTask<{ matchId: number }>(body.taskId, undefined, abort.current.signal, STILL_WAITING);
+    const result = await pollCvRequest(body.requestId, abort.current.signal);
     if (result.status === "cancelled") return;
     if (result.status !== "done") {
       setError(result.error ?? "We couldn't write this CV just now. Try again in a little while.");

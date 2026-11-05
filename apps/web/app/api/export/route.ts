@@ -10,7 +10,7 @@ export const GET = logged("GET /api/export", async () => {
   if (!auth.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const id = auth.user.id;
 
-  const [profile, preferences, facts, matches, versions, documents, summaries, payments, subscriptions, pastedJobs, cvLedger] = await Promise.all([
+  const [profile, preferences, facts, matches, versions, documents, summaries, payments, subscriptions, pastedJobs, cvLedger, cvRequests] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).single(),
     supabase.from("preferences").select("data,updated_at").eq("user_id", id).maybeSingle(),
     supabase.from("fact_library").select("data,updated_at").eq("user_id", id).maybeSingle(),
@@ -22,6 +22,7 @@ export const GET = logged("GET /api/export", async () => {
     supabase.from("subscriptions").select("*").eq("user_id", id),
     supabase.from("jobs").select("id,title,company,apply_url,raw_text,first_seen").eq("owner_id", id),
     supabase.from("cv_ledger").select("bucket,delta,reason,created_at").eq("user_id", id),
+    supabase.from("cv_requests").select("match_id,status,error,created_at,finished_at").eq("user_id", id),
   ]);
 
   const dump = {
@@ -37,6 +38,7 @@ export const GET = logged("GET /api/export", async () => {
     subscriptions: subscriptions.data,
     pasted_jobs: pastedJobs.data,
     cv_allowance_history: cvLedger.data,
+    cv_requests: cvRequests.data,
   };
 
   const files: Record<string, Uint8Array> = { "cvtailor-data.json": strToU8(JSON.stringify(dump, null, 2)) };

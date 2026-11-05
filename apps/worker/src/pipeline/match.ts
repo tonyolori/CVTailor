@@ -13,10 +13,10 @@ import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type
 import { chunks, must, type Db } from "../db";
 import { log } from "../log";
 import type { Http } from "../sources/http";
-import { BudgetExceeded, type Budget } from "./budget";
+import { BudgetExceeded, type Budget } from "@cvtailor/ai/budget";
 import { liveUrl, type JobRow } from "./enrich";
 import { checkLive } from "./live";
-import type { ActiveUser } from "./users";
+import type { ActiveUser } from "@cvtailor/ai/users";
 
 export interface MatchDeps {
   db: Db;

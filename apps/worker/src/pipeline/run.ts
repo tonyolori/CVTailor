@@ -8,7 +8,7 @@ import { AGGREGATORS } from "../sources/aggregators";
 import { atsBoards, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
 import { coverageGaps, type RegistryOptions } from "../sources/registry";
-import { Budget, today } from "./budget";
+import { Budget, today } from "@cvtailor/ai/budget";
 import { collect, type CollectResult } from "./collect";
 import { sendDueEmails } from "./deliver";
 import { runDiscovery } from "./discovery";
@@ -16,7 +16,7 @@ import { enrichPending } from "./enrich";
 import { matchUser, type MatchResult } from "./match";
 import { decideRun, sendAtFor, shouldAlert } from "./schedule";
 import { buildSummary } from "./summary";
-import { loadActiveUsers, type ActiveUser } from "./users";
+import { loadActiveUsers, type ActiveUser } from "@cvtailor/ai/users";
 
 export interface RunDeps {
   db: Db;

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CvStyle, Resume } from "@cvtailor/core";
 import { setTrackerStatus } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
-import { cancelTask, pollTask } from "@/components/TaskWait";
+import { pollCvRequest } from "@/components/CvWait";
 import type { CvAllowance } from "@/lib/entitlement";
 import { loggedFetch } from "@/lib/log";
 import { sourceLabel, STATUS_LABELS, TRACKED_DECISIONS, VIEWS } from "@/lib/views";
@@ -29,7 +29,8 @@ export interface BoardRow {
   locationQuote: string;
   instructions: string[];
   hasPosting: boolean;
-  taskId: number | null;
+  /** A CV being written for this job right now. */
+  requestId: number | null;
 }
 
 interface Detail {
@@ -38,8 +39,6 @@ interface Detail {
   posting: { text: string | null; mustHaves: string[]; source: string };
   job: { title: string; company: string; apply: string | null };
 }
-
-const WORKER_OFF = "The CV hasn't been written yet. It will appear here once it's ready, so you can come back later.";
 
 function failureText(row: BoardRow): string | null {
   if (row.tailorStatus !== "failed") return null;
@@ -50,6 +49,8 @@ function failureText(row: BoardRow): string | null {
       return "You'd reached the daily limit for writing CVs. Try again tomorrow.";
     case "not_entitled":
       return "You'd run out of CVs when this was requested. It didn't use one up.";
+    case "timed_out":
+      return "Writing this CV took too long, so we stopped. Try again, and it won't use up a CV.";
     default:
       return "A CV couldn't be written for this role. You can still apply.";
   }
@@ -131,19 +132,18 @@ export function MatchBoard(props: {
   }, [postOpen]);
 
   const follow = useCallback(
-    async (id: number, taskId: number) => {
+    async (id: number, requestId: number) => {
       if (polling.current.has(id)) return;
       polling.current.add(id);
-      const result = await pollTask<{ matchId: number }>(taskId, undefined, undefined, WORKER_OFF);
+      const result = await pollCvRequest(requestId);
       polling.current.delete(id);
-      setRows((rs) => rs.map((r) => (r.id === id ? { ...r, taskId: null } : r)));
+      setRows((rs) => rs.map((r) => (r.id === id ? { ...r, requestId: null } : r)));
       if (result.status === "done") {
         await load(id, true);
         setPostOpen(false);
         setToast("Your CV is ready");
-      } else if (result.error !== "Not found") {
-        // "Not found" means it was cancelled, which needs no message.
-        setErrors((m) => new Map(m).set(id, result.error ?? WORKER_OFF));
+      } else if (result.error) {
+        setErrors((m) => new Map(m).set(id, result.error!));
       }
       router.refresh();
     },
@@ -152,7 +152,7 @@ export function MatchBoard(props: {
 
   // Pick up anything still being written when the page opens.
   useEffect(() => {
-    for (const r of props.rows) if (r.taskId) void follow(r.id, r.taskId);
+    for (const r of props.rows) if (r.requestId) void follow(r.id, r.requestId);
   }, [props.rows, follow]);
 
   const generate = async (r: BoardRow) => {
@@ -162,13 +162,13 @@ export function MatchBoard(props: {
       return n;
     });
     const res = await loggedFetch("/api/cv-requests", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ matchId: r.id }) });
-    const body = (await res.json().catch(() => ({}))) as { taskId?: number; error?: string };
-    if (!res.ok || !body.taskId) {
+    const body = (await res.json().catch(() => ({}))) as { requestId?: number; error?: string };
+    if (!res.ok || !body.requestId) {
       setErrors((m) => new Map(m).set(r.id, body.error ?? "Couldn't start that. Try again shortly."));
       return;
     }
-    setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, taskId: body.taskId!, tailorStatus: "pending", tailorError: null } : x)));
-    void follow(r.id, body.taskId);
+    setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, requestId: body.requestId!, tailorStatus: "pending", tailorError: null } : x)));
+    void follow(r.id, body.requestId);
   };
 
   const changeStatus = async (r: BoardRow, status: string) => {
@@ -190,7 +190,7 @@ export function MatchBoard(props: {
   const genButton = (r: BoardRow) => {
     if (hasCv && r.id === selected) return null;
     if (r.tailorStatus === "rendered") return null;
-    if (r.taskId) {
+    if (r.requestId) {
       return (
         <button className="gen" type="button" disabled>
           <i className="spinner" />
@@ -215,15 +215,8 @@ export function MatchBoard(props: {
 
   const genHint = (r: BoardRow) => {
     if (r.tailorStatus === "rendered" || (hasCv && r.id === selected)) return null;
-    if (r.taskId) {
-      return (
-        <p className="hint">
-          This can take a minute or two. You can leave this page, and the CV will be here when it's ready.{" "}
-          <button className="link" type="button" onClick={() => void cancelTask(r.taskId!).then(() => router.refresh())}>
-            Cancel
-          </button>
-        </p>
-      );
+    if (r.requestId) {
+      return <p className="hint">This can take a minute or two. You can leave this page, and the CV will be here when it's ready.</p>;
     }
     if (!r.hasPosting) {
       return (
@@ -293,7 +286,7 @@ export function MatchBoard(props: {
                   {r.reason ? <p className="why">{r.reason}</p> : null}
                   {r.locationQuote ? <p className="loc">Location: {r.locationQuote}</p> : null}
                   {r.instructions.length ? <div className="notice warn">The posting asks applicants: {r.instructions.join(" ")}</div> : null}
-                  {failure && !r.taskId && !asked ? <div className="notice bad">{failure}</div> : null}
+                  {failure && !r.requestId && !asked ? <div className="notice bad">{failure}</div> : null}
                   {asked ? <div className="notice bad">{asked}</div> : null}
                   <div className="acts">
                     {r.apply ? (
@@ -362,7 +355,7 @@ export function MatchBoard(props: {
           <div className={`box ${open ? "open" : ""} ${hasCv ? "" : "nocv"}`}>
             {shownResume ? <CvSheet resume={shownResume} style={style} label={`Your CV for ${row.title}`} /> : null}
             <div className="post" ref={postRef} tabIndex={-1}>
-              {row.taskId ? (
+              {row.requestId ? (
                 <div className="genbar">
                   <i className="spinner" />
                   <span>Writing your CV from this posting. It will appear here when it's ready.</span>
@@ -398,7 +391,7 @@ export function MatchBoard(props: {
                 </a>
               ) : null}
               {sourceLabel(detail?.posting.source) ? <span className="from">Found through {sourceLabel(detail?.posting.source)}.</span> : null}
-              {!hasCv && !row.taskId ? (
+              {!hasCv && !row.requestId ? (
                 row.hasPosting ? (
                   canWrite ? (
                     <div className="postgen">

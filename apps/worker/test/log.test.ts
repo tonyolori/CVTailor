@@ -45,7 +45,7 @@ describe("errorInfo", () => {
 describe("failureLoggingFetch", () => {
   it("stays quiet on success, because the task loop polls every few seconds", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("{}")));
-    await failureLoggingFetch("https://db.example.com/rest/v1/ai_tasks");
+    await failureLoggingFetch("https://db.example.com/rest/v1/cv_requests");
     expect(lines).toEqual([]);
   });
 

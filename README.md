@@ -31,8 +31,9 @@ Each morning: `collect -> enrich -> match -> verify live -> email`. When someone
 | `packages/core` | Schemas, gates, fact verifier, pre-filter, prompts. No I/O. |
 | `packages/llm` | Provider interface: `claude-subscription`, `anthropic-api`, `deepseek`, `fake`. |
 | `packages/render` | The one CV and cover-letter PDF template. |
-| `apps/worker` | Pipeline, source adapters, scheduler. |
-| `apps/web` | Dashboard, onboarding, editor, billing. |
+| `apps/worker` | Daily pipeline, source adapters, scheduler. Finds jobs, scores them and sends emails. |
+| `apps/web` | Dashboard, onboarding, editor, billing. Writes CVs and reads uploads as people ask. |
+| `packages/ai` | AI work both apps run: the budget, CVs on request, onboarding. |
 | `supabase/` | Migrations, RLS, local seed. |
 
 ## Setup
@@ -48,7 +49,6 @@ npm run seed
 npm test && npm run test:rls && npm run test:integration
 npm run web                       # http://127.0.0.1:3000. Magic links land in Mailpit, http://127.0.0.1:54324
 npm run worker                    # one pass; add -- --loop to stay up
-npm run worker -- --loop --tasks-only   # only tasks people wait on (onboarding, CVs on request), without the daily run
 ```
 
 `test:rls` and `test:integration` wipe and rewrite local data, and refuse to run against anything but localhost. Re-run the seeds afterwards.

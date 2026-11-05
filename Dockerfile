@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/worker/package.json apps/worker/
 COPY apps/web/package.json apps/web/
+COPY packages/ai/package.json packages/ai/
 COPY packages/core/package.json packages/core/
 COPY packages/llm/package.json packages/llm/
 COPY packages/render/package.json packages/render/

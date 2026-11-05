@@ -4,8 +4,8 @@ import { FakeProvider, type LlmRequest } from "@cvtailor/llm";
 import { loadConfig } from "../src/config";
 import { serviceClient } from "../src/db";
 import type { EmailSender, OutgoingEmail } from "../src/email/send";
-import { processAiTasks } from "../src/pipeline/ai-tasks";
-import { Budget } from "../src/pipeline/budget";
+import { Budget } from "@cvtailor/ai/budget";
+import { openCvRequest, writeRequestedCv } from "@cvtailor/ai/cv-request";
 import { runDaily, tick, type RunDeps } from "../src/pipeline/run";
 import { storeJobs } from "../src/pipeline/collect";
 import { upsertUser } from "../src/seed/users";
@@ -144,7 +144,7 @@ beforeAll(async () => {
   await db.from("daily_runs").delete().not("run_date", "is", null);
   await db.from("daily_summaries").delete().not("run_date", "is", null);
   await db.from("match_scores").delete().not("job_id", "is", null);
-  for (const table of ["documents", "resume_versions", "matches", "runs", "ai_tasks"]) {
+  for (const table of ["cv_requests", "documents", "resume_versions", "matches", "runs"]) {
     await db.from(table).delete().not("id", "is", null);
   }
   await db.from("jobs").delete().not("id", "is", null);
@@ -260,25 +260,22 @@ describe("a full morning run", () => {
   });
 });
 
-/** What the web route does when someone clicks: billing is off here, so no CV is taken. */
-async function askForCvs(key: string): Promise<void> {
-  const id = ids.get(key)!;
-  for (const r of (await matchesFor(key)).filter((m) => m.decision === "picked")) {
-    await db.from("matches").update({ tailor_status: "pending" }).eq("id", r.id);
-    await db.from("ai_tasks").insert({ user_id: id, kind: "tailor_match", input: {}, match_id: r.id, cv_bucket: "none" });
-  }
-}
-
-async function runTasks(): Promise<void> {
+/** What the web app does when someone clicks: billing is off here, so no CV is taken. */
+async function askForCv(userId: string, matchId: number): Promise<void> {
+  const opened = await openCvRequest(db, userId, { matchId }, { billingEnforced: false, cvRequestsPerDay: 100 });
+  if (!opened.ok) throw new Error(`refused: ${opened.error}`);
   const budget = new Budget(db, "fake", { globalUsd: 50, userUsd: 10 }, RUN_DATE);
   await budget.load();
-  while ((await processAiTasks(db, provider, budget, "owner-not-used@example.com")) > 0);
+  await writeRequestedCv({ db, provider, budget }, { id: opened.requestId, userId, matchId });
+}
+
+async function askForCvs(key: string): Promise<void> {
+  for (const r of (await matchesFor(key)).filter((m) => m.decision === "picked")) await askForCv(ids.get(key)!, r.id);
 }
 
 describe("CVs when someone asks", () => {
   beforeAll(async () => {
     for (const p of PERSONAS) await askForCvs(p.key);
-    await runTasks();
   });
 
   it("writes a CV for every persona's picks", async () => {
@@ -343,8 +340,7 @@ describe("resuming", () => {
     await db.from("matches").update({ tailor_status: "drafted" }).eq("user_id", id).eq("decision", "picked");
     const before = provider.requests.length;
     const row = byType(await matchesFor("remote-accountant"), "accountant-pass")!;
-    await db.from("ai_tasks").insert({ user_id: id, kind: "tailor_match", input: {}, match_id: row.id, cv_bucket: "none" });
-    await runTasks();
+    await askForCv(id, row.id);
     expect(provider.requests.length).toBe(before);
     const { data } = await db.from("documents").select("kind").eq("user_id", id);
     expect(data!.map((d) => d.kind)).toEqual(["resume_pdf"]);
@@ -438,19 +434,6 @@ describe("subscription mode only serves the owner and synthetic personas", () =>
     expect(versions).toEqual([]);
     const { data: summary } = await db.from("daily_summaries").select("data").eq("user_id", realUser).eq("run_date", "2026-11-06").single();
     expect((summary!.data as { notes: string[] }).notes.join(" ")).toContain("need an API key");
-  });
-
-  it("onboarding AI tasks are skipped for them too, and the CV text is erased", async () => {
-    const p = subscription();
-    const budget = new Budget(db, "claude-subscription", { globalUsd: 50, userUsd: 10 }, "2026-11-06");
-    await budget.load();
-    const { data: task } = await db.from("ai_tasks").insert({ user_id: realUser, kind: "extract_facts", input: { cvText: "PRIVATE CV TEXT" } }).select("id").single();
-    await processAiTasks(db, p as never, budget, "tony@example.com");
-    expect(p.requests).toEqual([]);
-    const { data } = await db.from("ai_tasks").select("status,input,error").eq("id", task!.id).single();
-    expect(data!.status).toBe("skipped");
-    expect(data!.input).toEqual({});
-    expect(data!.error).toContain("API key");
   });
 
   it("the API provider serves the same user", async () => {

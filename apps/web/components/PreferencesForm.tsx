@@ -5,7 +5,6 @@ import { regionsOfCountry, Region, type Preferences, type PreferencesInput, type
 import type { TitleSuggestions } from "@cvtailor/core/prompts";
 import type { CountryOption } from "@/lib/countries";
 import { savePreferences } from "@/app/actions";
-import { cancelTask, pollTask } from "./TaskWait";
 import { errorFields, log, loggedFetch } from "@/lib/log";
 
 const commas = (s: string) => s.split(",").map((l) => l.trim()).filter(Boolean);
@@ -101,19 +100,10 @@ export function PreferencesForm({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ targetTitles: commas(titles) }),
       });
-      const body = (await res.json()) as { error?: string; suggestions?: TitleSuggestions; taskId?: number };
+      const body = (await res.json().catch(() => ({}))) as { error?: string; suggestions?: TitleSuggestions };
       if (body.error) throw new Error(body.error);
-      let s = body.suggestions;
-      if (!s && body.taskId) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 90_000);
-        const done = await pollTask<TitleSuggestions>(body.taskId, undefined, controller.signal).catch(() => ({ status: "cancelled" as const }));
-        clearTimeout(timer);
-        if (done.status === "cancelled") void cancelTask(body.taskId);
-        if (done.status === "done" && "output" in done) s = done.output;
-        else if (done.status !== "cancelled" && "error" in done && done.error) throw new Error(done.error);
-      }
-      if (!s) throw new Error("Suggestions aren't available right now, because the background worker may be off. You can type your own.");
+      const s = body.suggestions;
+      if (!s) throw new Error("Suggestions aren't available right now. You can type your own.");
       const valid = new Set(categories.map((c) => c.id));
       set({
         expansionTitles: { a: s.a, b: s.b, c: s.c },

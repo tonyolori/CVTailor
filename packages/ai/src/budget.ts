@@ -1,5 +1,5 @@
 import type { LlmUsage } from "@cvtailor/llm";
-import { must, type Db } from "../db";
+import { must, type Db } from "./db";
 
 export class BudgetExceeded extends Error {
   constructor(readonly scope: "global" | "user" | "kill_switch") {

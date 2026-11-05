@@ -78,7 +78,7 @@ beforeAll(async () => {
     storage_path: `${b.id}/x.pdf`,
     version_id: versionB,
   });
-  await admin.from("ai_tasks").insert({ user_id: b.id, kind: "extract_facts", input: {} });
+  await admin.from("cv_requests").insert({ user_id: b.id, match_id: matchB, cv_bucket: "none" });
   await admin.storage.from("documents").upload(`${b.id}/x.pdf`, new Blob(["pdf"]), { upsert: true });
 });
 
@@ -109,7 +109,7 @@ describe("one user cannot read another user's rows", () => {
     documents: "user_id",
     runs: "user_id",
     daily_summaries: "user_id",
-    ai_tasks: "user_id",
+    cv_requests: "user_id",
     subscriptions: "user_id",
     payments: "user_id",
   };
@@ -234,18 +234,10 @@ describe("shared and internal tables", () => {
     expect((await a.client.from("categories").insert({ id: "x", label: "x" })).error).not.toBeNull();
   });
 
-  it("a user can queue an AI task for themselves but not mark it done or impersonate", async () => {
-    const own = await a.client.from("ai_tasks").insert({ user_id: a.id, kind: "suggest_titles", input: {} });
-    expect(own.error).toBeNull();
-    const forged = await a.client.from("ai_tasks").insert({ user_id: a.id, kind: "suggest_titles", input: {}, status: "done" });
-    expect(forged.error).not.toBeNull();
-    const other = await a.client.from("ai_tasks").insert({ user_id: b.id, kind: "suggest_titles", input: {} });
-    expect(other.error).not.toBeNull();
-  });
-
-  it("a user cannot claim from the AI queue", async () => {
-    const { error } = await a.client.rpc("claim_ai_task");
-    expect(error).not.toBeNull();
+  it("a user can't record a CV request, or end or expire one, themselves", async () => {
+    expect((await a.client.from("cv_requests").insert({ user_id: a.id, match_id: matchB, cv_bucket: "none" })).error).not.toBeNull();
+    expect((await a.client.rpc("finish_cv_request", { request_id: 1, ok: true })).error).not.toBeNull();
+    expect((await a.client.rpc("expire_cv_requests", {})).error).not.toBeNull();
   });
 });
 

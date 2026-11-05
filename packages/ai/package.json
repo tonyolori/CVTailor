@@ -1,0 +1,30 @@
+{
+  "name": "@cvtailor/ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI work against the database, shared by the web app and the worker: the budget, users, posting reads, CVs on request and onboarding.",
+  "exports": {
+    "./budget": "./src/budget.ts",
+    "./db": "./src/db.ts",
+    "./users": "./src/users.ts",
+    "./enrich": "./src/enrich.ts",
+    "./tailor": "./src/tailor.ts",
+    "./cv-request": "./src/cv-request.ts",
+    "./onboarding": "./src/onboarding.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cvtailor/core": "*",
+    "@cvtailor/llm": "*",
+    "@cvtailor/render": "*",
+    "@supabase/supabase-js": "^2.118.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}
