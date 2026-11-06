@@ -81,7 +81,7 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 - [ ] Vercel runs only the web app. The worker has to run somewhere that stays on, as below.
 
 ### Worker on your PC
-- [ ] Follow `docs/SCHEDULING.md` for Windows Task Scheduler or systemd.
+- [ ] Follow `docs/SCHEDULING.md` to keep it running on your Mac.
 
 ## Level 5: paid plans
 

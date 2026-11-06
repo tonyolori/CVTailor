@@ -8,72 +8,51 @@ The worker finds jobs, scores them for each person and sends their emails. CVs a
 
 Times are controlled by `RUN_START_HOUR_UTC` (default 1, which is 2am in Lagos) and `RUN_ALERT_HOUR_UTC` (default 6).
 
-## Windows Task Scheduler
+## Keep it running on macOS
 
-Create a task that starts the loop at logon and restarts it if it stops:
+A LaunchAgent starts the loop when you log in and restarts it if it stops. Run these from the repo root.
 
-```powershell
-$action = New-ScheduledTaskAction -Execute "cmd.exe" `
-  -Argument '/c cd /d C:\path\to\JobTailor && npm run worker -- --loop >> .local\worker.log 2>&1'
-$triggers = @(New-ScheduledTaskTrigger -AtLogOn)
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
-  -StartWhenAvailable -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 5) `
-  -ExecutionTimeLimit ([TimeSpan]::Zero)
-Register-ScheduledTask -TaskName "CV Tailor worker" -Action $action -Trigger $triggers -Settings $settings
-```
-
-`-StartWhenAvailable` is the part that catches up after the PC was off overnight. In subscription mode, run this as the same Windows user who ran `npm run claude:login`, since the login is stored per user.
-
-## Linux: systemd
-
-`~/.config/systemd/user/cvtailor.service`:
-
-```ini
-[Unit]
-Description=CV Tailor worker
-After=network-online.target
-
-[Service]
-WorkingDirectory=%h/JobTailor
-ExecStart=/usr/bin/npm run worker -- --loop
-Restart=always
-RestartSec=60
-
-[Install]
-WantedBy=default.target
-```
+**Set it up** (once):
 
 ```bash
-systemctl --user enable --now cvtailor
-loginctl enable-linger "$USER"   # keeps it running while you're logged out
-journalctl --user -u cvtailor -f
+mkdir -p .local ~/Library/LaunchAgents
+cat > ~/Library/LaunchAgents/com.cvtailor.worker.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.cvtailor.worker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string><string>-lc</string><string>cd "$PWD" &amp;&amp; npm run worker -- --loop</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>$PWD/.local/worker.log</string>
+  <key>StandardErrorPath</key><string>$PWD/.local/worker.log</string>
+</dict>
+</plist>
+EOF
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.cvtailor.worker.plist
 ```
 
-If you'd rather not keep a process up, a timer works too, at the cost of emails going out up to one interval late:
+`$PWD` is filled in with the repo's path when you run this, so run it from the repo root. `zsh -lc` loads your shell profile, which gives the worker the same `npm` and `node` you use in Terminal.
 
-```ini
-# ~/.config/systemd/user/cvtailor.timer, with Type=oneshot and no --loop in the service
-[Timer]
-OnBootSec=2min
-OnUnitActiveSec=15min
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-```
-
-## macOS
-
-`launchd` works the same way: a `LaunchAgent` with `RunAtLoad` and `KeepAlive` set to true, running `npm run worker -- --loop` in the repo.
-
-## Docker
+**Day to day:**
 
 ```bash
-docker compose up -d worker
+tail -f .local/worker.log                                          # watch it
+launchctl print gui/$(id -u)/com.cvtailor.worker | grep -E "state|pid"   # is it running?
+launchctl kickstart -k gui/$(id -u)/com.cvtailor.worker            # restart, e.g. after pulling new code
+launchctl bootout gui/$(id -u)/com.cvtailor.worker                 # stop until next login
 ```
 
-Docker needs `LLM_PROVIDER=anthropic-api` or `deepseek` in `.env`. Subscription mode relies on a Claude login on the host, so it isn't meant for a container.
+To stop it for good, run the `bootout` line, then `rm ~/Library/LaunchAgents/com.cvtailor.worker.plist`.
 
-## When the PC is off
+In subscription mode the worker uses the Claude login of the macOS user who ran `npm run claude:login`, so set the agent up as that same user.
+
+## When the Mac is off or asleep
+
+The worker can't run while the Mac sleeps. When it wakes, the next pass catches up on a missed run. To get runs at 2am, keep the Mac plugged in and stop it sleeping on its own.
 
 Everything people do themselves keeps working, because none of it touches the worker: signing up, onboarding, writing CVs, editing and downloads. Only new matches and the morning emails wait for it. A worker can't alert anyone while it's down, so the web app has its own daily check at `/api/cron/run-check`, called by Vercel Cron, which emails `OWNER_EMAIL` if no run has finished by 06:00 UTC.
