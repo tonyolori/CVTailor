@@ -1,4 +1,4 @@
-import { inviteEmail, signInLinkEmail, welcomeEmail } from "@cvtailor/core/email";
+import { inviteEmail, signInLinkEmail, signUpLinkEmail, welcomeEmail } from "@cvtailor/core/email";
 import { log } from "../log";
 import { mailpitSender } from "./send";
 import { DailySummarySchema, emailSubject, renderEmailHtml, renderEmailText } from "./template";
@@ -61,10 +61,15 @@ async function main(): Promise<void> {
   await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`tag:${TAG}`)}`, { method: "DELETE" });
 
   const sender = mailpitSender(MAILPIT, fetch, [TAG]);
-  const signIn = signInLinkEmail();
+  const filled = ({ subject, html }: { subject: string; html: string }) => ({
+    subject,
+    html: html.replaceAll("{{ .ConfirmationURL }}", `${SITE}/login`).replaceAll("{{ .SiteURL }}", SITE),
+    text: "",
+  });
   const links = { dashboardUrl: `${SITE}/dashboard`, unsubscribeUrl: `${SITE}/api/unsubscribe?token=preview` };
   const emails = [
-    { subject: signIn.subject, html: signIn.html.replaceAll("{{ .ConfirmationURL }}", `${SITE}/login`).replaceAll("{{ .SiteURL }}", SITE), text: "" },
+    filled(signInLinkEmail()),
+    filled(signUpLinkEmail()),
     inviteEmail({ signInUrl: `${SITE}/login`, homeUrl: `${SITE}/` }),
     welcomeEmail({ setupUrl: `${SITE}/onboarding`, homeUrl: `${SITE}/`, privacyUrl: `${SITE}/privacy`, freeCvs: 3, canReply: true }),
     { subject: emailSubject(digest), html: renderEmailHtml(digest, links), text: renderEmailText(digest, links) },

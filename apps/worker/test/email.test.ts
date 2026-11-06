@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import { signInLinkEmail } from "@cvtailor/core/email";
-import { AUTH_TEMPLATES, authTemplatePath } from "../src/email/auth-templates";
+import { AUTH_TEMPLATES, authTemplatePath, type AuthTemplate } from "../src/email/auth-templates";
 import { DailySummarySchema, e, emailSubject, renderEmailHtml, renderEmailText, safeUrl } from "../src/email/template";
 import { mailpitSender, parseAddress, resendSender } from "../src/email/send";
 import { decideRun, sendAtFor, shouldAlert, STALE_RUN_MS, zonedTimeToUtc } from "../src/pipeline/schedule";
@@ -204,8 +203,7 @@ describe("log", () => {
 
 describe("Supabase sign-in templates", () => {
   it("match the shared design. Run npm run email:auth-templates if this fails", () => {
-    const { html } = signInLinkEmail();
-    for (const name of AUTH_TEMPLATES) expect(readFileSync(authTemplatePath(name), "utf8")).toBe(`${html}\n`);
+    for (const [name, render] of Object.entries(AUTH_TEMPLATES)) expect(readFileSync(authTemplatePath(name as AuthTemplate), "utf8")).toBe(`${render().html}\n`);
   });
 });
 

@@ -158,6 +158,24 @@ function steps(): string {
   return `<table class="c-sky2" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.sky2};border-radius:12px;border-collapse:separate;"><tr><td style="padding:24px 24px 24px 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows.join("")}</table></td></tr></table>`;
 }
 
+const GOOD_TO_KNOW: [string, string][] = [
+  ["Your CVs only say what's true.", "Every CV is built from your library and checked against it before you see it. If something in it can't be traced back to what you told us, it isn't sent."],
+  ["The more you add, the better they get.", "A detailed library, with numbers, tools and results, gives every CV more to work with. You can add to it whenever you like."],
+  ["You're in control.", "Change what you're looking for, choose when the daily email arrives, or pause it from your settings. You can export or delete everything at any time."],
+];
+
+function goodToKnow(): string {
+  return GOOD_TO_KNOW.map(
+    ([lead, body], i) =>
+      `<p class="c-ink" style="margin:${i === 0 ? 0 : 16}px 0 0;font-family:${SANS};font-size:15px;line-height:1.6;color:${C.ink};"><strong style="font-weight:600;">${e(lead)}</strong> <span class="c-soft" style="color:${C.soft};">${e(body)}</span></p>`,
+  ).join("");
+}
+
+const WELCOME_INTRO = [
+  "Thanks for joining. Looking for work usually means reading posting after posting, then rewriting the same CV for each one. CV Tailor takes on that part, so your time goes on the roles worth applying for.",
+  "Every day it looks for roles that fit you. When one does, it can write a CV for that job from your own experience. Here's how it works.",
+];
+
 export function welcomeEmail(w: WelcomeEmail): { subject: string; html: string; text: string } {
   const subject = "Welcome to CV Tailor";
   const free = w.freeCvs > 0 ? `Your first ${w.freeCvs === 1 ? "CV is" : `${w.freeCvs} CVs are`} free.` : "";
@@ -168,24 +186,31 @@ export function welcomeEmail(w: WelcomeEmail): { subject: string; html: string; 
     rows: [
       row(masthead(w.homeUrl), "32px 40px 0"),
       row(headline("Welcome. Let's find you the right jobs."), "40px 40px 0"),
-      row(para("Every day, CV Tailor looks for roles that fit you. When one does, it writes a CV for that job from your own experience. Here's how it works.", { size: 16 })),
+      row(para(e(WELCOME_INTRO[0]!), { size: 16 }) + para(e(WELCOME_INTRO[1]!), { size: 16 })),
       row(steps(), "28px 40px 0"),
       row(`${button(w.setupUrl, "Finish setting up")}${free ? para(e(free), { soft: true, size: 14, top: 14 }) : ""}`, "32px 40px 0"),
-      row(`<div class="c-line" style="border-top:1px solid ${C.line};"></div>${para(e(beta), { soft: true, size: 14, top: 22 })}`, "36px 40px 0"),
+      row(`<div class="c-line" style="border-top:1px solid ${C.line};"></div>`, "40px 40px 0"),
+      row(headline("A few things worth knowing", 26), "32px 40px 0"),
+      row(goodToKnow(), "18px 40px 0"),
+      row(para(e(beta), { soft: true, size: 14, top: 0 }) + para("Glad you're here.", { top: 18 }), "32px 40px 0"),
     ],
     footer: `You're getting this because you joined CV Tailor. ${link(w.privacyUrl, "How we handle your data", `color:${C.soft};`)}`,
   });
   const text = [
     "Welcome. Let's find you the right jobs.",
     "",
-    "Every day, CV Tailor looks for roles that fit you. When one does, it writes a CV for that job from your own experience. Here's how it works.",
-    "",
+    ...WELCOME_INTRO.flatMap((p) => [p, ""]),
     ...STEPS.flatMap(([title, body], i) => [`${i + 1}. ${title}`, `   ${body}`]),
     "",
     `Finish setting up: ${w.setupUrl}`,
     ...(free ? [free] : []),
     "",
+    "A few things worth knowing",
+    "",
+    ...GOOD_TO_KNOW.flatMap(([lead, body]) => [`${lead} ${body}`, ""]),
     beta,
+    "",
+    "Glad you're here.",
     "",
     `How we handle your data: ${w.privacyUrl}`,
   ].join("\n");
@@ -227,27 +252,55 @@ export function inviteEmail(i: InviteEmail): { subject: string; html: string; te
   return { subject, html, text };
 }
 
-/** Supabase fills these in when it sends the sign-in email. */
-const SUPABASE_TAGS = { "https://link.invalid/confirmation": "{{ .ConfirmationURL }}", "https://site.invalid/": "{{ .SiteURL }}" };
+/** Supabase fills these in when it sends a sign-in email. */
+const LINK_STANDIN = "https://link.invalid/confirmation";
+const SITE_STANDIN = "https://site.invalid/";
+const SUPABASE_TAGS = { [LINK_STANDIN]: "{{ .ConfirmationURL }}", [SITE_STANDIN]: "{{ .SiteURL }}" };
+
+/** safeUrl would refuse a template tag, so stand-ins go through and are swapped back here. */
+function withSupabaseTags(html: string): string {
+  return Object.entries(SUPABASE_TAGS).reduce((h, [standIn, tag]) => h.replaceAll(standIn, tag), html);
+}
 
 /**
- * The sign-in link email, for Supabase's hosted templates. One design serves new and returning
- * people, since both just click to sign in.
+ * The first email a new person gets from Supabase, to confirm their address. It's their first
+ * sight of CV Tailor, so it opens on a sky band like the daily email, and says what comes next.
  */
+export function signUpLinkEmail(): { subject: string; html: string } {
+  const subject = "Confirm your email to join CV Tailor";
+  const html = emailDocument({
+    title: subject,
+    preheader: "One click and you're in.",
+    rows: [
+      `<tr><td class="c-sky c-pad" style="background:${C.sky};padding:32px 40px 34px;border-radius:15px 15px 0 0;">${masthead(SITE_STANDIN, true)}<div style="height:44px;line-height:44px;font-size:0;">&nbsp;</div>${headline("Welcome to CV Tailor.")}${para("You're one click from your account.", { size: 17, top: 12 })}</td></tr>`,
+      row(para("Confirm that this is your email address and you'll be signed straight in. There's no password: whenever you want to come back, we'll email you a link like this one.", { top: 0 }), "32px 40px 0"),
+      row(button(LINK_STANDIN, "Confirm and sign in"), "26px 40px 0"),
+      row(
+        `<table class="c-sky2" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.sky2};border-radius:12px;border-collapse:separate;"><tr><td style="padding:20px 22px;"><div class="c-ink" style="font-family:${SERIF};font-size:22px;line-height:1.2;color:${C.ink};">What happens next</div>${para("Setting up takes two short steps: add your experience, then say what you're looking for. From then on, the roles that fit you arrive by email every day, and you can ask for a CV written for any of them.", { soft: true, size: 14, top: 8 })}</td></tr></table>`,
+        "34px 40px 0",
+      ),
+      row(para("If you didn't sign up for CV Tailor, you can ignore this email.", { soft: true, size: 13.5, top: 0 }), "28px 40px 0"),
+    ],
+    footer: "You're getting this because this address was used to join CV Tailor.",
+  });
+  return { subject, html: withSupabaseTags(html) };
+}
+
+/** What someone who already has an account gets when they sign in. Short, because they know the way. */
 export function signInLinkEmail(): { subject: string; html: string } {
   const subject = "Your CV Tailor sign-in link";
-  // safeUrl would refuse a template tag, so stand-ins go through and are swapped back at the end.
   const html = emailDocument({
     title: subject,
     preheader: "Click to sign in. The link works once.",
+    width: 480,
     rows: [
-      row(masthead("https://site.invalid/"), "32px 40px 0"),
-      row(headline("Here's your sign-in link.", 36), "40px 40px 0"),
-      row(para("Click below to sign in to CV Tailor. The link works once, and only for a short while.", { size: 16 })),
-      row(button("https://link.invalid/confirmation", "Sign in"), "28px 40px 0"),
-      row(para("If you didn't ask to sign in, you can ignore this email. Nobody can sign in without this link.", { soft: true, size: 14, top: 0 }), "32px 40px 0"),
+      row(masthead(SITE_STANDIN), "28px 36px 0"),
+      row(headline("Welcome back.", 32), "32px 36px 0"),
+      row(para("Here's your link to sign in. It works once, and only for a short while.", { top: 10 }), "0 36px 0"),
+      row(button(LINK_STANDIN, "Sign in"), "24px 36px 0"),
+      row(para("If you didn't ask to sign in, you can ignore this email. Nobody can sign in without this link.", { soft: true, size: 13.5, top: 0 }), "28px 36px 0"),
     ],
     footer: "You're getting this because someone asked to sign in to CV Tailor with this address.",
   });
-  return { subject, html: Object.entries(SUPABASE_TAGS).reduce((h, [standIn, tag]) => h.replaceAll(standIn, tag), html) };
+  return { subject, html: withSupabaseTags(html) };
 }

@@ -67,7 +67,7 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 - [ ] Create a Resend account, add the domain, and add the DNS records it shows (SPF, DKIM, and ideally DMARC).
 - [ ] Put the key in `EMAIL_API_KEY` and set `EMAIL_FROM` to an address on that domain.
 - [ ] Point Supabase Auth's SMTP at Resend (Dashboard > Authentication > SMTP), or magic links are limited by Supabase's built-in sender.
-- [ ] Give the sign-in emails the CV Tailor design. In Dashboard > Authentication > Emails, open **Magic link** and then **Confirm signup**. For each one, set the subject to `Your CV Tailor sign-in link` and replace the body with `supabase/templates/magic_link.html` (both use the same file). After changing the design, run `npm run email:auth-templates` and paste it in again.
+- [ ] Give the sign-in emails the CV Tailor design, in Dashboard > Authentication > Emails. **Confirm signup** is the first email a new person gets: set its subject to `Confirm your email to join CV Tailor` and its body to `supabase/templates/confirmation.html`. **Magic link** is every sign-in after that: subject `Your CV Tailor sign-in link`, body `supabase/templates/magic_link.html`. After changing the design, run `npm run email:auth-templates` and paste them in again.
 
 ### Web host (Vercel or Cloudflare Pages)
 - [ ] Create a project with `apps/web` as its root and add the env vars listed in `.env.example` under "Web app".
