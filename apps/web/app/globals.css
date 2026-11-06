@@ -322,30 +322,18 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .lp .fan .sheet:nth-child(2) { right: 10vw; --r: -2.5deg; bottom: 6vh; animation-delay: 0.35s; }
 .lp .fan .sheet:nth-child(3) { right: 0; --r: 5deg; bottom: 10vh; animation-delay: 0.45s; }
 @keyframes lpfan { from { transform: translateY(70vh) rotate(0deg); } to { transform: rotate(var(--r)); } }
-.lp .fan .cvi { font-size: 2.2cqw; padding-block: 6%; }
-.lp .story { background: var(--bg, #dfebff); transition: background 0.8s; padding: 14vh 4vw 16vh; }
-.lp .say { font-size: 17px; color: var(--soft); max-width: 30em; margin-bottom: 7vh; }
-.lp .story-g { display: grid; grid-template-columns: minmax(0, 1fr) calc(84vh / 1.414); gap: 6vw; align-items: start; }
-.lp .jp { max-width: 38em; }
-.lp .sp + .sp { margin-top: 26vh; }
-.lp .emp { font-size: 18px; font-weight: 600; }
-.lp .jp h2 { font-size: clamp(52px, 6.4vw, 108px); line-height: 0.94; letter-spacing: -0.018em; margin-top: 8px; text-wrap: balance; }
-.lp .jp dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, max-content)); gap: 14px 40px; margin: 28px 0 0; padding: 18px 0; border-block: 1px solid #c9d6f3; }
-.lp .jp dt { font-size: 13px; color: var(--soft); }
-.lp .jp dd { margin: 2px 0 0; font-size: 16px; font-weight: 500; }
-.lp .jp h3 { font: 400 30px/1.1 var(--f-serif), Georgia, serif; margin-top: 40px; margin-bottom: 12px; }
-.lp .jp p, .lp .jp li { font-size: 17px; line-height: 1.62; }
-.lp .jp p + p { margin-top: 12px; }
-.lp .jp ul { list-style: disc; padding-left: 1.15em; }
-.lp .jp li + li { margin-top: 6px; }
-.lp .jp li::marker { color: var(--blue); }
-.lp .fit { margin-top: 44px; padding: 18px 22px; background: #fff; border-left: 3px solid var(--blue); }
-.lp .fit b { font-size: 14px; font-weight: 600; }
-.lp .fit p { margin-top: 4px; color: var(--soft); }
-.lp .story-cv { position: sticky; top: 8vh; }
-.lp .story-cv .sheet, .lp .cv-inline .sheet { --w: calc(84vh / 1.414); min-height: 0; aspect-ratio: 1 / 1.414; overflow: hidden; transform: rotate(1deg); }
-.lp .story-cv .cvi, .lp .cv-inline .cvi { font-size: 2.2cqw; padding-block: 6%; }
-.lp .cv-inline { display: none; }
+.lp .pin { height: 340vh; }
+.lp .stick { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--bg, #dfebff); transition: background 0.8s; display: grid; grid-template-columns: minmax(0, 1fr) calc(88vh / 1.414); gap: 4vw; padding: 6vh 6vw 6vh 4vw; align-items: center; }
+.lp .stick .sheet { --w: calc(88vh / 1.414); min-height: 0; aspect-ratio: 1 / 1.414; overflow: hidden; transform: rotate(1deg); }
+.lp .stick .cvi, .lp .fan .cvi { font-size: 2.2cqw; padding-block: 6%; }
+.lp .say { font-size: 17px; color: var(--soft); margin-bottom: 3vh; max-width: 30em; }
+.lp .jt { font-size: clamp(56px, 7.2vw, 120px); line-height: 0.94; letter-spacing: -0.018em; min-height: 2.82em; }
+.lp .co { font-size: 19px; margin-top: 16px; font-weight: 500; }
+.lp .wy { font-size: 18px; color: var(--soft); max-width: 31em; margin-top: 10px; min-height: 4.5em; }
+.lp .ticks { display: flex; gap: 6px; margin-top: 20px; max-width: 280px; }
+.lp .ticks i { flex: 1; height: 4px; border-radius: 9px; background: rgba(21, 70, 224, 0.2); transition: background 0.4s; }
+.lp .ticks i.d { background: var(--blue); }
+.lp .eg { font-size: 13px; color: var(--soft); margin-top: 16px; }
 .lp .truth { padding: 16vh 4vw 12vh; background: #fff; }
 .lp .truth h2, .lp .end h2 { text-wrap: balance; }
 .lp .truth h2 { font-size: 8.5vw; line-height: 0.93; letter-spacing: -0.02em; max-width: 12em; }
@@ -404,16 +392,10 @@ details.sec[open] > summary { margin-bottom: 10px; }
   .wlf { padding: 20px; }
   .lp h1 { font-size: 17vw; }
   .lp .fan { display: none; }
-  .lp .story { padding: 64px 16px 72px; }
-  .lp .say { margin-bottom: 32px; }
-  .lp .story-g { grid-template-columns: minmax(0, 1fr); }
-  .lp .sp + .sp { margin-top: 96px; }
-  .lp .jp h2 { font-size: 46px; }
-  .lp .jp h3 { font-size: 26px; margin-top: 32px; }
-  .lp .jp p, .lp .jp li { font-size: 16px; }
-  .lp .story-cv { display: none; }
-  .lp .cv-inline { display: block; margin-top: 40px; }
-  .lp .cv-inline .sheet { --w: min(calc(100vw - 32px), 520px); transform: none; }
+  .lp .stick { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 12px; padding: 12px 16px; }
+  .lp .stick .sheet { --w: min(82vw, 44vh); justify-self: center; }
+  .lp .jt { font-size: 40px; min-height: 0; }
+  .lp .say, .lp .wy { font-size: 14px; min-height: 0; margin-bottom: 0; }
   .lp .truth h2 { font-size: 14vw; }
   .lp .end h2 { font-size: 15vw; }
   .lp .steps li { grid-template-columns: 40px minmax(0, 1fr); }

@@ -6,17 +6,20 @@ import type { LandingJob } from "@/lib/landing-examples";
 
 const TINTS = ["#dfebff", "#ccddff", "#b8d0ff"];
 
-/** Three postings to scroll past, beside one CV that rewrites itself for whichever you're reading. */
+/** Stays on screen while you scroll, and rewrites the same person's CV for each job. */
 export function LandingStory({ jobs }: { jobs: LandingJob[] }) {
   const [step, setStep] = useState(0);
-  const posts = useRef<(HTMLDivElement | null)[]>([]);
+  const pin = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let queued = false;
     const update = () => {
       queued = false;
-      const reached = posts.current.filter((el) => el && el.getBoundingClientRect().top < innerHeight * 0.5).length;
-      setStep(Math.max(0, reached - 1));
+      const el = pin.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, -r.top / (r.height - innerHeight)));
+      setStep(Math.min(jobs.length - 1, Math.floor(progress * jobs.length)));
     };
     const onScroll = () => {
       if (queued) return;
@@ -30,69 +33,25 @@ export function LandingStory({ jobs }: { jobs: LandingJob[] }) {
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [jobs.length]);
 
   const job = jobs[step]!;
   return (
-    <section className="story" style={{ "--bg": TINTS[step] } as React.CSSProperties}>
-      <p className="say">Same person, same facts. Keep scrolling and watch the CV change for each job.</p>
-      <div className="story-g">
+    <section className="pin" ref={pin}>
+      <div className="stick" style={{ "--bg": TINTS[step] } as React.CSSProperties}>
         <div>
-          {jobs.map((j, i) => (
-            <div
-              className="sp"
-              key={j.title}
-              ref={(el) => {
-                posts.current[i] = el;
-              }}
-            >
-              <article className="jp">
-                <p className="emp">{j.posting.employer}</p>
-                <h2 className="disp">{j.title}</h2>
-                <dl>
-                  <div>
-                    <dt>Location</dt>
-                    <dd>{j.posting.location}</dd>
-                  </div>
-                  <div>
-                    <dt>How you'd work</dt>
-                    <dd>{j.posting.workMode}</dd>
-                  </div>
-                  <div>
-                    <dt>Pay</dt>
-                    <dd>{j.posting.pay}</dd>
-                  </div>
-                </dl>
-                <h3>About the role</h3>
-                {j.posting.about.map((p) => (
-                  <p key={p}>{p}</p>
-                ))}
-                <h3>What you'll do</h3>
-                <ul>
-                  {j.posting.doing.map((d) => (
-                    <li key={d}>{d}</li>
-                  ))}
-                </ul>
-                <h3>What you'll need</h3>
-                <ul>
-                  {j.posting.needs.map((n) => (
-                    <li key={n}>{n}</li>
-                  ))}
-                </ul>
-                <div className="fit">
-                  <b>Why it's in their matches</b>
-                  <p>{j.why}</p>
-                </div>
-              </article>
-              <div className="cv-inline">
-                <CvSheet resume={j.resume} style="fitted" label={`Example CV written for ${j.title}`} />
-              </div>
-            </div>
-          ))}
+          <p className="say">Same person, same facts. Keep scrolling and watch the CV change for each job.</p>
+          <h2 className="disp jt">{job.title}</h2>
+          <p className="co">{job.company}</p>
+          <p className="wy">{job.why}</p>
+          <div className="ticks" aria-hidden="true">
+            {jobs.map((j, i) => (
+              <i key={j.title} className={i <= step ? "d" : ""} />
+            ))}
+          </div>
+          <p className="eg">An invented example.</p>
         </div>
-        <div className="story-cv">
-          <CvSheet resume={job.resume} style="fitted" label={`Example CV written for ${job.title}`} />
-        </div>
+        <CvSheet resume={job.resume} style="fitted" label={`Example CV written for ${job.title}`} />
       </div>
     </section>
   );

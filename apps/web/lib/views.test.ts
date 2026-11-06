@@ -56,15 +56,4 @@ describe("landing examples", () => {
   it("come from different occupations", () => {
     expect(new Set(people.map((jobs) => jobs[0]!.resume.experience[0]!.title)).size).toBe(people.length);
   });
-
-  it("give every job a full posting from its own employer", () => {
-    for (const jobs of people) {
-      for (const j of jobs) {
-        expect(j.company.startsWith(j.posting.employer)).toBe(true);
-        expect(j.posting.about.length).toBeGreaterThan(0);
-        expect(j.posting.doing.length).toBeGreaterThanOrEqual(3);
-        expect(j.posting.needs.length).toBeGreaterThanOrEqual(3);
-      }
-    }
-  });
 });
