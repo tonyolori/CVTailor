@@ -15,6 +15,9 @@ export const POST = logged("POST /api/onboarding/extract", async (request: NextR
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  // The CV goes to an AI model, so not before the person has agreed to that.
+  const { data: profile } = await supabase.from("profiles").select("consented_at").eq("id", data.user.id).single();
+  if (!profile?.consented_at) return NextResponse.json({ error: "Agree to how CV Tailor uses your details first." }, { status: 403 });
   if (!allow(`cv:${data.user.id}`, 5, 10 * 60_000)) {
     return NextResponse.json({ error: "Too many uploads. Try again in a few minutes." }, { status: 429 });
   }

@@ -35,7 +35,7 @@ export async function requireUser() {
 /** As requireUser, and sends people who haven't finished setup to the step they're on. */
 export async function requireOnboarded() {
   const ctx = await requireUser();
-  if (!ctx.profile.consented_at) redirect("/consent");
+  if (!ctx.profile.consented_at) redirect("/onboarding");
   const [{ data: facts }, { data: prefs }] = await Promise.all([
     ctx.supabase.from("fact_library").select("user_id").eq("user_id", ctx.user.id).maybeSingle(),
     ctx.supabase.from("preferences").select("user_id").eq("user_id", ctx.user.id).maybeSingle(),

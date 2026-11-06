@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         <p>If you join the waitlist, we hold your email address, plus your name and the work you're looking for if you give them. We use these only to invite you. Ask us and we'll delete them. If you paste in a job posting, we keep its text with your account so we can write your CV. Only you can see it.</p>
 
         <h2>Why</h2>
-        <p>To find job postings that suit you and write CVs for them from your own facts, which is the service you asked for. We rely on your consent, given when you first sign in, and you can withdraw it at any time by deleting your account.</p>
+        <p>To find job postings that suit you and write CVs for them from your own facts, which is the service you asked for. We rely on your consent, given before you add anything to your account, and you can withdraw it at any time by deleting your account.</p>
 
         <h2>Who else handles it</h2>
         <p>These providers process data for us, and some store it outside Nigeria:</p>

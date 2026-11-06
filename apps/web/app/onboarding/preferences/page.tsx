@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 
 export default async function OnboardingPreferencesPage() {
   const { supabase, user, profile } = await requireUser();
-  if (!profile.consented_at) redirect("/consent");
+  if (!profile.consented_at) redirect("/onboarding");
   const { data: facts } = await supabase.from("fact_library").select("user_id").eq("user_id", user.id).maybeSingle();
   if (!facts) redirect("/onboarding");
   const { data: prefs } = await supabase.from("preferences").select("user_id").eq("user_id", user.id).maybeSingle();

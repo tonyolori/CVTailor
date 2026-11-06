@@ -1,19 +1,26 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FactLibrarySchema, type FactLibrary } from "@cvtailor/core";
+import { giveConsent } from "@/app/actions";
 import { LibraryEditor } from "./LibraryEditor";
 import { errorFields, log, loggedFetch } from "@/lib/log";
 
 type Step = "choose" | "working" | "review";
 
-/** Step 1: upload a CV for a proposed library, or start from blank. Nothing is saved until the user reviews it. */
-export function OnboardingLibrary({ email, displayName }: { email: string; displayName: string }) {
+/**
+ * Step 1: upload a CV for a proposed library, or start from blank. Nothing is saved until the user reviews it.
+ * Someone new agrees to how their details are used here, before either path, since both store them.
+ */
+export function OnboardingLibrary({ email, displayName, consented: alreadyConsented }: { email: string; displayName: string; consented: boolean }) {
   const blank: FactLibrary = FactLibrarySchema.parse({ contact: { name: displayName, email }, entries: [] });
   const [step, setStep] = useState<Step>("choose");
   const [library, setLibrary] = useState<FactLibrary>(blank);
   const [notice, setNotice] = useState<string | null>(null);
   const [waited, setWaited] = useState(0);
+  const [consented, setConsented] = useState(alreadyConsented);
+  const [agreed, setAgreed] = useState(alreadyConsented);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => () => abort.current?.abort(), []);
@@ -34,10 +41,23 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
     void upload(new FormData(event.currentTarget));
   }
 
+  /** Records the agreement once, the first time either path is taken. */
+  async function consent(): Promise<boolean> {
+    if (consented) return true;
+    const r = await giveConsent();
+    if (!r.ok) {
+      setNotice(r.message ?? "Couldn't save that. Try again.");
+      return false;
+    }
+    setConsented(true);
+    return true;
+  }
+
   async function upload(form: FormData) {
     setNotice(null);
     setWaited(0);
     setStep("working");
+    if (!(await consent())) return setStep("choose");
     const failed = (message?: string) => {
       setNotice(message ?? "That didn't work. You can enter your details by hand.");
       setStep("choose");
@@ -58,6 +78,11 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
   function enterByHand() {
     abort.current?.abort();
     setStep("review");
+  }
+
+  async function startByHand() {
+    setNotice(null);
+    if (await consent()) setStep("review");
   }
 
   function accept(raw: unknown) {
@@ -113,11 +138,22 @@ export function OnboardingLibrary({ email, displayName }: { email: string; displ
           CV (PDF or Word .docx, up to 4 MB)
           <input name="file" type="file" accept=".pdf,.docx" required />
         </label>
+        {consented ? null : (
+          <div className="consent">
+            <p>
+              To find roles and write your CVs, CV Tailor keeps the work history and preferences you give it, and sends them with each job posting to an AI model. That model may be run by Anthropic, or by DeepSeek, which says it stores data in China. You can export or delete everything from your settings at any time. <Link href="/privacy">How we handle your data</Link>
+            </p>
+            <label className="check">
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+              I agree to CV Tailor using my details this way
+            </label>
+          </div>
+        )}
         <div className="row">
-          <button className="primary" type="submit">
+          <button className="primary" type="submit" disabled={!agreed}>
             Upload and read
           </button>
-          <button type="button" onClick={() => setStep("review")}>
+          <button type="button" onClick={() => void startByHand()} disabled={!agreed}>
             Enter my details by hand
           </button>
         </div>

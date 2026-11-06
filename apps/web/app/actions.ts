@@ -59,7 +59,10 @@ export const joinWaitlist = logged("action.joinWaitlist", async (_prev: ActionRe
   const { error } = await adminClient()
     .from("waitlist")
     .upsert({ email, name: clean("name", 120), looking_for: clean("looking_for", 200), consented_at: new Date().toISOString() }, { onConflict: "email", ignoreDuplicates: true });
-  if (error) return { ok: false, message: "Couldn't add you just now. Try again shortly." };
+  if (error) {
+    log("waitlist.join_failed", { code: error.code }, "error");
+    return { ok: false, message: "Couldn't add you just now. Try again shortly." };
+  }
   return { ok: true };
 });
 
@@ -69,10 +72,11 @@ export const signOut = logged("action.signOut", async (): Promise<void> => {
   redirect("/login");
 });
 
-export const giveConsent = logged("action.giveConsent", async (): Promise<void> => {
+/** Asked for on the first onboarding step, before anything is stored or sent to an AI model. */
+export const giveConsent = logged("action.giveConsent", async (): Promise<ActionResult> => {
   const { user, profile } = await requireUser();
   // Only the first consent sets the free CVs, so going through this twice can't top them up.
-  const { data: started } = await adminClient()
+  const { data: started, error } = await adminClient()
     .from("profiles")
     .update({ consented_at: new Date().toISOString(), cv_free_left: cvCounts().free })
     .eq("id", user.id)
@@ -86,12 +90,14 @@ export const giveConsent = logged("action.giveConsent", async (): Promise<void> 
       if (!sent) log("email.welcome_failed", { userId: user.id }, "warn");
     });
   }
-  redirect("/onboarding");
+  if (error) log("consent.save_failed", { userId: user.id, code: error.code }, "error");
+  return error ? { ok: false, message: "Couldn't save that. Try again." } : { ok: true };
 });
 
 // --- Library and preferences --------------------------------------------------
 export const saveFacts = logged("action.saveFacts", async (input: unknown, next?: string): Promise<ActionResult> => {
-  const { supabase, user } = await requireUser();
+  const { supabase, user, profile } = await requireUser();
+  if (!profile.consented_at) return { ok: false, message: "Agree to how CV Tailor uses your details first." };
   const parsed = FactLibrarySchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: issuesMessage(parsed.error) };
   const { error } = await supabase.from("fact_library").upsert({ user_id: user.id, data: parsed.data });
@@ -102,7 +108,8 @@ export const saveFacts = logged("action.saveFacts", async (input: unknown, next?
 });
 
 export const savePreferences = logged("action.savePreferences", async (input: unknown, next?: string): Promise<ActionResult> => {
-  const { supabase, user } = await requireUser();
+  const { supabase, user, profile } = await requireUser();
+  if (!profile.consented_at) return { ok: false, message: "Agree to how CV Tailor uses your details first." };
   const parsed = PreferencesSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: issuesMessage(parsed.error) };
   const { error } = await supabase.from("preferences").upsert({ user_id: user.id, data: parsed.data });

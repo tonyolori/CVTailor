@@ -113,6 +113,9 @@ legend { padding: 0 8px 0 0; font-weight: 600; font-size: 14.5px; }
 .notice.warn { background: var(--warn-bg); color: var(--warn); }
 .notice.bad { background: var(--bad-bg); color: var(--bad); }
 .notice.ok { background: var(--ok-bg); color: var(--ok); }
+.consent { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--sky-3); border: 1px solid var(--line); }
+.consent p { font-size: 13.5px; line-height: 1.5; color: var(--soft); }
+.consent label.check { font-weight: 600; color: var(--ink); }
 .table { width: 100%; overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
 th { text-align: left; font-weight: 500; font-size: 13.5px; color: var(--soft); padding: 8px 12px 8px 0; border-bottom: 1px solid var(--ink); }
