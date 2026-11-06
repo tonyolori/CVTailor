@@ -35,7 +35,9 @@ const ConfigSchema = z.object({
     .default("")
     .transform((v) => v.split(",").map((s) => s.trim()).filter(Boolean)),
 
-  EMAIL_PROVIDER: z.enum(["resend", "file"]).default("file"),
+  EMAIL_PROVIDER: z.enum(["resend", "mailpit", "file"]).default("file"),
+  /** Local Supabase's Mailpit, used when EMAIL_PROVIDER=mailpit. */
+  MAILPIT_URL: z.string().default("http://127.0.0.1:54324"),
   EMAIL_API_KEY: optional,
   EMAIL_FROM: z.string().default("CV Tailor <hello@example.com>"),
   SITE_URL: z.string().url().default("http://127.0.0.1:3000"),

@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { createProvider, withLogging } from "@cvtailor/llm";
 import { llmConfig, loadConfig } from "./config";
 import { errorInfo, serviceClient } from "./db";
-import { fileSender, resendSender } from "./email/send";
+import { fileSender, mailpitSender, resendSender } from "./email/send";
 import { log } from "./log";
 import { tick, type RunDeps } from "./pipeline/run";
 import { ATS_HOST_POLICIES } from "./sources/ats";
@@ -31,7 +31,9 @@ const deps: RunDeps = {
   sender:
     config.EMAIL_PROVIDER === "resend" && config.EMAIL_API_KEY
       ? resendSender(config.EMAIL_API_KEY)
-      : fileSender(join(import.meta.dirname, "../../../.local/outbox")),
+      : config.EMAIL_PROVIDER === "mailpit"
+        ? mailpitSender(config.MAILPIT_URL)
+        : fileSender(join(import.meta.dirname, "../../../.local/outbox")),
 };
 
 const TICK_MS = 60_000;

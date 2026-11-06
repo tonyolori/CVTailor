@@ -29,6 +29,7 @@ npm run seed:companies   # employer boards to scan
 npm run seed:tony        # user #1 from private/owner.json (local only)
 npm run llm:check        # one cheap call through the configured provider
 npm run email:auth-templates # rewrite supabase/templates from the shared email design
+npm run email:preview    # every email, with made-up content, into Mailpit (:54324); :watch resends on save
 npm run eval:enrich      # enrichment agreement for the personas and Tony's past decisions
 npm run worker           # run today's pipeline if not done, then send due emails
 npm run worker -- --loop # stay up, so emails go at each person's send time

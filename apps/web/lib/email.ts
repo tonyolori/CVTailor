@@ -29,6 +29,20 @@ async function send(email: Outgoing): Promise<boolean> {
     return Boolean(res?.ok);
   }
 
+  // Local Supabase's Mailpit, to see the email as an inbox shows it.
+  if (process.env.EMAIL_PROVIDER === "mailpit") {
+    const address = (a: string) => {
+      const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(a);
+      return m ? { Email: m[2], Name: m[1] || undefined } : { Email: a.trim() };
+    };
+    const res = await loggedFetch(`${process.env.MAILPIT_URL ?? "http://127.0.0.1:54324"}/api/v1/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ From: address(from), To: [address(email.to)], ReplyTo: replyTo ? [address(replyTo)] : [], Subject: email.subject, HTML: email.html, Text: email.text }),
+    }).catch(() => null);
+    return Boolean(res?.ok);
+  }
+
   // Local development: the same outbox folder the worker writes to.
   try {
     const dir = join(process.cwd(), "../../.local/outbox");

@@ -49,6 +49,39 @@ export function resendSender(apiKey: string, fetchFn: typeof fetch = fetch): Ema
   };
 }
 
+/** "CV Tailor <hello@x.com>" as its parts. */
+export function parseAddress(address: string): { Email: string; Name?: string } {
+  const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(address);
+  return m ? { Email: m[2]!, ...(m[1] ? { Name: m[1].replace(/^"|"$/g, "") } : {}) } : { Email: address.trim() };
+}
+
+/** Local Supabase's Mailpit, for seeing emails as an inbox shows them. Docs: mailpit.axllent.org/docs/api-v1/ */
+export function mailpitSender(baseUrl: string, fetchFn: typeof fetch = fetch, tags: string[] = []): EmailSender {
+  return {
+    async send(email) {
+      const res = await fetchFn(`${baseUrl}/api/v1/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          From: parseAddress(email.from),
+          To: [parseAddress(email.to)],
+          Subject: email.subject,
+          HTML: email.html,
+          Text: email.text,
+          Headers: email.headers,
+          Tags: tags,
+          Attachments: email.attachments?.map((a) => ({ Filename: a.filename, Content: a.content.toString("base64") })),
+        }),
+      });
+      if (!res.ok) {
+        log("email.refused", { status: res.status }, "error");
+        throw new Error(`Mailpit answered ${res.status}`);
+      }
+      return { id: ((await res.json()) as { ID: string }).ID };
+    },
+  };
+}
+
 /** Writes to .local/outbox, for inspecting emails without an account. */
 export function fileSender(dir: string): EmailSender {
   return {

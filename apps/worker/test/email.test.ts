@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { signInLinkEmail } from "@cvtailor/core/email";
 import { AUTH_TEMPLATES, authTemplatePath } from "../src/email/auth-templates";
 import { DailySummarySchema, e, emailSubject, renderEmailHtml, renderEmailText, safeUrl } from "../src/email/template";
-import { resendSender } from "../src/email/send";
+import { mailpitSender, parseAddress, resendSender } from "../src/email/send";
 import { decideRun, sendAtFor, shouldAlert, STALE_RUN_MS, zonedTimeToUtc } from "../src/pipeline/schedule";
 import { log } from "../src/log";
 
@@ -206,5 +206,17 @@ describe("Supabase sign-in templates", () => {
   it("match the shared design. Run npm run email:auth-templates if this fails", () => {
     const { html } = signInLinkEmail();
     for (const name of AUTH_TEMPLATES) expect(readFileSync(authTemplatePath(name), "utf8")).toBe(`${html}\n`);
+  });
+});
+
+describe("mailpitSender", () => {
+  it("sends Mailpit's fields, with the sender split into name and address", async () => {
+    const fetchFn = vi.fn(async (_url: unknown, _init?: RequestInit) => new Response(JSON.stringify({ ID: "m1" }), { status: 200 }));
+    const r = await mailpitSender("http://mail.local", fetchFn as never, ["preview"]).send({ to: "a@example.com", from: "CV Tailor <hi@example.com>", subject: "s", html: "<p>h</p>", text: "h" });
+    expect(r.id).toBe("m1");
+    expect(fetchFn.mock.calls[0]![0]).toBe("http://mail.local/api/v1/send");
+    const body = JSON.parse(fetchFn.mock.calls[0]![1]!.body as string);
+    expect(body).toMatchObject({ From: { Email: "hi@example.com", Name: "CV Tailor" }, To: [{ Email: "a@example.com" }], Subject: "s", HTML: "<p>h</p>", Tags: ["preview"] });
+    expect(parseAddress("plain@example.com")).toEqual({ Email: "plain@example.com" });
   });
 });
