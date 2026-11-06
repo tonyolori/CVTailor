@@ -141,7 +141,7 @@ export function OnboardingLibrary({ email, displayName, consented: alreadyConsen
         {consented ? null : (
           <div className="consent">
             <p>
-              To find roles and write your CVs, CV Tailor keeps the work history and preferences you give it, and sends them with each job posting to an AI model. That model may be run by Anthropic, or by DeepSeek, which says it stores data in China. You can export or delete everything from your settings at any time. <Link href="/privacy">How we handle your data</Link>
+              To find roles and write your CVs, CV Tailor keeps the work history and preferences you give it, and sends them with each job posting to an AI model. You can export or delete everything from your settings at any time. <Link href="/privacy">How we handle your data</Link>
             </p>
             <label className="check">
               <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
