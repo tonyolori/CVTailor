@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { cvStyleOf } from "@cvtailor/core";
+import { cvStyleOf, FactLibrarySchema, titlesFromLibrary } from "@cvtailor/core";
 import { OnboardingPreferences } from "@/components/OnboardingPreferences";
 import { countryOptions } from "@/lib/countries";
 import { requireUser } from "@/lib/auth";
@@ -9,11 +9,12 @@ import { landingExample } from "@/lib/landing-examples";
 export default async function OnboardingPreferencesPage() {
   const { supabase, user, profile } = await requireUser();
   if (!profile.consented_at) redirect("/onboarding");
-  const { data: facts } = await supabase.from("fact_library").select("user_id").eq("user_id", user.id).maybeSingle();
+  const { data: facts } = await supabase.from("fact_library").select("data").eq("user_id", user.id).maybeSingle();
   if (!facts) redirect("/onboarding");
   const { data: prefs } = await supabase.from("preferences").select("user_id").eq("user_id", user.id).maybeSingle();
   if (prefs) redirect("/dashboard");
   const { data: categories } = await supabase.from("categories").select("id");
+  const lib = FactLibrarySchema.safeParse(facts.data);
   return (
     <div className="public">
       <div className="public-top">
@@ -32,6 +33,7 @@ export default async function OnboardingPreferencesPage() {
         tz={profile.tz}
         countries={countryOptions()}
         categoryIds={(categories ?? []).map((c) => c.id as string)}
+        fromCv={lib.success ? titlesFromLibrary(lib.data) : []}
         style={cvStyleOf(profile.cv_style)}
         sample={landingExample()[0]!.resume}
       />

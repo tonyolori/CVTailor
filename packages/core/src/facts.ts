@@ -79,3 +79,24 @@ export type FactEntry = z.infer<typeof FactEntrySchema>;
 export type FactLibrary = z.infer<typeof FactLibrarySchema>;
 export type FactLibraryInput = z.input<typeof FactLibrarySchema>;
 export type Credential = z.infer<typeof CredentialSchema>;
+
+/**
+ * Job titles the person has held, latest first, for proposing what to search for. Read straight
+ * from the library, so it costs nothing and needs no model. A role with no end date is current.
+ */
+export function titlesFromLibrary(lib: Pick<FactLibrary, "entries">, max = 4): string[] {
+  const roles = lib.entries
+    .filter((e) => e.kind === "role")
+    .map((e) => ({ title: e.title.trim(), key: `${e.end == null ? "9999-99" : e.end}|${e.start ?? ""}` }))
+    .sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const r of roles) {
+    const k = r.title.toLowerCase();
+    if (!r.title || seen.has(k)) continue;
+    seen.add(k);
+    out.push(r.title);
+    if (out.length === max) break;
+  }
+  return out;
+}

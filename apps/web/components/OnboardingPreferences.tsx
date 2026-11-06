@@ -23,17 +23,20 @@ export function OnboardingPreferences({
   tz,
   countries,
   categoryIds,
+  fromCv,
   style: initialStyle,
   sample,
 }: {
   tz: string;
   countries: CountryOption[];
   categoryIds: string[];
+  /** Titles from the person's own library, latest first. The latest starts in the box. */
+  fromCv: string[];
   style: CvStyle;
   sample: Resume;
 }) {
   const [p, setP] = useState<PreferencesInput>(() => blankPreferences(tz));
-  const [titles, setTitles] = useState<string[]>([]);
+  const [titles, setTitles] = useState<string[]>(fromCv.slice(0, 1));
   const [style, setStyle] = useState(initialStyle);
   const [message, setMessage] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
@@ -95,6 +98,26 @@ export function OnboardingPreferences({
         </h2>
         <CommaField id="titles" value={titles} onChange={setTitles} placeholder="For example: Staff Nurse, Ward Nurse" />
         <small className="muted">Use the titles employers would use. Separate more than one with commas.</small>
+        {fromCv.length ? (
+          <div className="row" role="group" aria-label="Titles from your CV">
+            <small className="muted">From your CV:</small>
+            {fromCv.map((t) => {
+              const on = titles.some((x) => x.toLowerCase() === t.toLowerCase());
+              return (
+                <button
+                  className={`pill-btn ${on ? "on" : ""}`}
+                  type="button"
+                  key={t}
+                  aria-pressed={on}
+                  onClick={() => setTitles(on ? titles.filter((x) => x.toLowerCase() !== t.toLowerCase()) : [...titles, t])}
+                >
+                  {on ? "✓ " : "+ "}
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
         {suggested.length ? (
           <div className="stack">
             <small className="muted">We'll also look for these when your own titles find too few:</small>

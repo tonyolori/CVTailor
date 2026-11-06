@@ -317,6 +317,9 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .onb h2 label { font: inherit; display: inline; }
 .onb .card > select, .onb .card > input { max-width: 420px; }
 .onb-end { display: grid; gap: 8px; justify-items: start; }
+.pill-btn { padding: 5px 13px; font-size: 14px; font-weight: 500; background: #fff; box-shadow: inset 0 0 0 1.5px var(--line); }
+.pill-btn:hover { background: var(--sky-3); }
+.pill-btn.on, .pill-btn.on:hover { background: var(--sky); box-shadow: inset 0 0 0 1.5px var(--blue); color: var(--blue-dark); }
 .styr .sheet { --w: var(--page); margin: 0 auto; }
 
 /* Public forms */
