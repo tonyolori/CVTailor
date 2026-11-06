@@ -51,7 +51,13 @@ export function sendAtFor(now: Date, tzRaw: string, sendTime: string): Date {
 /** Stale after this long: the worker that held it died, so another may take over. */
 export const STALE_RUN_MS = 4 * 60 * 60 * 1000;
 
-export type RunDecision = "run" | "done" | "busy" | "too_early";
+/**
+ * A failed run waits this long from its start before trying again. Each try scans every board, and
+ * the loop passes once a minute, so retrying at once would hammer employers' boards.
+ */
+export const RETRY_FAILED_MS = 30 * 60 * 1000;
+
+export type RunDecision = "run" | "done" | "busy" | "too_early" | "retry_later";
 
 export function decideRun(
   existing: { status: string; started_at: string } | null,
@@ -60,6 +66,7 @@ export function decideRun(
 ): RunDecision {
   if (existing?.status === "ok") return "done";
   if (existing?.status === "running" && now.getTime() - new Date(existing.started_at).getTime() < STALE_RUN_MS) return "busy";
+  if (existing?.status === "failed" && now.getTime() - new Date(existing.started_at).getTime() < RETRY_FAILED_MS) return "retry_later";
   if (!existing && now.getUTCHours() < startHourUtc) return "too_early";
   return "run";
 }

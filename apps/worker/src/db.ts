@@ -22,6 +22,29 @@ export function chunks<T>(items: T[], size = 50): T[][] {
   return out;
 }
 
+/**
+ * Strings for an `in` filter, in batches that fit the request URL. A count alone isn't enough:
+ * fifty long titles, encoded, overran it.
+ */
+export function urlChunks(values: string[], maxChars = 4000): string[][] {
+  const out: string[][] = [];
+  let batch: string[] = [];
+  let used = 0;
+  for (const v of values) {
+    // Quotes and a comma around each value, once encoded.
+    const cost = encodeURIComponent(v).length + 9;
+    if (batch.length > 0 && used + cost > maxChars) {
+      out.push(batch);
+      batch = [];
+      used = 0;
+    }
+    batch.push(v);
+    used += cost;
+  }
+  if (batch.length > 0) out.push(batch);
+  return out;
+}
+
 /** What to log about an error: its step when it has one, never free text from elsewhere. */
 export function errorInfo(err: unknown): { kind: string; detail?: string; code?: string; at?: string } {
   if (err instanceof DbError) return { kind: "DbError", detail: err.message };

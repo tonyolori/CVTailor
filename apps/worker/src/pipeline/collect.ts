@@ -1,5 +1,5 @@
 import { prefilter, type Category, type Preferences } from "@cvtailor/core";
-import { chunks, errorInfo, must, type Db } from "../db";
+import { chunks, errorInfo, must, urlChunks, type Db } from "../db";
 import { log } from "../log";
 import { atsBoards, scanCompanies, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
@@ -154,11 +154,11 @@ export async function collect(
 export async function storeJobs(db: Db, jobs: RawJob[]): Promise<number> {
   const knownUrls = new Set<string>();
   const knownKeys = new Set<string | null>();
-  for (const batch of chunks([...new Set(jobs.map((j) => j.url))])) {
+  for (const batch of urlChunks([...new Set(jobs.map((j) => j.url))])) {
     const rows = must(await db.from("jobs").select("url").in("url", batch), "existing urls") as { url: string }[];
     rows.forEach((r) => knownUrls.add(r.url));
   }
-  for (const batch of chunks([...new Set(jobs.map((j) => dedupeKey(j.company, j.title)))])) {
+  for (const batch of urlChunks([...new Set(jobs.map((j) => dedupeKey(j.company, j.title)))])) {
     const rows = must(await db.from("jobs").select("dedupe_key").in("dedupe_key", batch), "existing keys") as { dedupe_key: string | null }[];
     rows.forEach((r) => knownKeys.add(r.dedupe_key));
   }
@@ -171,7 +171,7 @@ export async function storeJobs(db: Db, jobs: RawJob[]): Promise<number> {
   }
 
   const nowIso = new Date().toISOString();
-  for (const batch of chunks(jobs.filter((j) => knownUrls.has(j.url)).map((j) => j.url))) {
+  for (const batch of urlChunks(jobs.filter((j) => knownUrls.has(j.url)).map((j) => j.url))) {
     must(await db.from("jobs").update({ last_seen: nowIso }).in("url", batch), "mark seen");
   }
   return inserted;

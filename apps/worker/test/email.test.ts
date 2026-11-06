@@ -157,6 +157,8 @@ describe("scheduling", () => {
     expect(decideRun(null, at("2026-11-02T00:30:00Z"), 1)).toBe("too_early");
     expect(decideRun({ status: "ok", started_at: "2026-11-02T01:00:00Z" }, at("2026-11-02T15:00:00Z"), 1)).toBe("done");
     expect(decideRun({ status: "failed", started_at: "2026-11-02T01:00:00Z" }, at("2026-11-02T15:00:00Z"), 1)).toBe("run");
+    // Not straight away: each try scans every board.
+    expect(decideRun({ status: "failed", started_at: "2026-11-02T14:50:00Z" }, at("2026-11-02T15:00:00Z"), 1)).toBe("retry_later");
   });
 
   it("doesn't start twice, but takes over from a dead worker", () => {

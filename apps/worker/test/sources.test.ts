@@ -24,6 +24,7 @@ import {
   parseWwr,
 } from "../src/sources/aggregators";
 import { onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona } from "@cvtailor/core";
+import { urlChunks } from "../src/db";
 import { capDescription, dedupeRun } from "../src/pipeline/collect";
 import { slugCandidates } from "../src/pipeline/discovery";
 import { coverageGaps, relevantAdapters, searchQueries } from "../src/sources/registry";
@@ -336,6 +337,15 @@ describe("collection helpers", () => {
     const text = `${"a".repeat(29_990)}\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`;
     expect(capDescription(text).endsWith("a")).toBe(true);
     expect(capDescription("short")).toBe("short");
+  });
+
+  it("splits lookups so each request URL stays short, however long the values", () => {
+    const keys = Array.from({ length: 5000 }, (_, i) => `société générale|ingénieur logiciel senior plateforme données ${i}`);
+    const batches = urlChunks(keys);
+    expect(batches.length).toBeGreaterThan(1);
+    expect(batches.flat()).toEqual(keys);
+    for (const b of batches) expect(b.map((k) => encodeURIComponent(`"${k}"`)).join(",").length).toBeLessThanOrEqual(4000);
+    expect(urlChunks([])).toEqual([]);
   });
 
   it("slugCandidates tries likely board slugs", () => {
