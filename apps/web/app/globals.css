@@ -323,10 +323,11 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .lp .fan .sheet:nth-child(3) { right: 0; --r: 5deg; bottom: 10vh; animation-delay: 0.45s; }
 @keyframes lpfan { from { transform: translateY(70vh) rotate(0deg); } to { transform: rotate(var(--r)); } }
 .lp .fan .cvi { font-size: 2.2cqw; padding-block: 6%; }
-.lp .demo { background: var(--sky); padding: 14vh 4vw 16vh; }
+.lp .story { background: var(--bg, #dfebff); transition: background 0.8s; padding: 14vh 4vw 16vh; }
 .lp .say { font-size: 17px; color: var(--soft); max-width: 30em; margin-bottom: 7vh; }
-.lp .demo-g { display: grid; grid-template-columns: minmax(0, 1fr) calc(84vh / 1.414); gap: 6vw; align-items: start; }
+.lp .story-g { display: grid; grid-template-columns: minmax(0, 1fr) calc(84vh / 1.414); gap: 6vw; align-items: start; }
 .lp .jp { max-width: 38em; }
+.lp .sp + .sp { margin-top: 26vh; }
 .lp .emp { font-size: 18px; font-weight: 600; }
 .lp .jp h2 { font-size: clamp(52px, 6.4vw, 108px); line-height: 0.94; letter-spacing: -0.018em; margin-top: 8px; text-wrap: balance; }
 .lp .jp dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, max-content)); gap: 14px 40px; margin: 28px 0 0; padding: 18px 0; border-block: 1px solid #c9d6f3; }
@@ -341,10 +342,10 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .lp .fit { margin-top: 44px; padding: 18px 22px; background: #fff; border-left: 3px solid var(--blue); }
 .lp .fit b { font-size: 14px; font-weight: 600; }
 .lp .fit p { margin-top: 4px; color: var(--soft); }
-.lp .demo-cv { position: sticky; top: 6vh; margin: 0; }
-.lp .demo-cv .sheet { --w: calc(84vh / 1.414); min-height: 0; aspect-ratio: 1 / 1.414; overflow: hidden; transform: rotate(1deg); }
-.lp .demo-cv .cvi { font-size: 2.2cqw; padding-block: 6%; }
-.lp .demo-cv figcaption { font-size: 13px; color: var(--soft); margin-top: 18px; }
+.lp .story-cv { position: sticky; top: 8vh; }
+.lp .story-cv .sheet, .lp .cv-inline .sheet { --w: calc(84vh / 1.414); min-height: 0; aspect-ratio: 1 / 1.414; overflow: hidden; transform: rotate(1deg); }
+.lp .story-cv .cvi, .lp .cv-inline .cvi { font-size: 2.2cqw; padding-block: 6%; }
+.lp .cv-inline { display: none; }
 .lp .truth { padding: 16vh 4vw 12vh; background: #fff; }
 .lp .truth h2, .lp .end h2 { text-wrap: balance; }
 .lp .truth h2 { font-size: 8.5vw; line-height: 0.93; letter-spacing: -0.02em; max-width: 12em; }
@@ -403,14 +404,16 @@ details.sec[open] > summary { margin-bottom: 10px; }
   .wlf { padding: 20px; }
   .lp h1 { font-size: 17vw; }
   .lp .fan { display: none; }
-  .lp .demo { padding: 64px 16px 72px; }
+  .lp .story { padding: 64px 16px 72px; }
   .lp .say { margin-bottom: 32px; }
-  .lp .demo-g { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  .lp .story-g { grid-template-columns: minmax(0, 1fr); }
+  .lp .sp + .sp { margin-top: 96px; }
   .lp .jp h2 { font-size: 46px; }
   .lp .jp h3 { font-size: 26px; margin-top: 32px; }
   .lp .jp p, .lp .jp li { font-size: 16px; }
-  .lp .demo-cv { position: static; }
-  .lp .demo-cv .sheet { --w: min(calc(100vw - 32px), 520px); transform: none; }
+  .lp .story-cv { display: none; }
+  .lp .cv-inline { display: block; margin-top: 40px; }
+  .lp .cv-inline .sheet { --w: min(calc(100vw - 32px), 520px); transform: none; }
   .lp .truth h2 { font-size: 14vw; }
   .lp .end h2 { font-size: 15vw; }
   .lp .steps li { grid-template-columns: 40px minmax(0, 1fr); }
