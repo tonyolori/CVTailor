@@ -67,6 +67,7 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 - [ ] Create a Resend account, add the domain, and add the DNS records it shows (SPF, DKIM, and ideally DMARC).
 - [ ] Put the key in `EMAIL_API_KEY` and set `EMAIL_FROM` to an address on that domain.
 - [ ] Point Supabase Auth's SMTP at Resend (Dashboard > Authentication > SMTP), or magic links are limited by Supabase's built-in sender.
+- [ ] Give the sign-in emails the CV Tailor design. In Dashboard > Authentication > Emails, open **Magic link** and then **Confirm signup**. For each one, set the subject to `Your CV Tailor sign-in link` and replace the body with `supabase/templates/magic_link.html` (both use the same file). After changing the design, run `npm run email:auth-templates` and paste it in again.
 
 ### Web host (Vercel or Cloudflare Pages)
 - [ ] Create a project with `apps/web` as its root and add the env vars listed in `.env.example` under "Web app".
@@ -97,7 +98,7 @@ Matches are free for everyone. Once billing is on, each CV uses one from the per
 ## Waitlist
 
 - [ ] The landing page's waitlist needs nothing set up. New signups appear on the admin page.
-- [ ] Set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` and `EMAIL_FROM` on the web host, because inviting someone from the waitlist emails them from there. Without these, the invitation is written to `.local/outbox` instead of being sent.
+- [ ] Set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` and `EMAIL_FROM` on the web host, because the waitlist invitation and the welcome email are sent from there. Optionally set `EMAIL_REPLY_TO` to an inbox you read: the welcome email then invites beta testers to reply with feedback. Without these, the invitation is written to `.local/outbox` instead of being sent.
 
 ## Writing CVs
 

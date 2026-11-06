@@ -12,6 +12,7 @@
     "seed:tony": "tsx --env-file-if-exists=../../.env src/seed/tony.ts",
     "seed:companies": "tsx --env-file-if-exists=../../.env src/seed/companies.ts",
     "llm:check": "tsx --env-file-if-exists=../../.env src/llm-check.ts",
+    "email:auth-templates": "tsx src/email/auth-templates.ts",
     "eval:enrich": "tsx --env-file-if-exists=../../.env src/eval/enrich.ts",
     "test:integration": "node --env-file=../../.env ../../node_modules/vitest/vitest.mjs run test/pipeline.integration.test.ts"
   },

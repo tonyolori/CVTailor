@@ -3,10 +3,11 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@cvtailor/core";
 import { requireAdmin, requireUser } from "@/lib/auth";
-import { sendInvite } from "@/lib/email";
-import { logged } from "@/lib/log";
+import { sendInvite, sendWelcome } from "@/lib/email";
+import { log, logged } from "@/lib/log";
 import { cvCounts } from "@/lib/plan-settings";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
@@ -69,9 +70,22 @@ export const signOut = logged("action.signOut", async (): Promise<void> => {
 });
 
 export const giveConsent = logged("action.giveConsent", async (): Promise<void> => {
-  const { user } = await requireUser();
+  const { user, profile } = await requireUser();
   // Only the first consent sets the free CVs, so going through this twice can't top them up.
-  await adminClient().from("profiles").update({ consented_at: new Date().toISOString(), cv_free_left: cvCounts().free }).eq("id", user.id).is("consented_at", null);
+  const { data: started } = await adminClient()
+    .from("profiles")
+    .update({ consented_at: new Date().toISOString(), cv_free_left: cvCounts().free })
+    .eq("id", user.id)
+    .is("consented_at", null)
+    .select("id");
+  // The first consent is when the account starts, so it's the one that gets a welcome. After the
+  // response, so the next page doesn't wait on the email.
+  if (started?.length) {
+    after(async () => {
+      const sent = await sendWelcome(user.id, profile.notify_email ?? profile.email);
+      if (!sent) log("email.welcome_failed", { userId: user.id }, "warn");
+    });
+  }
   redirect("/onboarding");
 });
 

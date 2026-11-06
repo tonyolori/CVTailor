@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
+import { signInLinkEmail } from "@cvtailor/core/email";
+import { AUTH_TEMPLATES, authTemplatePath } from "../src/email/auth-templates";
 import { DailySummarySchema, e, emailSubject, renderEmailHtml, renderEmailText, safeUrl } from "../src/email/template";
 import { resendSender } from "../src/email/send";
 import { decideRun, sendAtFor, shouldAlert, STALE_RUN_MS, zonedTimeToUtc } from "../src/pipeline/schedule";
@@ -37,7 +40,8 @@ const html = renderEmailHtml(summary, links);
 
 describe("renderEmailHtml", () => {
   it("has the legacy layout: header, tiles, roles, details, worth a look, close calls", () => {
-    const order = ["Daily job search", "to apply", "Apply", "Details", "CVs not delivered", "Worth a look", "Close calls"].map((t) => html.indexOf(t));
+    const body = html.slice(html.indexOf("<body"));
+    const order = ["Daily job search", "to apply", "Apply", "Details", "CVs not delivered", "Worth a look", "Close calls"].map((t) => body.indexOf(t));
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
@@ -94,7 +98,8 @@ describe("plain text and subject", () => {
     expect(text).toContain("https://ats.example/1");
     expect(text).toContain("Pause these emails: https://app.example");
     expect(text).toContain("CVs not delivered");
-    expect(emailSubject(summary)).toBe("Job search 2026-11-02: 1 role to apply for");
+    expect(emailSubject(summary)).toBe("1 role to apply for, Monday 2 November");
+    expect(emailSubject(DailySummarySchema.parse({ date: "2026-11-03", sources: [], roles: [] }))).toBe("No roles to apply for, Tuesday 3 November");
   });
 
   it("escapes quotes and angle brackets", () => {
@@ -194,5 +199,12 @@ describe("log", () => {
     expect(() => log("x", { email: "a@b.c" })).toThrow();
     expect(() => log("x", { resume: "..." })).toThrow();
     expect(() => log("x", { jobId: 1, userId: "u" })).not.toThrow();
+  });
+});
+
+describe("Supabase sign-in templates", () => {
+  it("match the shared design. Run npm run email:auth-templates if this fails", () => {
+    const { html } = signInLinkEmail();
+    for (const name of AUTH_TEMPLATES) expect(readFileSync(authTemplatePath(name), "utf8")).toBe(`${html}\n`);
   });
 });
