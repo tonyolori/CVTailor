@@ -33,6 +33,8 @@ npm run email:preview    # every email, with made-up content, into Mailpit (:543
 npm run eval:enrich      # enrichment agreement for the personas and Tony's past decisions
 npm run worker           # run today's pipeline if not done, then send due emails
 npm run worker -- --loop # stay up, so emails go at each person's send time
+npm run worker:live -- --loop # the same, on this Mac, against the live Supabase (.env.production)
+npm run seed:companies:live # employer boards into the live Supabase
 npm run web              # dashboard on :3000; magic links land in Mailpit on :54324
 ```
 

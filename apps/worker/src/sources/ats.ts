@@ -306,14 +306,6 @@ export interface AtsScanResult {
   outcomes: { companyId: number; ok: boolean; found: number }[];
 }
 
-/** Whether a company should be scanned for a set of active categories and countries. */
-export function companyRelevant(company: CompanyRow, activeTags: Set<string>, activeCountries: Set<string> | "*"): boolean {
-  const tagged = company.tags.length === 0 || company.tags.some((t) => activeTags.has(t));
-  if (!tagged) return false;
-  if (activeCountries === "*" || company.countries.length === 0) return true;
-  return company.countries.some((c) => activeCountries.has(c));
-}
-
 export async function scanCompanies(http: Http, companies: CompanyRow[], concurrency = 6): Promise<AtsScanResult> {
   const jobs: RawJob[] = [];
   const outcomes: AtsScanResult["outcomes"] = [];

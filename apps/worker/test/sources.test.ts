@@ -8,7 +8,6 @@ import {
   parseLever,
   parseRecruitee,
   parseWorkable,
-  companyRelevant,
   scanCompanies,
   type CompanyRow,
 } from "../src/sources/ats";
@@ -27,7 +26,7 @@ import { onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona } fr
 import { urlChunks } from "../src/db";
 import { capDescription, dedupeRun } from "../src/pipeline/collect";
 import { slugCandidates } from "../src/pipeline/discovery";
-import { coverageGaps, relevantAdapters, searchQueries } from "../src/sources/registry";
+import { coverageGaps, searchQueries, usableAdapters } from "../src/sources/registry";
 import { politeHttp } from "../src/sources/http";
 import { blockedBySourceRules } from "../src/sources/restricted";
 import { dedupeKey, guessCountry, htmlToText, toIso } from "../src/sources/text";
@@ -185,15 +184,6 @@ describe("scanCompanies", () => {
     expect(r.outcomes.find((o) => o.companyId === 1)?.ok).toBe(true);
     expect(r.outcomes.find((o) => o.companyId === 2)?.ok).toBe(false);
   });
-
-  it("scans only companies relevant to active users", () => {
-    const tech = { ...company, tags: ["software-engineering"], countries: [] };
-    const hospital = { ...company, tags: ["nursing-healthcare"], countries: ["GB"] };
-    const active = new Set(["nursing-healthcare"]);
-    expect(companyRelevant(tech, active, "*")).toBe(false);
-    expect(companyRelevant(hospital, active, new Set(["GB"]))).toBe(true);
-    expect(companyRelevant(hospital, active, new Set(["NG"]))).toBe(false);
-  });
 });
 
 describe("politeHttp", () => {
@@ -264,22 +254,20 @@ describe("source registry", () => {
   const nurse = onsiteNursePersona.preferences;
   const opts = { billingEnforced: false };
 
-  it("runs only adapters relevant to at least one active user", () => {
-    expect(relevantAdapters([nurse], opts).map((a) => a.id)).toEqual([]);
-    const forSoftware = relevantAdapters([software], opts).map((a) => a.id);
-    expect(forSoftware).toContain("himalayas");
-    expect(forSoftware).toContain("hackernews");
-    expect(relevantAdapters([accountant], opts).map((a) => a.id)).not.toContain("hackernews");
+  it("runs every feed the terms allow, whoever is signed up", () => {
+    const ids = usableAdapters(opts).map((a) => a.id);
+    expect(ids).toContain("himalayas");
+    expect(ids).toContain("hackernews");
   });
 
   it("keeps unverified sources off unless explicitly enabled", () => {
-    expect(relevantAdapters([software], opts).map((a) => a.id)).not.toContain("workable-search");
-    const on = relevantAdapters([software], { ...opts, enabledUnverified: ["workable-search"] });
+    expect(usableAdapters(opts).map((a) => a.id)).not.toContain("workable-search");
+    const on = usableAdapters({ ...opts, enabledUnverified: ["workable-search"] });
     expect(on.map((a) => a.id)).toContain("workable-search");
   });
 
   it("turns off free-tier-only sources once billing is on", () => {
-    expect(relevantAdapters([software], { billingEnforced: true }).map((a) => a.id)).not.toContain("remotive");
+    expect(usableAdapters({ billingEnforced: true }).map((a) => a.id)).not.toContain("remotive");
   });
 
   it("says so when no source covers a search", () => {

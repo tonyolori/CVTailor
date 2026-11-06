@@ -3,7 +3,7 @@ import { chunks, errorInfo, must, urlChunks, type Db } from "../db";
 import { log } from "../log";
 import { atsBoards, scanCompanies, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
-import { relevantAdapters, relevantCompanies, searchQueries, type RegistryOptions } from "../sources/registry";
+import { searchQueries, usableAdapters, type RegistryOptions } from "../sources/registry";
 import { dedupeKey } from "../sources/text";
 import type { RawJob } from "../sources/types";
 import { AGGREGATORS } from "../sources/aggregators";
@@ -102,7 +102,7 @@ export async function collect(
   opts: RegistryOptions,
   now: Date = new Date(),
 ): Promise<CollectResult> {
-  const adapters = relevantAdapters(users, opts, AGGREGATORS);
+  const adapters = usableAdapters(opts, AGGREGATORS);
   const queries = searchQueries(users);
   const ctx = { http, queries, now };
   const sources: CollectResult["sources"] = [];
@@ -124,7 +124,9 @@ export async function collect(
     await db.from("companies").select("id,ats,slug,name,tags,countries,fail_count").in("ats", ["gh", "lever", "ashby", "workable", "breezy", "recruitee"]),
     "load companies",
   ) as CompanyRow[];
-  const boards = relevantCompanies(companies, users);
+  // Every board, not only those tagged for today's users: a board's tags and countries are a guess,
+  // and the pre-filter below is what decides what's kept.
+  const boards = companies;
   const scan = await scanCompanies(http, boards);
   raw.push(...scan.jobs);
   await recordBoardOutcomes(db, boards, scan.outcomes);

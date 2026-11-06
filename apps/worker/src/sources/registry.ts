@@ -1,6 +1,6 @@
 import { countryName, type Preferences } from "@cvtailor/core";
 import { AGGREGATORS } from "./aggregators";
-import { companyRelevant, type CompanyRow } from "./ats";
+import type { CompanyRow } from "./ats";
 import type { SourceAdapter } from "./types";
 
 export interface RegistryOptions {
@@ -16,25 +16,12 @@ export function allowedByTerms(a: SourceAdapter, opts: RegistryOptions): boolean
   return true;
 }
 
-export function adapterServes(a: Pick<SourceAdapter, "countries" | "categories" | "workModes">, prefs: Preferences): boolean {
-  if (!a.workModes.some((m) => prefs.workModes.includes(m))) return false;
-  if (a.categories !== "*" && prefs.categories.length > 0 && !a.categories.some((c) => prefs.categories.includes(c))) return false;
-  if (a.countries === "*") return true;
-  const wanted = new Set([prefs.eligibility.country, ...prefs.locations.countries].map((c) => c.toUpperCase()));
-  return a.countries.some((c) => wanted.has(c.toUpperCase()));
-}
-
-/** Only adapters at least one active user needs. Cost must not grow with sources nobody uses. */
-export function relevantAdapters(users: Preferences[], opts: RegistryOptions, adapters: SourceAdapter[] = AGGREGATORS): SourceAdapter[] {
-  return adapters.filter((a) => allowedByTerms(a, opts) && users.some((u) => adapterServes(a, u)));
-}
-
-/** The companies whose boards are worth scanning for these users. */
-export function relevantCompanies(companies: CompanyRow[], users: Preferences[]): CompanyRow[] {
-  const tags = new Set(users.flatMap((u) => u.categories));
-  const anyRemote = users.some((u) => u.workModes.includes("remote"));
-  const countries = new Set(users.flatMap((u) => [u.eligibility.country, ...u.locations.countries]).map((c) => c.toUpperCase()));
-  return companies.filter((c) => companyRelevant(c, tags, anyRemote ? "*" : countries));
+/**
+ * Every feed the terms allow, whoever is signed up. Fetching costs no AI, only polite request time,
+ * and the pre-filter still stores only postings someone could want.
+ */
+export function usableAdapters(opts: RegistryOptions, adapters: SourceAdapter[] = AGGREGATORS): SourceAdapter[] {
+  return adapters.filter((a) => allowedByTerms(a, opts));
 }
 
 export interface SourceGap {

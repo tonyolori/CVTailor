@@ -16,6 +16,7 @@
     "seed:personas": "npm run seed:personas -w @cvtailor/worker --",
     "seed:tony": "npm run seed:tony -w @cvtailor/worker --",
     "seed:companies": "npm run seed:companies -w @cvtailor/worker --",
+    "seed:companies:live": "npm run seed:companies:live -w @cvtailor/worker --",
     "claude:login": "npm run claude:login -w @cvtailor/llm",
     "llm:check": "npm run llm:check -w @cvtailor/worker",
     "email:auth-templates": "npm run email:auth-templates -w @cvtailor/worker",
@@ -23,6 +24,7 @@
     "email:preview:watch": "npm run email:preview:watch -w @cvtailor/worker",
     "eval:enrich": "npm run eval:enrich -w @cvtailor/worker --",
     "worker": "npm run start -w @cvtailor/worker --",
+    "worker:live": "npm run start:live -w @cvtailor/worker --",
     "web": "npm run dev -w @cvtailor/web",
     "test:integration": "npm run test:integration -w @cvtailor/worker"
   },

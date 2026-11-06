@@ -8,9 +8,22 @@ The worker finds jobs, scores them for each person and sends their emails. CVs a
 
 Times are controlled by `RUN_START_HOUR_UTC` (default 1, which is 2am in Lagos) and `RUN_ALERT_HOUR_UTC` (default 6).
 
+## Which database
+
+| Command | Reads settings from | Writes to |
+| --- | --- | --- |
+| `npm run worker` | `.env` | Local Supabase, for development |
+| `npm run worker:live` | `.env.production` | The live Supabase project behind the deployed site |
+
+Either way the work happens on your Mac. With `LLM_PROVIDER=claude-subscription`, the AI steps use your own Claude login, and only the results are written to the database. Subscription mode does AI work only for `OWNER_EMAIL` and the synthetic personas, so other people who sign up get no matches until you move to an API key.
+
+Before the first live run, load the employer boards to scan with `npm run seed:companies:live`. The run also needs you signed up on the deployed site with your preferences saved, because it keeps only the postings someone wants.
+
+The worker fetches every job board and feed whoever is signed up, and stores only the postings at least one person could want.
+
 ## Keep it running on macOS
 
-A LaunchAgent starts the loop when you log in and restarts it if it stops. Run these from the repo root.
+A LaunchAgent starts the live worker's loop when you log in and restarts it if it stops. Run these from the repo root. For the local database instead, change `worker:live` to `worker` in the setup below.
 
 **Set it up** (once):
 
@@ -24,7 +37,7 @@ cat > ~/Library/LaunchAgents/com.cvtailor.worker.plist <<EOF
   <key>Label</key><string>com.cvtailor.worker</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/zsh</string><string>-lc</string><string>cd "$PWD" &amp;&amp; npm run worker -- --loop</string>
+    <string>/bin/zsh</string><string>-lc</string><string>cd "$PWD" &amp;&amp; npm run worker:live -- --loop</string>
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
