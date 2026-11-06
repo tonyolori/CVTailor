@@ -72,6 +72,7 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 ### Web host (Vercel or Cloudflare Pages)
 - [ ] Create a project with `apps/web` as its root and add the env vars listed in `.env.example` under "Web app".
 - [ ] Set `NEXT_PUBLIC_SITE_URL` to the deployed URL. Sign-in redirects depend on it.
+- [ ] Run the web app's functions in the Supabase project's region. Every page makes several database calls, one after another, and each crosses the distance between the two. `apps/web/vercel.json` sets `dub1` (Dublin), [Vercel's region for AWS eu-west-1](https://vercel.com/docs/regions#region-list), where the CVTailor project is. If the Supabase project ever moves, change it to match. Vercel's default is Washington, D.C. (`iad1`).
 - [ ] Set `CRON_SECRET`, `OWNER_EMAIL`, `EMAIL_API_KEY` and `EMAIL_FROM`. The daily check in `apps/web/vercel.json` uses them to alert you when no run has finished. On Cloudflare Pages, call `/api/cron/run-check` from a Cron Trigger instead.
 - [ ] Set `SUPABASE_SERVICE_ROLE_KEY` as a server-only variable. Account deletion, unsubscribe, webhooks and admin use it.
 - [ ] Set the AI provider on the web host too, because it writes CVs and reads uploads as people ask: `LLM_PROVIDER`, its key (`DEEPSEEK_API_KEY` at Level 3b, `ANTHROPIC_API_KEY` at Level 3), `LLM_MODEL_SMALL`, `LLM_MODEL_STRONG`, `GLOBAL_DAILY_BUDGET_USD` and `USER_DAILY_BUDGET_USD`. Use the same values as the worker: both count against one daily budget. Without a key, people can still onboard by hand but can't get CVs.
