@@ -53,6 +53,7 @@ export async function AppShell({ supabase, userId, email, active, children }: { 
             </Link>
           ) : null}
           {["to_apply", "look", "unscored", "pasted"].map(view)}
+          {page("jobs", "/jobs", "All jobs")}
           <div className="gp">Your applications</div>
           {["all", "applied", "interview", "offer", "rejected", "dismissed"].map(view)}
           <div className="gp">Your account</div>

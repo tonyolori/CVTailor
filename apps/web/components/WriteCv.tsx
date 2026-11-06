@@ -11,14 +11,32 @@ import { loggedFetch } from "@/lib/log";
 
 type Stage = "form" | "working" | "done";
 
-export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance; style: CvStyle; forMatch: { id: number; title: string; company: string } | null }) {
+export interface WritePrefill {
+  title: string;
+  company: string;
+  link: string;
+  text: string;
+}
+
+export function WriteCv({
+  allowance,
+  style,
+  forMatch,
+  prefill = null,
+}: {
+  allowance: CvAllowance;
+  style: CvStyle;
+  forMatch: { id: number; title: string; company: string } | null;
+  /** A job picked from All jobs, filled in as if pasted, so it's written the same way. */
+  prefill?: WritePrefill | null;
+}) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("form");
   const [error, setError] = useState<string | null>(null);
-  const [text, setText] = useState("");
-  const [title, setTitle] = useState(forMatch?.title ?? "");
-  const [company, setCompany] = useState(forMatch?.company ?? "");
-  const [link, setLink] = useState("");
+  const [text, setText] = useState(prefill?.text ?? "");
+  const [title, setTitle] = useState(forMatch?.title ?? prefill?.title ?? "");
+  const [company, setCompany] = useState(forMatch?.company ?? prefill?.company ?? "");
+  const [link, setLink] = useState(prefill?.link ?? "");
   const [matchId, setMatchId] = useState<number | null>(null);
   const [resume, setResume] = useState<Resume | null>(null);
   const [hasLetter, setHasLetter] = useState(false);
@@ -82,7 +100,11 @@ export function WriteCv({ allowance, style, forMatch }: { allowance: CvAllowance
           <>
             <h1>Write a CV for any job</h1>
             <p className="sub" style={{ marginBottom: 16 }}>
-              {forMatch ? `Paste the posting for ${forMatch.title} and we'll write a CV for it, using only what's in your library.` : "Found a job somewhere else? Paste it here and we'll write a CV for it, using only what's in your library."}
+              {forMatch
+                ? `Paste the posting for ${forMatch.title} and we'll write a CV for it, using only what's in your library.`
+                : prefill
+                  ? "We've filled this in from All jobs. Check it, then we'll write a CV for it, using only what's in your library."
+                  : "Found a job somewhere else? Paste it here and we'll write a CV for it, using only what's in your library."}
             </p>
             {!allowance.unlimited && allowance.left === 0 && stage === "form" && !matchId ? (
               <div className="stack">
