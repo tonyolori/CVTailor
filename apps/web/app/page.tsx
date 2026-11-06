@@ -70,7 +70,7 @@ export default async function Home() {
         <div className="join">
           <LandingSignIn />
         </div>
-        <p className="plans">Plans coming soon.</p>
+        {/* <p className="plans">Plans coming soon.</p> */}
         <div className="foot">
           <Link href="/privacy">Privacy</Link>
           <Link href="/login">Sign in</Link>
