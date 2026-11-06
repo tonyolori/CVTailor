@@ -46,8 +46,14 @@ export function errorFields(err: unknown): { errorType: string; code?: string; a
   return { errorType: err.name, code, at };
 }
 
+/** Supabase's gateway refuses a bad key with a fixed message and no code. Known messages only: others may be free text. */
+const GATEWAY_MESSAGES: Record<string, string> = {
+  "Invalid API key": "invalid_api_key",
+  "No API key found in request": "no_api_key",
+};
+
 /** The error code in a failed answer: Supabase Auth, PostgREST, Resend and Paystack each name it differently. */
 export function bodyErrorCode(body: unknown): string | undefined {
-  const b = body as { error_code?: unknown; code?: unknown; name?: unknown } | null | undefined;
-  return logIdentifier(b?.error_code) ?? logIdentifier(b?.code) ?? logIdentifier(b?.name);
+  const b = body as { error_code?: unknown; code?: unknown; name?: unknown; message?: unknown } | null | undefined;
+  return logIdentifier(b?.error_code) ?? logIdentifier(b?.code) ?? logIdentifier(b?.name) ?? (typeof b?.message === "string" ? GATEWAY_MESSAGES[b.message] : undefined);
 }

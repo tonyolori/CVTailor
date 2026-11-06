@@ -7,7 +7,7 @@ import { after } from "next/server";
 import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@cvtailor/core";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { sendInvite, sendWelcome } from "@/lib/email";
-import { log, logged } from "@/lib/log";
+import { bodyErrorCode, log, logged } from "@/lib/log";
 import { cvCounts } from "@/lib/plan-settings";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
@@ -76,7 +76,7 @@ export const signOut = logged("action.signOut", async (): Promise<void> => {
 export const giveConsent = logged("action.giveConsent", async (): Promise<ActionResult> => {
   const { user, profile } = await requireUser();
   // Only the first consent sets the free CVs, so going through this twice can't top them up.
-  const { data: started, error } = await adminClient()
+  const { data: started, error, status } = await adminClient()
     .from("profiles")
     .update({ consented_at: new Date().toISOString(), cv_free_left: cvCounts().free })
     .eq("id", user.id)
@@ -90,7 +90,7 @@ export const giveConsent = logged("action.giveConsent", async (): Promise<Action
       if (!sent) log("email.welcome_failed", { userId: user.id }, "warn");
     });
   }
-  if (error) log("consent.save_failed", { userId: user.id, code: error.code }, "error");
+  if (error) log("consent.save_failed", { userId: user.id, status, code: bodyErrorCode(error) }, "error");
   return error ? { ok: false, message: "Couldn't save that. Try again." } : { ok: true };
 });
 

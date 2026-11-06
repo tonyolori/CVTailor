@@ -1,6 +1,6 @@
 import { bodyErrorCode, errorFields, safeLogFields, type LogField } from "@cvtailor/core/log";
 
-export { errorFields };
+export { bodyErrorCode, errorFields };
 
 export type LogLevel = "info" | "warn" | "error";
 type Fields = Record<string, LogField>;
