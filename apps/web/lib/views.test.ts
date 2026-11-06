@@ -40,20 +40,22 @@ describe("sourceLabel", () => {
 });
 
 describe("landing examples", () => {
-  const people = [0, 1, 2].map((i) => landingExample(i));
+  const jobs = landingExample();
 
   it("are valid CVs", () => {
-    for (const jobs of people) for (const j of jobs) expect(ResumeSchema.safeParse(j.resume).success).toBe(true);
+    for (const j of jobs) expect(ResumeSchema.safeParse(j.resume).success).toBe(true);
   });
 
   it("show the same person rewritten for each job, using only that person's facts", () => {
-    for (const jobs of people) {
-      expect(new Set(jobs.map((j) => j.resume.header.name)).size).toBe(1);
-      expect(new Set(jobs.map((j) => j.resume.experience[0]!.bullets.join())).size).toBe(jobs.length);
-    }
+    expect(new Set(jobs.map((j) => j.resume.header.name)).size).toBe(1);
+    expect(new Set(jobs.map((j) => j.resume.experience[0]!.bullets.join())).size).toBe(jobs.length);
   });
 
-  it("come from different occupations", () => {
-    expect(new Set(people.map((jobs) => jobs[0]!.resume.experience[0]!.title)).size).toBe(people.length);
+  it("describe each posting", () => {
+    for (const j of jobs) {
+      expect(j.about.length).toBeGreaterThan(0);
+      expect(j.doing.length).toBeGreaterThanOrEqual(3);
+      expect(j.needs.length).toBeGreaterThanOrEqual(3);
+    }
   });
 });

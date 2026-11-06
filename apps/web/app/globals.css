@@ -327,13 +327,18 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .lp .stick .sheet { --w: calc(88vh / 1.414); min-height: 0; aspect-ratio: 1 / 1.414; overflow: hidden; transform: rotate(1deg); }
 .lp .stick .cvi, .lp .fan .cvi { font-size: 2.2cqw; padding-block: 6%; }
 .lp .say { font-size: 17px; color: var(--soft); margin-bottom: 3vh; max-width: 30em; }
-.lp .jt { font-size: clamp(56px, 7.2vw, 120px); line-height: 0.94; letter-spacing: -0.018em; min-height: 2.82em; }
+.lp .jt { font-size: clamp(44px, 4.8vw, 84px); line-height: 0.94; letter-spacing: -0.018em; min-height: 1.9em; }
 .lp .co { font-size: 19px; margin-top: 16px; font-weight: 500; }
 .lp .wy { font-size: 18px; color: var(--soft); max-width: 31em; margin-top: 10px; min-height: 4.5em; }
 .lp .ticks { display: flex; gap: 6px; margin-top: 20px; max-width: 280px; }
 .lp .ticks i { flex: 1; height: 4px; border-radius: 9px; background: rgba(21, 70, 224, 0.2); transition: background 0.4s; }
 .lp .ticks i.d { background: var(--blue); }
-.lp .eg { font-size: 13px; color: var(--soft); margin-top: 16px; }
+.lp .jd { margin-top: 2.4vh; max-width: 44em; font-size: 15px; line-height: 1.5; }
+.lp .jd-g { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 2vh; padding-top: 2vh; border-top: 1px solid rgba(21, 70, 224, 0.18); }
+.lp .jd h3 { font: 400 22px/1.1 var(--f-serif), Georgia, serif; margin-bottom: 8px; }
+.lp .jd ul { list-style: disc; padding-left: 1.1em; }
+.lp .jd li + li { margin-top: 4px; }
+.lp .jd li::marker { color: var(--blue); }
 .lp .truth { padding: 16vh 4vw 12vh; background: #fff; }
 .lp .truth h2, .lp .end h2 { text-wrap: balance; }
 .lp .truth h2 { font-size: 8.5vw; line-height: 0.93; letter-spacing: -0.02em; max-width: 12em; }
@@ -371,6 +376,12 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .wlf h2 { font-size: 42px; line-height: 1; }
 .hp { position: absolute; left: -9999px; height: 1px; overflow: hidden; }
 
+@media (min-width: 1101px) and (max-height: 820px) {
+  .lp .jd { font-size: 14px; line-height: 1.45; }
+  .lp .jd h3 { font-size: 20px; }
+  .lp .wy { font-size: 16px; }
+  .lp .ticks { margin-top: 14px; }
+}
 @media (max-width: 1100px) {
   :root { --page: min(calc(100vw - 44px), 560px); }
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -396,6 +407,7 @@ details.sec[open] > summary { margin-bottom: 10px; }
   .lp .stick .sheet { --w: min(82vw, 44vh); justify-self: center; }
   .lp .jt { font-size: 40px; min-height: 0; }
   .lp .say, .lp .wy { font-size: 14px; min-height: 0; margin-bottom: 0; }
+  .lp .jd { display: none; }
   .lp .truth h2 { font-size: 14vw; }
   .lp .end h2 { font-size: 15vw; }
   .lp .steps li { grid-template-columns: 40px minmax(0, 1fr); }

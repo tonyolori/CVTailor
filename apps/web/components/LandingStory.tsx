@@ -43,13 +43,33 @@ export function LandingStory({ jobs }: { jobs: LandingJob[] }) {
           <p className="say">Same person, same facts. Keep scrolling and watch the CV change for each job.</p>
           <h2 className="disp jt">{job.title}</h2>
           <p className="co">{job.company}</p>
+          <div className="jd">
+            <p>{job.about}</p>
+            <div className="jd-g">
+              <div>
+                <h3>What you'll do</h3>
+                <ul>
+                  {job.doing.map((d) => (
+                    <li key={d}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3>What you'll need</h3>
+                <ul>
+                  {job.needs.map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
           <p className="wy">{job.why}</p>
           <div className="ticks" aria-hidden="true">
             {jobs.map((j, i) => (
               <i key={j.title} className={i <= step ? "d" : ""} />
             ))}
           </div>
-          <p className="eg">An invented example.</p>
         </div>
         <CvSheet resume={job.resume} style="fitted" label={`Example CV written for ${job.title}`} />
       </div>
