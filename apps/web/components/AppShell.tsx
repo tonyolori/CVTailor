@@ -1,32 +1,42 @@
 import Link from "next/link";
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signOut } from "@/app/actions";
+import { NavLink } from "@/components/NavLink";
 import { SideNav } from "@/components/SideNav";
 import { isAdmin, setupStep } from "@/lib/auth";
 import { ALLOWANCE_COLUMNS, cvAllowance, type AllowanceFields } from "@/lib/entitlement";
 import { VIEWS, VISIBLE_DECISIONS, type MatchFacts } from "@/lib/views";
 
-/** Sidebar and page frame for every signed-in screen. `active` names the sidebar label to highlight. */
-export async function AppShell({ supabase, userId, email, active, children }: { supabase: SupabaseClient; userId: string; email: string; active: string; children: React.ReactNode }) {
-  const [admin, setup, { data }, { data: profile }] = await Promise.all([
+/**
+ * The sidebar's data, once per request. A page can call this before its own queries so both load
+ * together. AppShell only renders after the page's awaits, so on its own this would wait for them.
+ */
+export const loadShell = cache((supabase: SupabaseClient, userId: string, email: string) =>
+  Promise.all([
     isAdmin(email),
     setupStep(supabase, userId),
     supabase.from("matches").select("decision,tracker_status").eq("user_id", userId).in("decision", VISIBLE_DECISIONS).limit(5000),
     supabase.from("profiles").select(ALLOWANCE_COLUMNS).eq("id", userId).maybeSingle(),
-  ]);
+  ]),
+);
+
+/** Sidebar and page frame for every signed-in screen. `active` names the sidebar label to highlight. */
+export async function AppShell({ supabase, userId, email, active, children }: { supabase: SupabaseClient; userId: string; email: string; active: string; children: React.ReactNode }) {
+  const [admin, setup, { data }, { data: profile }] = await loadShell(supabase, userId, email);
   const rows = (data ?? []) as MatchFacts[];
   const allowance = profile ? cvAllowance(profile as unknown as AllowanceFields) : null;
 
   const view = (key: string) => (
-    <Link key={key} className={`nv ${active === key ? "on" : ""}`} aria-current={active === key ? "page" : undefined} href={`/dashboard?view=${key}`}>
+    <NavLink key={key} className={`nv ${active === key ? "on" : ""}`} current={active === key} href={`/dashboard?view=${key}`}>
       <span>{VIEWS[key]!.label}</span>
       <span>{rows.filter(VIEWS[key]!.holds).length}</span>
-    </Link>
+    </NavLink>
   );
   const page = (key: string, href: string, label: string) => (
-    <Link className={`nv ${active === key ? "on" : ""}`} aria-current={active === key ? "page" : undefined} href={href}>
+    <NavLink className={`nv ${active === key ? "on" : ""}`} current={active === key} href={href}>
       <span>{label}</span>
-    </Link>
+    </NavLink>
   );
 
   return (

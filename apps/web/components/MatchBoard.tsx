@@ -150,6 +150,11 @@ export function MatchBoard(props: {
     [load, router],
   );
 
+  // A tab switch doesn't wait on the server for these, so the list shows sooner. Fetch them here.
+  useEffect(() => {
+    if (selected && !details.has(selected)) void load(selected);
+  }, [selected, details, load]);
+
   // Pick up anything still being written when the page opens.
   useEffect(() => {
     for (const r of props.rows) if (r.requestId) void follow(r.id, r.requestId);

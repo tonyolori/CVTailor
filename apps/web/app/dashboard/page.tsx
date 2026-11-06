@@ -1,6 +1,6 @@
 import { cvStyleOf, EnrichedJobSchema } from "@cvtailor/core";
 import { expireCvRequests } from "@cvtailor/ai/cv-request";
-import { AppShell } from "@/components/AppShell";
+import { AppShell, loadShell } from "@/components/AppShell";
 import { MatchBoard, type BoardRow } from "@/components/MatchBoard";
 import { requireUser } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
@@ -25,8 +25,7 @@ interface Row {
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ view?: string; job?: string }> }) {
   const { supabase, user, profile } = await requireUser();
-  // A CV cut off with its function shouldn't say "writing" forever, or keep the CV it took.
-  await expireCvRequests(adminClient(), user.id);
+  void loadShell(supabase, user.id, user.email ?? "");
   const params = await searchParams;
   const viewKey = VIEWS[params.view ?? ""] ? params.view! : "to_apply";
 
@@ -44,10 +43,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   else if (viewKey === "all") query = query.eq("decision", "picked");
   else query = query.in("decision", TRACKED_DECISIONS).eq("tracker_status", viewKey);
 
-  const [{ data }, { data: latest }, { data: running }] = await Promise.all([
+  const asked = Number(params.job);
+  // A link to one job opens on it, so its details load alongside the list. A tab switch leaves them to the board.
+  const [{ data }, { data: latest }, { data: running }, askedDetail] = await Promise.all([
     query,
     supabase.from("daily_summaries").select("run_date,data").eq("user_id", user.id).order("run_date", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("cv_requests").select("id,match_id").eq("user_id", user.id).eq("status", "running"),
+    // A CV cut off with its function shouldn't say "writing" forever, or keep the CV it took. Not
+    // waited on before the query above: the board polls anything shown as writing, and the poll
+    // ends expired ones too.
+    Number.isInteger(asked) && asked > 0 ? loadMatchDetail(supabase, asked) : null,
+    expireCvRequests(adminClient(), user.id),
   ]);
   const summary = latest?.data as { gaps?: string[]; notes?: string[]; sources?: { label: string }[]; closeCalls?: { company: string; title: string; reason: string; link?: string }[] } | undefined;
   const working = new Map((running ?? []).map((r) => [r.match_id as number, r.id as number]));
@@ -81,9 +87,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     ];
   });
 
-  const asked = Number(params.job);
   const selected = rows.find((r) => r.id === asked)?.id ?? rows[0]?.id ?? null;
-  const detail = selected ? await loadMatchDetail(supabase, selected) : null;
+  const detail = selected === asked ? askedDetail : null;
 
   return (
     <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active={viewKey}>

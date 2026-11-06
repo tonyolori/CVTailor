@@ -131,9 +131,14 @@ td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-a
 .side-head { display: flex; justify-content: space-between; align-items: center; padding: 0 11px 18px; }
 .side-toggle { display: none; }
 .side-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.nv { display: flex; justify-content: space-between; width: 100%; padding: 6px 11px; border-radius: 99px; font-weight: 500; color: var(--ink); text-decoration: none; }
+.nv { position: relative; display: flex; justify-content: space-between; width: 100%; padding: 6px 11px; border-radius: 99px; font-weight: 500; color: var(--ink); text-decoration: none; }
 .nv:hover { background: rgba(21, 70, 224, 0.08); }
 .nv.on, .nv.on:hover { background: var(--blue); color: #fff; font-weight: 600; }
+.nv-pend { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+/* Shown after a beat, so a quick page doesn't flicker. */
+.nv-pend[data-on] { animation: nv-wait 0s 120ms both; }
+@keyframes nv-wait { to { box-shadow: inset 0 0 0 2px var(--blue); background: rgba(21, 70, 224, 0.08); } }
+.app:has(.nv-pend[data-on]) > :not(.side) { opacity: 0.55; transition: opacity 0.2s 120ms; }
 .nv.wr { background: #fff; font-weight: 600; margin-bottom: 8px; box-shadow: inset 0 0 0 1.5px var(--blue); color: var(--blue); }
 .nv.wr:hover { background: #fff; color: var(--blue-dark); }
 .nv.wr.on, .nv.wr.on:hover { background: var(--blue); color: #fff; }
