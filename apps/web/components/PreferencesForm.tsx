@@ -1,20 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { regionsOfCountry, Region, type Preferences, type PreferencesInput, type WorkMode } from "@cvtailor/core";
+import { regionsOfCountry, Region, type CvStyle, type Preferences, type PreferencesInput, type Resume, type WorkMode } from "@cvtailor/core";
 import type { TitleSuggestions } from "@cvtailor/core/prompts";
 import type { CountryOption } from "@/lib/countries";
-import { savePreferences } from "@/app/actions";
+import { savePreferences, setCvStyle } from "@/app/actions";
+import { CvTemplatePicker } from "@/components/CvTemplatePicker";
+import { blankPreferences, commas, CommaField } from "@/components/PreferenceFields";
 import { errorFields, log, loggedFetch } from "@/lib/log";
-
-const commas = (s: string) => s.split(",").map((l) => l.trim()).filter(Boolean);
-
-function offsetHours(tz: string): number {
-  const now = new Date();
-  const local = new Date(now.toLocaleString("en-US", { timeZone: tz }));
-  const utc = new Date(now.toLocaleString("en-US", { timeZone: "UTC" }));
-  return Math.round(((local.getTime() - utc.getTime()) / 3_600_000) * 2) / 2;
-}
 
 const REGION_LABELS: Record<string, string> = {
   EU: "European Union",
@@ -52,42 +45,26 @@ export function PreferencesForm({
   categories,
   tz,
   countries,
-  next,
-  saveLabel = "Save",
+  style: initialStyle,
+  sample,
 }: {
   initial: Preferences | null;
   categories: { id: string; label: string }[];
   tz: string;
   countries: CountryOption[];
-  next?: string;
-  saveLabel?: string;
+  style: CvStyle;
+  sample: Resume;
 }) {
-  const [p, setP] = useState<PreferencesInput>(
-    initial ?? {
-      categories: [],
-      targetTitles: [],
-      workModes: ["remote"],
-      remoteScope: "eligible_regions",
-      locations: { countries: [], cities: [] },
-      eligibility: { country: "", regions: [], utcOffsetHours: offsetHours(tz), workAuthorization: [] },
-      employerBase: null,
-      minSalary: null,
-      languages: [],
-      excludeTitleKeywords: [],
-      excludeRoleTypes: [],
-      excludeSeniority: [],
-      maxYearsRequired: null,
-      missingCredentialPolicy: "hard_gate",
-    },
-  );
+  const [p, setP] = useState<PreferencesInput>(initial ?? blankPreferences(tz));
   const [titles, setTitles] = useState((p.targetTitles ?? []).join(", "));
+  const [style, setStyle] = useState(initialStyle);
+  const [savedStyle, setSavedStyle] = useState(initialStyle);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, start] = useTransition();
   const [suggesting, setSuggesting] = useState(false);
   const set = (patch: Partial<PreferencesInput>) => setP({ ...p, ...patch });
   const modes = (p.workModes ?? []) as WorkMode[];
   const toggleIn = <T,>(list: T[] | undefined, v: T): T[] => ((list ?? []).includes(v) ? (list ?? []).filter((x) => x !== v) : [...(list ?? []), v]);
-  const physical = modes.includes("hybrid") || modes.includes("onsite");
   const exp = p.expansionTitles ?? { a: [], b: [], c: [] };
   const eligibility = p.eligibility!;
 
@@ -118,13 +95,16 @@ export function PreferencesForm({
   }
 
   function save() {
-    const hasPlaces = (p.locations?.countries?.length ?? 0) + (p.locations?.cities?.length ?? 0) > 0;
     if (!eligibility.country) return setMessage({ ok: false, text: "Choose the country you live in." });
     if (commas(titles).length === 0) return setMessage({ ok: false, text: "Add at least one job title." });
     if (modes.length === 0) return setMessage({ ok: false, text: "Choose at least one way of working." });
-    if (physical && !hasPlaces) return setMessage({ ok: false, text: "Add a country or city for hybrid and on-site roles." });
     start(async () => {
-      const r = await savePreferences({ ...p, targetTitles: commas(titles) }, next);
+      if (style !== savedStyle) {
+        const styled = await setCvStyle(style);
+        if (!styled.ok) return setMessage({ ok: false, text: styled.message ?? "Couldn't save your CV template." });
+        setSavedStyle(style);
+      }
+      const r = await savePreferences({ ...p, targetTitles: commas(titles) });
       setMessage({ ok: r.ok, text: r.message ?? "" });
     });
   }
@@ -145,15 +125,15 @@ export function PreferencesForm({
         <div className="grid2">
           <label>
             Close titles (same work, other names)
-            <textarea value={(exp.a ?? []).join(", ")} onChange={(e) => set({ expansionTitles: { ...exp, a: commas(e.target.value) } })} />
+            <CommaField textarea value={exp.a ?? []} onChange={(list) => set({ expansionTitles: { ...exp, a: list } })} />
           </label>
           <label>
             Adjacent titles
-            <textarea value={(exp.b ?? []).join(", ")} onChange={(e) => set({ expansionTitles: { ...exp, b: commas(e.target.value) } })} />
+            <CommaField textarea value={exp.b ?? []} onChange={(list) => set({ expansionTitles: { ...exp, b: list } })} />
           </label>
           <label>
             Stretch titles
-            <textarea value={(exp.c ?? []).join(", ")} onChange={(e) => set({ expansionTitles: { ...exp, c: commas(e.target.value) } })} />
+            <CommaField textarea value={exp.c ?? []} onChange={(list) => set({ expansionTitles: { ...exp, c: list } })} />
           </label>
         </div>
         <small className="muted">These are searched only when your main titles find too few good matches.</small>
@@ -224,35 +204,10 @@ export function PreferencesForm({
             </select>
           </label>
         ) : null}
-        {modes.includes("remote") ? (
-          <label>
-            Other countries where you already have the right to work, as two-letter codes (optional)
-            <input
-              value={(eligibility.workAuthorization ?? []).join(", ")}
-              onChange={(e) => set({ eligibility: { ...eligibility, workAuthorization: commas(e.target.value).map((c) => c.toUpperCase()).filter((c) => c.length === 2) } })}
-            />
-          </label>
-        ) : null}
-        {physical ? (
-          <div className="grid2">
-            <label>
-              Countries for hybrid and on-site roles, as two-letter codes
-              <input
-                value={(p.locations?.countries ?? []).join(", ")}
-                onChange={(e) =>
-                  set({ locations: { ...p.locations, countries: commas(e.target.value).map((c) => c.toUpperCase()).filter((c) => c.length === 2) } })
-                }
-              />
-            </label>
-            <label>
-              Cities (optional; leave blank for anywhere in those countries)
-              <input value={(p.locations?.cities ?? []).join(", ")} onChange={(e) => set({ locations: { ...p.locations, cities: commas(e.target.value) } })} />
-            </label>
-          </div>
-        ) : null}
+        {modes.includes("hybrid") || modes.includes("onsite") ? <small className="muted">Hybrid and on-site roles are matched in the country you live in.</small> : null}
         <label>
           Languages you can work in, comma-separated
-          <input value={(p.languages ?? []).join(", ")} onChange={(e) => set({ languages: commas(e.target.value) })} />
+          <CommaField value={p.languages ?? []} onChange={(list) => set({ languages: list })} />
         </label>
       </div>
 
@@ -302,7 +257,7 @@ export function PreferencesForm({
         <small className="muted">A salary filter only applies when a posting states its pay in the same currency. Otherwise the role stays in.</small>
         <label>
           Leave out titles containing, comma-separated
-          <input value={(p.excludeTitleKeywords ?? []).join(", ")} onChange={(e) => set({ excludeTitleKeywords: commas(e.target.value) })} />
+          <CommaField value={p.excludeTitleKeywords ?? []} onChange={(list) => set({ excludeTitleKeywords: list })} />
         </label>
         <fieldset>
           <legend>Leave out these seniority levels</legend>
@@ -354,37 +309,22 @@ export function PreferencesForm({
       </div>
 
       <div className="card">
-        <h2>Your CV format</h2>
-        <div className="grid2">
-          <label>
-            Paper size
-            <select
-              value={p.cvTemplate?.pageSize ?? "A4"}
-              onChange={(e) => set({ cvTemplate: { convention: p.cvTemplate?.convention ?? "standard", pageSize: e.target.value as "A4" | "LETTER" } })}
-            >
-              <option value="A4">A4</option>
-              <option value="LETTER">US Letter</option>
-            </select>
-          </label>
-          <label>
-            Regional convention
-            <select
-              value={p.cvTemplate?.convention ?? "standard"}
-              onChange={(e) => set({ cvTemplate: { pageSize: p.cvTemplate?.pageSize ?? "A4", convention: e.target.value as "standard" } })}
-            >
-              <option value="standard">Standard</option>
-              <option value="north_america">North America</option>
-              <option value="uk_commonwealth">UK and Commonwealth</option>
-              <option value="europe">Europe</option>
-            </select>
-          </label>
-        </div>
+        <h2>Your CV template</h2>
+        <CvTemplatePicker value={style} onChange={setStyle} sample={sample} />
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={p.cvTemplate?.pageSize === "LETTER"}
+            onChange={(e) => set({ cvTemplate: { convention: p.cvTemplate?.convention ?? "standard", pageSize: e.target.checked ? "LETTER" : "A4" } })}
+          />
+          Use US Letter paper instead of A4
+        </label>
       </div>
 
       {message ? <div className={`notice ${message.ok ? "ok" : "bad"}`}>{message.text}</div> : null}
       <div>
         <button className="primary" type="button" disabled={pending} onClick={save}>
-          {pending ? "Saving..." : saveLabel}
+          {pending ? "Saving..." : "Save"}
         </button>
       </div>
     </div>

@@ -49,7 +49,10 @@ export const PreferencesSchema = z.object({
   workModes: z.array(WorkMode).min(1).default(["remote"]),
   /** How far remote roles may be limited. Ignored unless workModes includes remote. */
   remoteScope: RemoteScope.default("eligible_regions"),
-  /** Where hybrid and on-site roles may be. Ignored unless workModes includes hybrid or onsite. */
+  /**
+   * Where hybrid and on-site roles may be. Ignored unless workModes includes hybrid or onsite.
+   * Not asked for in the app: empty means the country the user lives in (see physicalPlaces).
+   */
   locations: z
     .object({
       countries: z.array(z.string().length(2)).default([]),
@@ -64,8 +67,6 @@ export const PreferencesSchema = z.object({
     /** Regions that country falls in. Prefilled at onboarding from regionsOfCountry. */
     regions: z.array(Region).default([]),
     utcOffsetHours: z.number().min(-12).max(14),
-    /** Other countries where the user already holds the right to work. */
-    workAuthorization: z.array(z.string().length(2)).default([]),
   }),
 
   /** Optional filter on where the employer is based. Null means any. */
@@ -118,3 +119,9 @@ export const PreferencesSchema = z.object({
 
 export type Preferences = z.infer<typeof PreferencesSchema>;
 export type PreferencesInput = z.input<typeof PreferencesSchema>;
+
+/** Places a hybrid or on-site role may be in: the user's own list, or else the country they live in. */
+export function physicalPlaces(prefs: Preferences): Preferences["locations"] {
+  const { countries, cities } = prefs.locations;
+  return countries.length > 0 || cities.length > 0 ? prefs.locations : { countries: [prefs.eligibility.country], cities: [] };
+}

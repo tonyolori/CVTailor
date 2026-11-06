@@ -2,7 +2,7 @@ import { cvStyleOf, EnrichedJobSchema } from "@cvtailor/core";
 import { expireCvRequests } from "@cvtailor/ai/cv-request";
 import { AppShell } from "@/components/AppShell";
 import { MatchBoard, type BoardRow } from "@/components/MatchBoard";
-import { requireOnboarded } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 import { loadMatchDetail } from "@/lib/match-detail";
 import { adminClient } from "@/lib/supabase/admin";
@@ -24,7 +24,7 @@ interface Row {
 }
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ view?: string; job?: string }> }) {
-  const { supabase, user, profile } = await requireOnboarded();
+  const { supabase, user, profile } = await requireUser();
   // A CV cut off with its function shouldn't say "writing" forever, or keep the CV it took.
   await expireCvRequests(adminClient(), user.id);
   const params = await searchParams;

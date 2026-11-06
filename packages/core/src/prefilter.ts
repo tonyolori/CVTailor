@@ -1,4 +1,4 @@
-import type { Preferences, WorkMode } from "./preferences";
+import { physicalPlaces, type Preferences, type WorkMode } from "./preferences";
 import { countryName } from "./regions";
 
 /** Cheap fields every source can provide, before any LLM call. */
@@ -78,7 +78,8 @@ export function placeMatches(job: PrefilterJob, prefs: Preferences, title: "targ
   if (job.workModeHint == null && !job.locationText.trim()) return true;
   const nearMissOk = prefs.worthALookCount > 0 && title === "target";
   const lower = job.locationText.toLowerCase();
-  const home = [prefs.eligibility.country, ...prefs.locations.countries];
+  const { countries, cities } = physicalPlaces(prefs);
+  const home = [prefs.eligibility.country, ...countries];
 
   if (job.workModeHint === "remote" || REMOTE_TEXT.test(job.locationText)) {
     return prefs.workModes.includes("remote") || nearMissOk;
@@ -86,7 +87,6 @@ export function placeMatches(job: PrefilterJob, prefs: Preferences, title: "targ
 
   const hybrid = job.workModeHint === "hybrid" || HYBRID_TEXT.test(job.locationText);
   const physicalOk = prefs.workModes.includes(hybrid ? "hybrid" : "onsite");
-  const { countries, cities } = prefs.locations;
   const exact = cities.length > 0 ? mentionsPlace(lower, cities, []) : mentionsPlace(lower, [], countries);
   if (physicalOk && exact) return true;
   // No recognisable place in the text, or a near miss in a country the user could reach.

@@ -2,14 +2,15 @@ import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signOut } from "@/app/actions";
 import { SideNav } from "@/components/SideNav";
-import { isAdmin } from "@/lib/auth";
+import { isAdmin, setupStep } from "@/lib/auth";
 import { ALLOWANCE_COLUMNS, cvAllowance, type AllowanceFields } from "@/lib/entitlement";
 import { VIEWS, VISIBLE_DECISIONS, type MatchFacts } from "@/lib/views";
 
 /** Sidebar and page frame for every signed-in screen. `active` names the sidebar label to highlight. */
 export async function AppShell({ supabase, userId, email, active, children }: { supabase: SupabaseClient; userId: string; email: string; active: string; children: React.ReactNode }) {
-  const [admin, { data }, { data: profile }] = await Promise.all([
+  const [admin, setup, { data }, { data: profile }] = await Promise.all([
     isAdmin(email),
+    setupStep(supabase, userId),
     supabase.from("matches").select("decision,tracker_status").eq("user_id", userId).in("decision", VISIBLE_DECISIONS).limit(5000),
     supabase.from("profiles").select(ALLOWANCE_COLUMNS).eq("id", userId).maybeSingle(),
   ]);
@@ -59,7 +60,21 @@ export async function AppShell({ supabase, userId, email, active, children }: { 
           </div>
         </SideNav>
       </aside>
-      {children}
+      {setup ? (
+        <div className="app-main">
+          <div className="setup-bar" role="status">
+            <span>
+              <b>Finish setting up to get your matches.</b> {setup.step === 1 ? "Next: add your experience." : "Next: say what you're looking for."}
+            </span>
+            <Link className="button primary" href={setup.href}>
+              Continue setup
+            </Link>
+          </div>
+          {children}
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }

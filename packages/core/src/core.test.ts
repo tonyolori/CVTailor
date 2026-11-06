@@ -61,8 +61,8 @@ describe("evaluateGates: remote software persona", () => {
     expect(r.pass).toBe(false);
   });
 
-  it("work authorisation the user holds satisfies the requirement", () => {
-    const p = PreferencesSchema.parse({ ...prefs, eligibility: { ...prefs.eligibility, workAuthorization: ["GB"] } });
+  it("a work-authorisation requirement for the user's own country passes", () => {
+    const p = PreferencesSchema.parse({ ...prefs, eligibility: { ...prefs.eligibility, country: "GB" } });
     const r = evaluateGates(job({ requiresWorkAuthorization: ["GB"], worldwide: true }), p, NOW);
     expect(r.failed).not.toContain("location");
   });
@@ -197,6 +197,13 @@ describe("evaluateGates: on-site nurse persona", () => {
     const r = evaluateGates(ward({ workMode: "remote", worldwide: true, locations: [] }), p, NOW, { credentials: creds });
     expect(r.failed).toContain("work_mode");
     expect(r.nearMiss).toBe(true);
+  });
+
+  it("with no places set, takes an on-site role anywhere in the country the user lives in", () => {
+    const anywhere = PreferencesSchema.parse({ ...p, locations: { countries: [], cities: [] } });
+    expect(evaluateGates(ward({ locations: [{ country: "GB", city: "Leeds" }] }), anywhere, NOW, { credentials: creds }).pass).toBe(true);
+    const abroad = evaluateGates(ward({ locations: [{ country: "IE", city: "Dublin" }] }), anywhere, NOW, { credentials: creds });
+    expect(abroad.reasons).toContain("role is outside the accepted locations");
   });
 
   it("'Staff Nurse' isn't caught by another persona's 'staff' exclusion", () => {

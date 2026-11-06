@@ -1,14 +1,14 @@
 import { cvStyleOf } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { WriteCv } from "@/components/WriteCv";
-import { requireOnboarded } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 
 export const metadata = { title: "Write a CV - CV Tailor" };
 
 /** Paste any job, get a CV from your own library. `?match=` arrives from a job we hold no text for. */
 export default async function WritePage({ searchParams }: { searchParams: Promise<{ match?: string }> }) {
-  const { supabase, user, profile } = await requireOnboarded();
+  const { supabase, user, profile } = await requireUser();
   const matchId = Number((await searchParams).match);
   let forMatch: { id: number; title: string; company: string } | null = null;
   if (Number.isInteger(matchId) && matchId > 0) {

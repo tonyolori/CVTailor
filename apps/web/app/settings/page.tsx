@@ -2,11 +2,11 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { SettingsForm } from "@/components/SettingsForm";
 import { SettingsTabs } from "@/components/SettingsTabs";
-import { requireOnboarded } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; paid?: string }> }) {
-  const { supabase, user, profile } = await requireOnboarded();
+  const { supabase, user, profile } = await requireUser();
   const { error, paid } = await searchParams;
   const paidUntil = profile.paid_until ? new Date(profile.paid_until) : null;
   const allowance = cvAllowance(profile);

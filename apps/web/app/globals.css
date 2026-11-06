@@ -125,6 +125,8 @@ td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-a
 
 /* App shell */
 .app { display: grid; grid-template-columns: 234px minmax(0, 1fr); min-height: 100vh; }
+.app-main { display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.setup-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding: 12px 40px; background: var(--sky-3); border-bottom: 1px solid var(--line); font-size: 14.5px; }
 .side { background: var(--sky); padding: 20px 14px; font-size: 15px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: 0; height: 100vh; overflow: auto; }
 .side-head { display: flex; justify-content: space-between; align-items: center; padding: 0 11px 18px; }
 .side-toggle { display: none; }
@@ -292,6 +294,29 @@ details.sec[open] > summary { margin-bottom: 10px; }
 .opt strong { display: block; font-weight: 600; font-size: 15.5px; }
 .opt small { display: block; line-height: 1.35; font-size: 14px; }
 .styr { background: var(--sky-2); padding: 22px; position: sticky; top: 0; height: 100vh; overflow: auto; }
+
+/* CV templates and choice pills, used while setting up and in preferences */
+.tpls { --tw: 168px; display: grid; grid-template-columns: repeat(auto-fill, var(--tw)); gap: 18px; }
+.tpl { position: relative; display: grid; gap: 3px; align-content: start; cursor: pointer; font-weight: 400; }
+.tpl input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tpl .thumb { width: var(--tw); height: calc(var(--tw) * 1.414); margin-bottom: 7px; overflow: hidden; border-radius: 4px; background: #fff; box-shadow: 0 0 0 1px var(--line); pointer-events: none; transition: box-shadow 0.15s; }
+.tpl .thumb .sheet { --w: var(--tw); box-shadow: none; min-height: 100%; }
+.tpl:hover .thumb { box-shadow: 0 0 0 1.5px #a9c2f5; }
+.tpl:has(input:checked) .thumb { box-shadow: 0 0 0 3px var(--blue); }
+.tpl:has(input:focus-visible) .thumb { outline: 3px solid var(--blue); outline-offset: 4px; }
+.tpl strong { font-weight: 600; font-size: 15px; }
+.tpl:has(input:checked) strong::after { content: " \2713"; color: var(--blue); }
+.tpl small { font-size: 13.5px; line-height: 1.35; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { position: relative; display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1.5px var(--line); font-weight: 500; font-size: 15px; cursor: pointer; }
+.pill input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.pill:hover { box-shadow: inset 0 0 0 1.5px #a9c2f5; }
+.pill:has(input:checked) { background: var(--blue); color: #fff; box-shadow: none; }
+.pill:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
+.onb h2 { font-size: 24px; }
+.onb h2 label { font: inherit; display: inline; }
+.onb .card > select, .onb .card > input { max-width: 420px; }
+.onb-end { display: grid; gap: 8px; justify-items: start; }
 .styr .sheet { --w: var(--page); margin: 0 auto; }
 
 /* Public forms */
@@ -395,6 +420,9 @@ details.sec[open] > summary { margin-bottom: 10px; }
   .side-nav.open { display: flex; }
   .board, .write, .ed, .sty, .wlg { grid-template-columns: minmax(0, 1fr); }
   .list, .page { padding: 22px 16px 24px; }
+  .setup-bar { padding: 12px 16px; }
+  .tpls { --tw: min(168px, calc((100vw - 56px) / 3)); gap: 12px; }
+  @media (max-width: 600px) { .tpl small { display: none; } }
   .edl { padding: 0 16px 24px; }
   .jb.on .hd { font-size: 34px; }
   .pane, .edr, .styr { position: static; height: auto; overflow: clip; }

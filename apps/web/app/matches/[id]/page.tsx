@@ -3,11 +3,11 @@ import { notFound } from "next/navigation";
 import { cvStyleOf, FactLibrarySchema, ResumeSchema, type Resume } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { ResumeEditor, type VersionMeta } from "@/components/ResumeEditor";
-import { requireOnboarded } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { safeHref, VIEWS } from "@/lib/views";
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
-  const { supabase, user, profile } = await requireOnboarded();
+  const { supabase, user, profile } = await requireUser();
   const { id } = await params;
   const matchId = Number(id);
   if (!Number.isInteger(matchId)) notFound();

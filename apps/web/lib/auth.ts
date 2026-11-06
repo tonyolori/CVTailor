@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { adminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
 
@@ -32,17 +33,25 @@ export async function requireUser() {
   return { supabase, user: data.user, profile: profile as Profile };
 }
 
-/** As requireUser, and sends people who haven't finished setup to the step they're on. */
-export async function requireOnboarded() {
-  const ctx = await requireUser();
-  if (!ctx.profile.consented_at) redirect("/onboarding");
-  const [{ data: facts }, { data: prefs }] = await Promise.all([
-    ctx.supabase.from("fact_library").select("user_id").eq("user_id", ctx.user.id).maybeSingle(),
-    ctx.supabase.from("preferences").select("user_id").eq("user_id", ctx.user.id).maybeSingle(),
+export interface SetupStep {
+  href: "/onboarding" | "/onboarding/preferences";
+  /** Which of the two setup steps this is. */
+  step: 1 | 2;
+}
+
+/**
+ * The setup step someone still has to do, or null once they're done. Pages show it rather than
+ * sending people to it, so anyone part way through can still go wherever they clicked.
+ */
+export async function setupStep(supabase: SupabaseClient, userId: string): Promise<SetupStep | null> {
+  const [{ data: profile }, { data: facts }, { data: prefs }] = await Promise.all([
+    supabase.from("profiles").select("consented_at").eq("id", userId).maybeSingle(),
+    supabase.from("fact_library").select("user_id").eq("user_id", userId).maybeSingle(),
+    supabase.from("preferences").select("user_id").eq("user_id", userId).maybeSingle(),
   ]);
-  if (!facts) redirect("/onboarding");
-  if (!prefs) redirect("/onboarding/preferences");
-  return ctx;
+  if (!profile?.consented_at || !facts) return { href: "/onboarding", step: 1 };
+  if (!prefs) return { href: "/onboarding/preferences", step: 2 };
+  return null;
 }
 
 export async function isAdmin(email: string): Promise<boolean> {

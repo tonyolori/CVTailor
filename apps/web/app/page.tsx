@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { CvSheet } from "@/components/CvSheet";
 import { LandingStory } from "@/components/LandingStory";
 import { LandingSignIn } from "@/components/LoginForm";
@@ -9,7 +8,15 @@ import { createClient } from "@/lib/supabase/server";
 export default async function Home() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (data.user) redirect("/dashboard");
+  // Signed-in people can still read this page, with a way back in instead of the sign-in form.
+  const signedIn = Boolean(data.user);
+  const join = signedIn ? (
+    <Link className="button primary" href="/dashboard">
+      Go to your dashboard
+    </Link>
+  ) : (
+    <LandingSignIn />
+  );
 
   const jobs = landingExample();
   return (
@@ -17,7 +24,7 @@ export default async function Home() {
       <section className="hero">
         <div className="nav">
           <span className="logo">CV Tailor</span>
-          <Link href="/login">Sign in</Link>
+          {signedIn ? <Link href="/dashboard">Dashboard</Link> : <Link href="/login">Sign in</Link>}
         </div>
         <h1 className="disp">
           <span className="ln">
@@ -32,7 +39,7 @@ export default async function Home() {
         </h1>
         <div className="join">
           <p>Every morning we read new postings and keep the ones that fit. Choose the jobs you want, and we'll write a CV for each from your own experience.</p>
-          <LandingSignIn />
+          {join}
         </div>
         <div className="fan" aria-hidden="true">
           {[...jobs].reverse().map((j) => (
@@ -68,12 +75,12 @@ export default async function Home() {
       <section className="end">
         <h2 className="disp">Start with what you've already done.</h2>
         <div className="join">
-          <LandingSignIn />
+          {join}
         </div>
         {/* <p className="plans">Plans coming soon.</p> */}
         <div className="foot">
           <Link href="/privacy">Privacy</Link>
-          <Link href="/login">Sign in</Link>
+          {signedIn ? <Link href="/dashboard">Dashboard</Link> : <Link href="/login">Sign in</Link>}
           <Link href="/waitlist">Join the waitlist</Link>
         </div>
       </section>

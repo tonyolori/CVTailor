@@ -1,5 +1,5 @@
 import type { EnrichedJob, JobSalary } from "./job";
-import type { Preferences, SalaryPeriod } from "./preferences";
+import { physicalPlaces, type Preferences, type SalaryPeriod } from "./preferences";
 import { countryInRegion, regionWithin } from "./regions";
 
 export type Gate =
@@ -51,10 +51,9 @@ export function locationVerdict(e: EnrichedJob, prefs: Preferences): LocationVer
 
   const hasList = e.eligibleCountries.length > 0 || e.eligibleRegions.length > 0;
   const country = prefs.eligibility.country.toUpperCase();
-  const authorised = new Set([country, ...prefs.eligibility.workAuthorization.map((c) => c.toUpperCase())]);
 
   if (e.requiresWorkAuthorization.length > 0) {
-    if (!e.requiresWorkAuthorization.some((c) => authorised.has(c.toUpperCase()))) return "excluded";
+    if (!e.requiresWorkAuthorization.some((c) => c.toUpperCase() === country)) return "excluded";
   }
 
   if (prefs.remoteScope === "worldwide_only") {
@@ -63,7 +62,7 @@ export function locationVerdict(e: EnrichedJob, prefs: Preferences): LocationVer
   }
 
   if (e.eligibleCountries.length > 0) {
-    return e.eligibleCountries.some((c) => authorised.has(c.toUpperCase())) ? "ok" : "excluded";
+    return e.eligibleCountries.some((c) => c.toUpperCase() === country) ? "ok" : "excluded";
   }
   if (e.eligibleRegions.length > 0) {
     const regions = new Set<string>(prefs.eligibility.regions);
@@ -83,8 +82,9 @@ function normPlace(s: string): string {
 /** Hybrid and on-site roles: the job's structured locations against the user's accepted places. */
 export function placeVerdict(e: EnrichedJob, prefs: Preferences): LocationVerdict {
   if (e.locations.length === 0) return "unclear";
-  const countries = new Set(prefs.locations.countries.map((c) => c.toUpperCase()));
-  const cities = new Set(prefs.locations.cities.map(normPlace));
+  const places = physicalPlaces(prefs);
+  const countries = new Set(places.countries.map((c) => c.toUpperCase()));
+  const cities = new Set(places.cities.map(normPlace));
   const ok = e.locations.some((l) => {
     if (countries.size > 0 && !countries.has(l.country.toUpperCase())) return false;
     if (cities.size === 0) return countries.size > 0;
@@ -175,12 +175,9 @@ export function evaluateGates(
       }
     }
   } else if (e.workMode === "hybrid" || e.workMode === "onsite") {
-    const hasPlaces = prefs.locations.countries.length > 0 || prefs.locations.cities.length > 0;
-    if (prefs.workModes.includes(e.workMode) || hasPlaces) {
-      const loc = placeVerdict(e, prefs);
-      if (loc === "excluded") fail("location", "role is outside the accepted locations");
-      if (loc === "unclear") fail("location", "role location unclear");
-    }
+    const loc = placeVerdict(e, prefs);
+    if (loc === "excluded") fail("location", "role is outside the accepted locations");
+    if (loc === "unclear") fail("location", "role location unclear");
   }
 
   if (prefs.employerBase) {
