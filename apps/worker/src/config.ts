@@ -41,6 +41,9 @@ const ConfigSchema = z.object({
   EMAIL_API_KEY: optional,
   EMAIL_FROM: z.string().default("CV Tailor <hello@example.com>"),
   SITE_URL: z.string().url().default("http://127.0.0.1:3000"),
+
+  /** Slack incoming webhook. When set, every error-level log line is also posted there. */
+  SLACK_ALERT_WEBHOOK_URL: optional,
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

@@ -1,4 +1,5 @@
 import { bodyErrorCode, errorFields, safeLogFields, type LogField } from "@cvtailor/core/log";
+import { raiseAlert } from "@cvtailor/core/alert";
 
 export { bodyErrorCode, errorFields };
 
@@ -10,9 +11,12 @@ type Fields = Record<string, LogField>;
  * browser's console in a client component. Personal text is refused, as in the worker's log().
  */
 export function log(event: string, fields: Fields = {}, level: LogLevel = "info"): void {
-  const line = JSON.stringify({ t: new Date().toISOString(), level, event, ...safeLogFields(fields) });
-  if (level === "error") console.error(line);
-  else if (level === "warn") console.warn(line);
+  const safe = safeLogFields(fields);
+  const line = JSON.stringify({ t: new Date().toISOString(), level, event, ...safe });
+  if (level === "error") {
+    console.error(line);
+    raiseAlert(event, safe);
+  } else if (level === "warn") console.warn(line);
   else console.log(line);
 }
 

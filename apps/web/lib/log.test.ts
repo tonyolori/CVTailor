@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setAlertSink } from "@cvtailor/core/alert";
 import { errorFields, log, logged, loggedFetch } from "./log";
 
 const SECRET = "ada@example.com";
@@ -26,6 +27,18 @@ describe("log", () => {
     expect(lines).toHaveLength(1);
     expect(lines[0]!.level).toBe("warn");
     expect(lines[0]!.line).toMatchObject({ event: "thing.happened", level: "warn", count: 1 });
+  });
+
+  it("raises an alert for errors only, with the fields made safe", () => {
+    const alerts: { event: string; fields: Record<string, unknown> }[] = [];
+    setAlertSink((event, fields) => alerts.push({ event, fields }));
+    try {
+      log("thing.happened", { count: 1 }, "warn");
+      log("thing.failed", { reason: `no user ${SECRET}` }, "error");
+    } finally {
+      setAlertSink(undefined);
+    }
+    expect(alerts).toEqual([{ event: "thing.failed", fields: { reason: "no user [email]" } }]);
   });
 });
 

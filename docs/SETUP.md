@@ -56,6 +56,7 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 ### Supabase
 - [ ] Create a free project.
 - [ ] `npx supabase link --project-ref <ref>`, then `npx supabase db push`.
+- [ ] Whenever a commit adds a file to `supabase/migrations`, run `npx supabase db push` before Vercel deploys it. `npx supabase migration list --remote` shows what the live database is missing. Code that needs a table the database doesn't have yet fails on every request.
 - [ ] Dashboard > Authentication > Hooks: enable **Before User Created**, Postgres function `public.hook_before_user_created`.
 - [ ] Dashboard > Authentication > URL configuration: set the site URL to your web app's URL and add `<site>/auth/callback` to the redirect list.
 - [ ] Add yourself to the allow-list: `insert into public.allowed_emails (email) values ('<you>');`
@@ -82,6 +83,12 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 
 ### Worker on your PC
 - [ ] Follow `docs/SCHEDULING.md` to keep it running on your Mac.
+
+### Slack alerts
+- [ ] Create a private channel for alerts, such as `#cvtailor-alerts`.
+- [ ] At [api.slack.com/apps](https://api.slack.com/apps): **Create New App** > **From scratch**, then **Incoming Webhooks** > turn it on > **Add New Webhook to Workspace** and pick the channel.
+- [ ] Set the webhook URL as `SLACK_ALERT_WEBHOOK_URL` on the web host (server-only, Production) and in the worker's `.env.production`. Redeploy the web app and restart the worker. Anyone with the URL can post to the channel, so keep it secret.
+- [ ] Every error-level log line is then posted there, with the same ids and codes as the log. The same failure is posted at most once every 10 minutes per server. Unset, nothing is sent.
 
 ## Level 5: paid plans
 

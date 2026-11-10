@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { setAlertSink, slackAlerts } from "@cvtailor/core/alert";
 import { createProvider, withLogging } from "@cvtailor/llm";
 import { llmConfig, loadConfig } from "./config";
 import { errorInfo, serviceClient } from "./db";
@@ -17,6 +18,7 @@ import { politeHttp } from "./sources/http";
  * missed run is caught up on start.
  */
 const config = loadConfig();
+if (config.SLACK_ALERT_WEBHOOK_URL) setAlertSink(slackAlerts({ webhookUrl: config.SLACK_ALERT_WEBHOOK_URL, source: "worker" }));
 const db = serviceClient(config);
 const provider = withLogging(await createProvider(llmConfig(config)), log);
 const policies = {
