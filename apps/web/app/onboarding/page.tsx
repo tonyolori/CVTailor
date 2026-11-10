@@ -8,7 +8,7 @@ export default async function OnboardingPage() {
   const { data } = await supabase.from("fact_library").select("user_id").eq("user_id", user.id).maybeSingle();
   if (data) redirect("/onboarding/preferences");
   return (
-    <div className="public">
+    <div className="public ui">
       <div className="public-top">
         <Link className="logo" href="/">
           CV Tailor

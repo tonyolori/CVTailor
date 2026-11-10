@@ -4,7 +4,7 @@ import { cvStyleOf, FactLibrarySchema, ResumeSchema, type Resume } from "@cvtail
 import { AppShell } from "@/components/AppShell";
 import { ResumeEditor, type VersionMeta } from "@/components/ResumeEditor";
 import { requireUser } from "@/lib/auth";
-import { safeHref, VIEWS } from "@/lib/views";
+import { safeHref, stageOf, STAGES } from "@/lib/views";
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { supabase, user, profile } = await requireUser();
@@ -27,13 +27,13 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     return parsed.success ? [{ id: v.id, source: v.source, created_at: v.created_at, json: parsed.data as Resume }] : [];
   });
 
-  const viewKey = Object.keys(VIEWS).find((k) => k !== "all" && VIEWS[k]!.holds({ decision: match.decision, tracker_status: match.tracker_status })) ?? "to_apply";
-  const back = { href: `/dashboard?view=${viewKey}&job=${matchId}`, label: VIEWS[viewKey]!.label };
+  const stage = stageOf(match.tracker_status);
+  const back = { href: `/dashboard?view=${stage}&job=${matchId}`, label: STAGES[stage]!.label };
   const latest = versions[0];
 
   if (!latest) {
     return (
-      <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active={viewKey}>
+      <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="jobs">
         <main className="page">
           <h1>{job.title}</h1>
           <p className="muted">There's no CV for this role yet.</p>
@@ -48,18 +48,20 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <ResumeEditor
-      matchId={matchId}
-      title={job.title}
-      company={job.company}
-      apply={safeHref(job.apply_url) ?? safeHref(job.url)}
-      back={back}
-      hasLetter={Boolean(letter)}
-      initial={latest.json}
-      versions={versions}
-      library={FactLibrarySchema.parse(facts?.data)}
-      defaultStyle={cvStyleOf(profile.cv_style)}
-      initialStyle={match.cv_style ? cvStyleOf(match.cv_style) : null}
-    />
+    <div className="ui">
+      <ResumeEditor
+        matchId={matchId}
+        title={job.title}
+        company={job.company}
+        apply={safeHref(job.apply_url) ?? safeHref(job.url)}
+        back={back}
+        hasLetter={Boolean(letter)}
+        initial={latest.json}
+        versions={versions}
+        library={FactLibrarySchema.parse(facts?.data)}
+        defaultStyle={cvStyleOf(profile.cv_style)}
+        initialStyle={match.cv_style ? cvStyleOf(match.cv_style) : null}
+      />
+    </div>
   );
 }

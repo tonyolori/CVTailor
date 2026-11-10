@@ -77,5 +77,5 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - Prices and CV counts come from env through `apps/web/lib/plan-settings.ts`, with prices in naira. It alone converts to kobo for Paystack.
 - Every payment goes through `record_payment`, so the record, the plan and the CVs change together or not at all.
 - PDF styles live in `packages/render/src/template.tsx`, and their on-screen match in `globals.css`. Change both together. Classic is the original design.
-- The app is light only. Inter for app text, Instrument Serif for headlines and job titles, Instrument Sans on public pages.
+- The app is light only. Signed-in pages sit under the `.ui` class and use Inter only, with the type, colour and spacing scales in `.claude/ui-profile.md`. Instrument Serif and Instrument Sans stay on the public pages.
 - Commit after each phase with a clear message.

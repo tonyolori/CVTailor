@@ -1,6 +1,7 @@
 import { cvStyleOf, PreferencesSchema } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { PreferencesForm } from "@/components/PreferencesForm";
+import { ProfileTabs } from "@/components/ProfileTabs";
 import { countryOptions } from "@/lib/countries";
 import { requireUser } from "@/lib/auth";
 import { landingExample } from "@/lib/landing-examples";
@@ -12,9 +13,9 @@ export default async function PreferencesPage() {
     supabase.from("categories").select("id,label").order("label"),
   ]);
   return (
-    <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="preferences">
+    <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="profile">
       <main className="page">
-        <h1>Preferences</h1>
+        <ProfileTabs active="wants" />
         <PreferencesForm
           initial={data ? PreferencesSchema.parse(data.data) : null}
           categories={categories ?? []}

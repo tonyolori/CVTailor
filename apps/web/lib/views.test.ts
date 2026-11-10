@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ResumeSchema } from "@cvtailor/core";
 import { landingExample } from "./landing-examples";
-import { safeHref, sourceLabel, VIEWS } from "./views";
+import { inStage, safeHref, sourceLabel, stageKey, stageOf } from "./views";
 
 describe("safeHref", () => {
   it("keeps real web addresses", () => {
@@ -15,19 +15,35 @@ describe("safeHref", () => {
   });
 });
 
-describe("sidebar views", () => {
+describe("job stages", () => {
   const m = (decision: string, tracker_status = "to_apply") => ({ decision, tracker_status });
 
-  it("a pasted job has its own label and moves through the stages", () => {
-    expect(VIEWS.pasted!.holds(m("pasted"))).toBe(true);
-    expect(VIEWS.to_apply!.holds(m("pasted"))).toBe(false);
-    expect(VIEWS.applied!.holds(m("pasted", "applied"))).toBe(true);
-    expect(VIEWS.pasted!.holds(m("pasted", "applied"))).toBe(true);
+  it("every kind of match starts in To apply", () => {
+    for (const d of ["picked", "worth-a-look", "unscored", "pasted"]) expect(inStage("to_apply", m(d))).toBe(true);
   });
 
-  it("close matches aren't counted as applications", () => {
-    expect(VIEWS.applied!.holds(m("worth-a-look", "applied"))).toBe(false);
-    expect(VIEWS.all!.holds(m("worth-a-look"))).toBe(false);
+  it("a close match someone applied to counts as an application", () => {
+    expect(inStage("applied", m("worth-a-look", "applied"))).toBe(true);
+    expect(inStage("to_apply", m("worth-a-look", "applied"))).toBe(false);
+  });
+
+  it("rejected and not-for-me both close a job", () => {
+    expect(stageOf("rejected")).toBe("closed");
+    expect(stageOf("dismissed")).toBe("closed");
+    expect(inStage("closed", m("picked", "dismissed"))).toBe(true);
+  });
+
+  it("hides decisions nobody sees", () => {
+    expect(inStage("to_apply", m("rejected-by-filter"))).toBe(false);
+  });
+
+  it("keeps old links working", () => {
+    expect(stageKey("look")).toBe("to_apply");
+    expect(stageKey("pasted")).toBe("to_apply");
+    expect(stageKey("dismissed")).toBe("closed");
+    expect(stageKey("interview")).toBe("interview");
+    expect(stageKey("nonsense")).toBeNull();
+    expect(stageKey(undefined)).toBeNull();
   });
 });
 

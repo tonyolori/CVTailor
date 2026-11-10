@@ -1,11 +1,10 @@
-import { cvStyleOf } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { WriteCv, type WritePrefill } from "@/components/WriteCv";
 import { requireUser } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 import { safeHref } from "@/lib/views";
 
-export const metadata = { title: "Write a CV - CV Tailor" };
+export const metadata = { title: "Add a job - CV Tailor" };
 
 /**
  * Paste any job, get a CV from your own library. `?match=` arrives from a job we hold no text for,
@@ -30,7 +29,7 @@ export default async function WritePage({ searchParams }: { searchParams: Promis
   }
   return (
     <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="write">
-      <WriteCv allowance={cvAllowance(profile)} style={cvStyleOf(profile.cv_style)} forMatch={forMatch} prefill={prefill} />
+      <WriteCv allowance={cvAllowance(profile)} forMatch={forMatch} prefill={prefill} />
     </AppShell>
   );
 }

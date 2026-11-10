@@ -16,7 +16,7 @@ export default async function OnboardingPreferencesPage() {
   const { data: categories } = await supabase.from("categories").select("id");
   const lib = FactLibrarySchema.safeParse(facts.data);
   return (
-    <div className="public">
+    <div className="public ui">
       <div className="public-top">
         <Link className="logo" href="/">
           CV Tailor

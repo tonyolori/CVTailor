@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { AppShell, loadShell } from "@/components/AppShell";
 import { requireUser } from "@/lib/auth";
-import { safeHref, sourceLabel } from "@/lib/views";
+import { safeHref, sourceLabel, VISIBLE_DECISIONS } from "@/lib/views";
 
 export const metadata = { title: "All jobs - CV Tailor" };
 
 const PER_PAGE = 30;
 const MODES: Record<string, string> = { remote: "Remote", hybrid: "Hybrid", onsite: "On-site" };
-/** Where a job someone already has sits on their dashboard. */
-const VIEW_OF: Record<string, string> = { picked: "all", "worth-a-look": "look", unscored: "unscored", pasted: "pasted" };
 
 interface JobRow {
   id: number;
@@ -63,7 +61,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const { data: mine } = jobs.length
     ? await supabase.from("matches").select("id,job_id,decision").eq("user_id", user.id).in("job_id", jobs.map((j) => j.id))
     : { data: [] };
-  const held = new Map((mine ?? []).filter((m) => VIEW_OF[m.decision as string]).map((m) => [m.job_id as number, m as { id: number; decision: string }]));
+  const held = new Map((mine ?? []).filter((m) => VISIBLE_DECISIONS.includes(m.decision as string)).map((m) => [m.job_id as number, m as { id: number; decision: string }]));
   const fieldLabel = new Map((categories ?? []).map((c) => [c.id as string, c.label as string]));
   const total = count ?? 0;
   const now = Date.now();
@@ -80,10 +78,10 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <AppShell supabase={supabase} userId={user.id} email={user.email ?? ""} active="jobs">
-      <main className="page wide jobs">
+      <main className="page wide">
         <div>
           <h1>All jobs</h1>
-          <p className="sub">Every open job we&apos;ve found, newest first. Your matches, picked for you each morning, are under To apply.</p>
+          <p className="sub">Every open job we&apos;ve found, newest first. The ones picked for you each morning are under Jobs.</p>
         </div>
         <form className="jobs-filter" action="/jobs" role="search">
           <label>
@@ -148,12 +146,12 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                     </a>
                   ) : null}
                   {match ? (
-                    <Link className="button primary" href={`/dashboard?view=${VIEW_OF[match.decision]}&job=${match.id}`}>
-                      In your matches
+                    <Link className="button quiet" href={`/dashboard?job=${match.id}`}>
+                      In your jobs
                     </Link>
                   ) : (
-                    <Link className="button primary" href={`/write?job=${j.id}`}>
-                      Write a CV
+                    <Link className="button" href={`/write?job=${j.id}`}>
+                      Tailor a CV
                     </Link>
                   )}
                 </div>
