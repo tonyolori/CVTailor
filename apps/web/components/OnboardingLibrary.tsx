@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { FactLibrarySchema, type FactLibrary } from "@cvtailor/core";
+import { FactLibrarySchema, type CvStyle, type FactLibrary } from "@cvtailor/core";
 import { giveConsent } from "@/app/actions";
-import { LibraryEditor } from "./LibraryEditor";
+import { ProfileEditor } from "./ProfileEditor";
 import { errorFields, log, loggedFetch } from "@/lib/log";
 
 type Step = "choose" | "working" | "review";
@@ -13,7 +13,7 @@ type Step = "choose" | "working" | "review";
  * Step 1: upload a CV for a proposed library, or start from blank. Nothing is saved until the user reviews it.
  * Someone new agrees to how their details are used here, before either path, since both store them.
  */
-export function OnboardingLibrary({ email, displayName, consented: alreadyConsented }: { email: string; displayName: string; consented: boolean }) {
+export function OnboardingLibrary({ email, displayName, consented: alreadyConsented, style }: { email: string; displayName: string; consented: boolean; style: CvStyle }) {
   const blank: FactLibrary = FactLibrarySchema.parse({ contact: { name: displayName, email }, entries: [] });
   const [step, setStep] = useState<Step>("choose");
   const [library, setLibrary] = useState<FactLibrary>(blank);
@@ -99,15 +99,15 @@ export function OnboardingLibrary({ email, displayName, consented: alreadyConsen
   if (step === "review") {
     return (
       <div className="stack">
-        <div className="notice">Check each entry. Fix anything wrong and remove anything you wouldn't say in an interview, because CVs can only use what's here.</div>
-        <LibraryEditor initial={library} next="/onboarding/preferences" saveLabel="Save and continue" />
+        <div className="notice">This is what we read from your CV. Click any part to fix it, and remove anything you wouldn't say in an interview, because CVs can only use what's here.</div>
+        <ProfileEditor initial={library} style={style} next="/onboarding/preferences" saveLabel="Save and continue" />
       </div>
     );
   }
 
   if (step === "working") {
     return (
-      <div className="card" role="status" aria-live="polite">
+      <div className="card" role="status" aria-live="polite" style={{ maxWidth: 640 }}>
         <div className="row">
           <span className="spinner" aria-hidden="true" />
           <h2>Reading your CV...</h2>
@@ -129,7 +129,7 @@ export function OnboardingLibrary({ email, displayName, consented: alreadyConsen
   }
 
   return (
-    <div className="card">
+    <div className="card" style={{ maxWidth: 640 }}>
       <h2>Start from your CV</h2>
       <p className="muted">Upload a CV to get a proposed library of your jobs, facts and qualifications, then review it. The file itself isn't kept.</p>
       {notice ? <div className="notice bad">{notice}</div> : null}
