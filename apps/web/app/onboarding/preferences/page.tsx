@@ -20,7 +20,6 @@ export default async function OnboardingPreferencesPage() {
         <Link className="logo" href="/">
           CV Tailor
         </Link>
-        <Link href="/dashboard">Dashboard</Link>
       </div>
     <main className="page">
       <div>

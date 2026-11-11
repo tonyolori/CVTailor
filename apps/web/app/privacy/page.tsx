@@ -2,13 +2,24 @@ import Link from "next/link";
 
 // TODO(Tony): have this policy reviewed against the Nigeria Data Protection Act 2023 before inviting
 // anyone who isn't you. It's a plain draft, not legal advice. See docs/SETUP.md.
-export default function PrivacyPage() {
+/** Pages that link here, and what to call them on the way back. Anything else goes home. */
+const BACK: Record<string, string> = {
+  "/onboarding": "Back to setup",
+  "/settings": "Back to Settings",
+  "/login": "Back to sign in",
+  "/waitlist": "Back to the waitlist",
+};
+
+export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ from?: string }> }) {
+  const { from } = await searchParams;
+  const back = from && BACK[from] ? { href: from, label: BACK[from] } : { href: "/", label: "Back to CV Tailor" };
   return (
     <div className="public">
       <div className="public-top">
-        <Link className="logo" href="/">
+        <Link className="logo" href={back.href}>
           CV Tailor
         </Link>
+        <Link href={back.href}>← {back.label}</Link>
       </div>
     <main className="page">
       <div className="stack">
@@ -43,9 +54,11 @@ export default function PrivacyPage() {
         <h2>Your rights</h2>
         <p>Under the Nigeria Data Protection Act 2023 you can access, correct, move and delete your data, and object to or restrict its use. Your settings page has a full export and account deletion. You can also complain to the Nigeria Data Protection Commission.</p>
 
-        <small>
-          <Link href="/">Back</Link>
-        </small>
+        <p>
+          <Link className="button" href={back.href}>
+            {back.label}
+          </Link>
+        </p>
       </div>
     </main>
     </div>

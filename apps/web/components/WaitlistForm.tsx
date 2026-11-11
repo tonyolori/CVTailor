@@ -39,7 +39,7 @@ export function WaitlistForm() {
       <label className="wlc">
         <input type="checkbox" name="consent" required />
         <span>
-          I agree that CV Tailor can keep these details and email me about joining. I can ask for them to be deleted at any time. <Link href="/privacy">Privacy</Link>
+          I agree that CV Tailor can keep these details and email me about joining. I can ask for them to be deleted at any time. <Link href="/privacy?from=/waitlist">Privacy</Link>
         </span>
       </label>
       {state?.message ? (

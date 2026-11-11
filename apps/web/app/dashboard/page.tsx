@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { dateInWords, exactDate } from "@/lib/dates";
 import { cvAllowance } from "@/lib/entitlement";
 import { loadMatchDetail } from "@/lib/match-detail";
+import { redirect } from "next/navigation";
 import { adminClient } from "@/lib/supabase/admin";
 import { inStage, safeHref, STAGE_KEYS, STAGES, stageKey, stageOf, VISIBLE_DECISIONS } from "@/lib/views";
 
@@ -29,7 +30,10 @@ const MODES: Record<string, string> = { remote: "Remote", hybrid: "Hybrid", onsi
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ view?: string; job?: string }> }) {
   const { supabase, user, profile } = await requireUser();
-  void loadShell(supabase, user.id, user.email ?? "");
+  // Someone who hasn't finished setting up has nothing to see here yet, so Jobs takes them to the
+  // next step. The other pages still open, with a bar that leads back to setup.
+  const [, setup] = await loadShell(supabase, user.id, user.email ?? "");
+  if (setup) redirect(setup.href);
   const params = await searchParams;
   const asked = Number(params.job);
   const askedId = Number.isInteger(asked) && asked > 0 ? asked : null;

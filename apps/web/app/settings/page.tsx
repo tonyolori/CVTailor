@@ -44,7 +44,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         <div className="card">
           <h2>Your data</h2>
-          <p className="muted">Download everything held about you: your library, preferences, matches, jobs you've pasted in, CVs and your CV allowance history. See also the <Link href="/privacy">privacy page</Link>.</p>
+          <p className="muted">Download everything held about you: your library, preferences, matches, jobs you've pasted in, CVs and your CV allowance history. See also the <Link href="/privacy?from=/settings">privacy page</Link>.</p>
           <div>
             <a className="button" href="/api/export">
               Download my data

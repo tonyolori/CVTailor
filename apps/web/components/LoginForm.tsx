@@ -52,7 +52,7 @@ export function LoginForm({ linkFailed }: { linkFailed: boolean }) {
           {linkFailed ? <div className="notice bad">That sign-in link didn't work. It may have expired or been used already. Ask for a new one here, and open it in this same browser.</div> : null}
           <SignInFields />
           <p className="pub-note" style={{ marginTop: 0 }}>
-            Invite only for now. <Link href="/waitlist">Join the waitlist</Link> and we'll email you when there's a place. <Link href="/privacy">Privacy</Link>
+            Invite only for now. <Link href="/waitlist">Join the waitlist</Link> and we'll email you when there's a place. <Link href="/privacy?from=/login">Privacy</Link>
           </p>
         </div>
       </div>
