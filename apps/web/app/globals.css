@@ -567,6 +567,8 @@ label.opt small { display: block; line-height: 1.35; font-size: 14px; }
 .ui .notice.asks { display: flex; gap: 12px; align-items: flex-start; background: var(--warn-bg); color: var(--warn); }
 .ui .notice.asks svg { flex: none; margin-top: 2px; }
 .ui .notice.bad { background: var(--bad-bg); color: var(--bad); }
+.ui .notice.warn { background: var(--warn-bg); color: var(--warn); }
+.ui .notice.ok { background: var(--ok-bg); color: var(--ok); }
 .panel .stages { border-bottom: 1px solid var(--line); }
 .ui .panel .sheet { --w: 472px; }
 .posting { display: grid; gap: 12px; }

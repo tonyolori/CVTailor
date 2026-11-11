@@ -1,7 +1,7 @@
 import "server-only";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { inviteEmail, welcomeEmail } from "@cvtailor/core/email";
+import { confirmAddressEmail, inviteEmail, welcomeEmail } from "@cvtailor/core/email";
 import { errorFields, log, loggedFetch } from "./log";
 import { cvCounts } from "./plan-settings";
 import { siteUrl } from "./site";
@@ -73,4 +73,11 @@ export async function sendWelcome(userId: string, email: string): Promise<boolea
     canReply: Boolean(process.env.EMAIL_REPLY_TO),
   });
   return send({ to: email, ...message, idempotencyKey: `welcome-${userId}` });
+}
+
+/** Asks a new address for the daily email to confirm it's wanted there. The token is only in the link. */
+export async function sendAddressConfirmation(to: string, token: string): Promise<boolean> {
+  const confirmUrl = siteUrl(`/api/notify-email/confirm?token=${encodeURIComponent(token)}`).href;
+  const message = confirmAddressEmail({ confirmUrl, homeUrl: siteUrl("/").href });
+  return send({ to, ...message, idempotencyKey: `confirm-address-${token}` });
 }

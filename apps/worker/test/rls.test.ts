@@ -157,6 +157,10 @@ describe("protected columns", () => {
     ["paid_until", "2099-01-01"],
     ["is_synthetic", true],
     ["unsubscribe_token", "00000000-0000-0000-0000-000000000000"],
+    // A new address for the daily email takes effect only through its confirmation link.
+    ["notify_email", "someone.else@example.com"],
+    ["notify_email_pending", "someone.else@example.com"],
+    ["notify_email_token_hash", "0000"],
   ] as const) {
     it(`a user cannot change their own ${column}`, async () => {
       const { error } = await a.client.from("profiles").update({ [column]: value }).eq("id", a.id);

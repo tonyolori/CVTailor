@@ -8,6 +8,8 @@ export interface Profile {
   id: string;
   email: string;
   notify_email: string | null;
+  notify_email_pending: string | null;
+  notify_email_sent_at: string | null;
   display_name: string | null;
   tz: string;
   send_time: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { button, inviteEmail, signInLinkEmail, signUpLinkEmail, welcomeEmail } from "./email";
+import { button, confirmAddressEmail, inviteEmail, signInLinkEmail, signUpLinkEmail, welcomeEmail } from "./email";
 
 const welcome = welcomeEmail({
   setupUrl: "https://app.example/onboarding",
@@ -58,5 +58,15 @@ describe("account emails", () => {
 
   it("refuse links that aren't http, https or mailto", () => {
     expect(button("javascript:alert(1)", "x")).toContain('href="#"');
+  });
+});
+
+describe("confirmAddressEmail", () => {
+  const m = confirmAddressEmail({ confirmUrl: "https://app.example/api/notify-email/confirm?token=abc", homeUrl: "https://app.example/" });
+
+  it("links to the confirmation and says what happens if it's ignored", () => {
+    expect(m.html).toContain("https://app.example/api/notify-email/confirm?token=abc");
+    expect(m.text).toContain("https://app.example/api/notify-email/confirm?token=abc");
+    expect(m.text).toContain("ignore this email");
   });
 });

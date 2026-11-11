@@ -1,13 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { updateSettings } from "@/app/actions";
+import { cancelNotifyChange, resendNotifyConfirm, updateSettings } from "@/app/actions";
 
 interface SettingsProfile {
   tz: string;
   send_time: string;
   daily_cap: number;
   notify_email: string | null;
+  notify_email_pending: string | null;
   email: string;
   active: boolean;
   email_paused: boolean;
@@ -39,8 +40,10 @@ export function SettingsForm({ profile, zones }: { profile: SettingsProfile; zon
           <input type="number" name="daily_cap" min={1} max={10} defaultValue={profile.daily_cap} required />
         </label>
         <label>
-          Send to, if not {profile.email}
-          <input type="email" name="notify_email" defaultValue={profile.notify_email ?? ""} />
+          <span>
+            Send to <span className="opt">(if not {profile.email})</span>
+          </span>
+          <input type="email" name="notify_email" defaultValue={profile.notify_email_pending ?? profile.notify_email ?? ""} />
         </label>
       </div>
       <label className="check">
@@ -51,6 +54,19 @@ export function SettingsForm({ profile, zones }: { profile: SettingsProfile; zon
         <input type="checkbox" name="paused" defaultChecked={!profile.active} />
         Pause my search entirely.
       </label>
+      {profile.notify_email_pending && !state ? (
+        <div className="notice warn" role="status">
+          Waiting for you to confirm {profile.notify_email_pending}. Open the link we sent there. Until then, emails go to {profile.notify_email ?? profile.email}.
+          <span className="acts" style={{ marginTop: 8 }}>
+            <button className="sm" type="submit" formAction={resendNotifyConfirm} formNoValidate>
+              Send the link again
+            </button>
+            <button className="sm quiet" type="submit" formAction={cancelNotifyChange} formNoValidate>
+              Keep the current address
+            </button>
+          </span>
+        </div>
+      ) : null}
       {state?.message ? <div className={`notice ${state.ok ? "ok" : "bad"}`}>{state.message}</div> : null}
       <div>
         <button className="primary" type="submit" disabled={pending}>

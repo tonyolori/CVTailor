@@ -5,9 +5,9 @@ import { SettingsTabs } from "@/components/SettingsTabs";
 import { requireUser } from "@/lib/auth";
 import { cvAllowance } from "@/lib/entitlement";
 
-export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; paid?: string }> }) {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; paid?: string; resent?: string }> }) {
   const { supabase, user, profile } = await requireUser();
-  const { error, paid } = await searchParams;
+  const { error, paid, resent } = await searchParams;
   const paidUntil = profile.paid_until ? new Date(profile.paid_until) : null;
   const allowance = cvAllowance(profile);
   return (
@@ -17,6 +17,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <SettingsTabs active="general" />
         {paid ? <div className="notice">Thanks. Your plan and CVs update as soon as Paystack confirms the payment, usually within a minute.</div> : null}
         {error === "confirm" ? <div className="notice bad">Type "delete" to confirm.</div> : null}
+        {resent ? <div className="notice ok">We sent the link again. It works for 7 days.</div> : null}
+        {error === "resend" ? <div className="notice bad">The link couldn&apos;t be sent again just now. Try again later.</div> : null}
         {error === "delete" ? <div className="notice bad">Your account couldn't be deleted. Please try again.</div> : null}
 
         <SettingsForm profile={profile} zones={Intl.supportedValuesOf("timeZone")} />

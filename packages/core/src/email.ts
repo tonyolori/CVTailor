@@ -252,6 +252,32 @@ export function inviteEmail(i: InviteEmail): { subject: string; html: string; te
   return { subject, html, text };
 }
 
+export interface ConfirmAddressEmail {
+  confirmUrl: string;
+  homeUrl: string;
+}
+
+/** Sent to a new address for the daily email. Nothing else goes there until it's confirmed. */
+export function confirmAddressEmail(c: ConfirmAddressEmail): { subject: string; html: string; text: string } {
+  const subject = "Confirm where to send your CV Tailor emails";
+  const intro = "Someone asked CV Tailor to send their daily job matches to this address. If that was you, confirm it and they'll come here from now on.";
+  const after = "If it wasn't you, ignore this email. Nothing will be sent here, and the link stops working after 7 days.";
+  const html = emailDocument({
+    title: subject,
+    preheader: "Confirm this address to get your daily matches here.",
+    rows: [
+      row(masthead(c.homeUrl), "32px 40px 0"),
+      row(headline("Is this your inbox?"), "40px 40px 0"),
+      row(para(intro, { size: 16 })),
+      row(button(c.confirmUrl, "Confirm this address"), "28px 40px 0"),
+      row(`<div class="c-line" style="border-top:1px solid ${C.line};"></div>${para(after, { soft: true, size: 14, top: 22 })}`, "36px 40px 0"),
+    ],
+    footer: "You're getting this because this address was entered in CV Tailor's settings.",
+  });
+  const text = ["Is this your inbox?", "", intro, "", "Confirm this address:", c.confirmUrl, "", after].join("\n");
+  return { subject, html, text };
+}
+
 /** Supabase fills these in when it sends a sign-in email. */
 const LINK_STANDIN = "https://link.invalid/confirmation";
 const SITE_STANDIN = "https://site.invalid/";

@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@cvtailor/core";
-import { requireAdmin, requireUser } from "@/lib/auth";
-import { sendInvite, sendWelcome } from "@/lib/email";
+import { requireAdmin, requireUser, type Profile } from "@/lib/auth";
+import { sendAddressConfirmation, sendInvite, sendWelcome } from "@/lib/email";
 import { bodyErrorCode, log, logged } from "@/lib/log";
+import { currentAddress, newToken, notifyChange } from "@/lib/notify-email";
 import { cvCounts } from "@/lib/plan-settings";
 import { allow, clientIp } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
@@ -200,7 +201,7 @@ export const setPageSize = logged("action.setPageSize", async (size: string): Pr
   return error ? { ok: false, message: "Couldn't save the paper size." } : { ok: true };
 });
 export const updateSettings = logged("action.updateSettings", async (_prev: ActionResult | null, form: FormData): Promise<ActionResult> => {
-  const { supabase, user } = await requireUser();
+  const { supabase, user, profile } = await requireUser();
   const tz = String(form.get("tz") ?? "UTC");
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: tz });
@@ -219,13 +220,80 @@ export const updateSettings = logged("action.updateSettings", async (_prev: Acti
       tz,
       send_time: sendTime,
       daily_cap: dailyCap,
-      notify_email: notify || null,
       active: form.get("paused") !== "on",
       email_paused: form.get("email_paused") === "on",
     })
     .eq("id", user.id);
+  if (error) {
+    log("settings.save_failed", { userId: user.id, code: bodyErrorCode(error) }, "error");
+    revalidatePath("/settings");
+    return { ok: false, message: "Couldn't save your settings." };
+  }
+  const result = await changeNotifyEmail(user.id, profile, notify);
   revalidatePath("/settings");
-  return error ? { ok: false, message: "Couldn't save your settings." } : { ok: true, message: "Saved." };
+  return result;
+});
+
+/**
+ * A different address for the daily email takes effect only once someone confirms it from that
+ * inbox, so the emails can't be pointed at a stranger. Until then they keep going where they went.
+ */
+async function changeNotifyEmail(userId: string, profile: Profile, requested: string): Promise<ActionResult> {
+  const db = adminClient();
+  const change = notifyChange(profile, requested);
+  const clearPending = { notify_email_pending: null, notify_email_token_hash: null, notify_email_sent_at: null };
+  if (change.kind === "use_sign_in" || change.kind === "unchanged") {
+    const patch = change.kind === "use_sign_in" ? { notify_email: null, ...clearPending } : clearPending;
+    if (profile.notify_email_pending || (change.kind === "use_sign_in" && profile.notify_email)) {
+      const { error } = await db.from("profiles").update(patch).eq("id", userId);
+      if (error) {
+        log("notify_email.clear_failed", { userId, code: bodyErrorCode(error) }, "error");
+        return { ok: false, message: "Your settings are saved, but the email address couldn't be changed. Try again." };
+      }
+    }
+    return { ok: true, message: "Saved." };
+  }
+  if (change.kind === "already_sent") return { ok: true, message: `Saved. We've already sent a link to ${change.to}. Open it to start getting emails there.` };
+  if (!allow(`notify-confirm:${userId}`, 5, 60 * 60_000)) return { ok: false, message: "Your settings are saved. You've asked for a lot of confirmation links, so try the new address again in an hour." };
+  const { token, hash } = newToken();
+  const { error } = await db
+    .from("profiles")
+    .update({ notify_email_pending: change.to, notify_email_token_hash: hash, notify_email_sent_at: new Date().toISOString() })
+    .eq("id", userId);
+  if (error) {
+    log("notify_email.save_failed", { userId, code: bodyErrorCode(error) }, "error");
+    return { ok: false, message: "Your settings are saved, but the new address couldn't be. Try again." };
+  }
+  const sent = await sendAddressConfirmation(change.to, token);
+  if (!sent) {
+    log("notify_email.send_failed", { userId }, "error");
+    return { ok: false, message: `Your settings are saved, but we couldn't email ${change.to}. Try again shortly.` };
+  }
+  return { ok: true, message: `Saved. We've sent a link to ${change.to}. Your emails keep going to ${currentAddress(profile)} until you open it.` };
+}
+
+/** Drops a new address that hasn't been confirmed. */
+export const cancelNotifyChange = logged("action.cancelNotifyChange", async (): Promise<void> => {
+  const { user } = await requireUser();
+  const { error } = await adminClient().from("profiles").update({ notify_email_pending: null, notify_email_token_hash: null, notify_email_sent_at: null }).eq("id", user.id);
+  if (error) log("notify_email.cancel_failed", { userId: user.id, code: bodyErrorCode(error) }, "error");
+  revalidatePath("/settings");
+});
+
+/** Sends the confirmation link again, with a new token, to the address waiting for it. */
+export const resendNotifyConfirm = logged("action.resendNotifyConfirm", async (): Promise<void> => {
+  const { user, profile } = await requireUser();
+  if (!profile.notify_email_pending) return;
+  if (!allow(`notify-confirm:${user.id}`, 5, 60 * 60_000)) redirect("/settings?error=resend");
+  const { token, hash } = newToken();
+  const { error } = await adminClient().from("profiles").update({ notify_email_token_hash: hash, notify_email_sent_at: new Date().toISOString() }).eq("id", user.id);
+  if (error) {
+    log("notify_email.resend_failed", { userId: user.id, code: bodyErrorCode(error) }, "error");
+    redirect("/settings?error=resend");
+  }
+  const sent = await sendAddressConfirmation(profile.notify_email_pending, token);
+  if (!sent) log("notify_email.send_failed", { userId: user.id }, "error");
+  redirect(sent ? "/settings?resent=1" : "/settings?error=resend");
 });
 
 // --- Admin ----------------------------------------------------------------------
