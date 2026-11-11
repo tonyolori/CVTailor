@@ -11,6 +11,7 @@
     "test:rls": "node --env-file=../../.env ../../node_modules/vitest/vitest.mjs run --no-file-parallelism test/rls.test.ts test/cv-requests.integration.test.ts",
     "seed:personas": "tsx --env-file-if-exists=../../.env src/seed/personas.ts",
     "seed:tony": "tsx --env-file-if-exists=../../.env src/seed/tony.ts",
+    "seed:demo": "tsx --env-file-if-exists=../../.env src/seed/demo.ts",
     "seed:companies": "tsx --env-file-if-exists=../../.env src/seed/companies.ts",
     "seed:companies:live": "tsx --env-file=../../.env.production src/seed/companies.ts",
     "llm:check": "tsx --env-file-if-exists=../../.env src/llm-check.ts",

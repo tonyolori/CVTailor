@@ -600,3 +600,14 @@ label.opt small { display: block; line-height: 1.35; font-size: 14px; }
   .ui .jt td:first-child { grid-column: 1 / -1; }
   .ui .jt td .cvst { font-size: 13px; }
 }
+
+/* Review notes: local development only, never in a production build. */
+.rv { position: fixed; right: 16px; bottom: 16px; z-index: 200; display: grid; gap: 8px; justify-items: end; font: 400 14px/1.45 var(--f-body), system-ui, sans-serif; color: #16181d; }
+.rv button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 8px; font: 600 13px/1 var(--f-body), system-ui, sans-serif; cursor: pointer; }
+.rv-toggle { background: #16181d; color: #fff; box-shadow: 0 8px 24px rgb(22 24 29 / 0.18); }
+.rv-box { width: 320px; display: grid; gap: 8px; padding: 16px; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgb(22 24 29 / 0.18), 0 0 0 1px #e6e7eb; }
+.rv-box label { font-size: 13px; font-weight: 600; }
+.rv-box textarea { min-height: 96px; padding: 8px 12px; border: 1px solid #8f94a3; border-radius: 8px; font: inherit; resize: vertical; }
+.rv-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: #646a79; }
+.rv-row button { background: #1546e0; color: #fff; }
+.rv-row button:disabled { opacity: 0.5; cursor: default; }

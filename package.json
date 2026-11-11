@@ -15,6 +15,7 @@
     "seed": "npm run seed:personas && npm run seed:companies && npm run seed:tony",
     "seed:personas": "npm run seed:personas -w @cvtailor/worker --",
     "seed:tony": "npm run seed:tony -w @cvtailor/worker --",
+    "seed:demo": "npm run seed:demo -w @cvtailor/worker --",
     "seed:companies": "npm run seed:companies -w @cvtailor/worker --",
     "seed:companies:live": "npm run seed:companies:live -w @cvtailor/worker --",
     "claude:login": "npm run claude:login -w @cvtailor/llm",
