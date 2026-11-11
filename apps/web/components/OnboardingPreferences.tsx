@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { regionsOfCountry, type CvStyle, type PreferencesInput, type Resume, type WorkMode } from "@cvtailor/core";
+import { regionsOfCountry, type PreferencesInput, type WorkMode } from "@cvtailor/core";
 import type { TitleSuggestions } from "@cvtailor/core/prompts";
 import type { CountryOption } from "@/lib/countries";
-import { savePreferences, setCvStyle } from "@/app/actions";
-import { CvTemplatePicker } from "@/components/CvTemplatePicker";
+import { savePreferences } from "@/app/actions";
 import { blankPreferences, CommaField } from "@/components/PreferenceFields";
 import { errorFields, log, loggedFetch } from "@/lib/log";
 
@@ -16,28 +15,23 @@ const MODES: { id: WorkMode; label: string }[] = [
 ];
 
 /**
- * Step 2: only what the first matches need. Titles, where the person lives, how they'll work and
- * how their CV looks. Filters, languages and the rest have defaults and wait in Preferences.
+ * Step 2: only what the first matches need. Titles, where the person lives and how they'll work.
+ * How CVs look is chosen in Settings. Filters, languages and the rest have defaults and wait in Preferences.
  */
 export function OnboardingPreferences({
   tz,
   countries,
   categoryIds,
   fromCv,
-  style: initialStyle,
-  sample,
 }: {
   tz: string;
   countries: CountryOption[];
   categoryIds: string[];
   /** Titles from the person's own library, latest first. The latest starts in the box. */
   fromCv: string[];
-  style: CvStyle;
-  sample: Resume;
 }) {
   const [p, setP] = useState<PreferencesInput>(() => blankPreferences(tz));
   const [titles, setTitles] = useState<string[]>(fromCv.slice(0, 1));
-  const [style, setStyle] = useState(initialStyle);
   const [message, setMessage] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
   const [pending, start] = useTransition();
@@ -80,10 +74,6 @@ export function OnboardingPreferences({
     if (modes.length === 0) return setMessage("Choose at least one way of working.");
     setMessage(null);
     start(async () => {
-      if (style !== initialStyle) {
-        const styled = await setCvStyle(style);
-        if (!styled.ok) return setMessage(styled.message ?? "Couldn't save your CV template.");
-      }
       // Goes to the dashboard when it works, so only a failure comes back.
       const r = await savePreferences({ ...p, targetTitles: titles }, "/dashboard");
       if (!r.ok) setMessage(r.message ?? "Couldn't save your answers.");
@@ -173,12 +163,6 @@ export function OnboardingPreferences({
             : ""}
           {modes.includes("remote") ? `Remote roles must be open to people ${countryName ? `in ${countryName}` : "where you live"}.` : ""}
         </small>
-      </section>
-
-      <section className="card">
-        <h2>Pick a look for your CVs</h2>
-        <CvTemplatePicker value={style} onChange={setStyle} sample={sample} />
-        <small className="muted">An example CV. Yours will use your own experience. You can change the look any time.</small>
       </section>
 
       {message ? (

@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { CV_STYLES, type CvStyle, type Resume } from "@cvtailor/core";
-import { setCvStyle } from "@/app/actions";
+import { setCvStyle, setPageSize } from "@/app/actions";
 import { CvSheet } from "@/components/CvSheet";
 import { SettingsTabs } from "@/components/SettingsTabs";
 
-export function CvStylePicker({ current, sample, isOwn }: { current: CvStyle; sample: Resume; isOwn: boolean }) {
+export function CvStylePicker({ current, sample, isOwn, pageSize }: { current: CvStyle; sample: Resume; isOwn: boolean; pageSize: "A4" | "LETTER" }) {
   const [style, setStyle] = useState(current);
+  const [paper, setPaper] = useState(pageSize);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const choose = async (next: CvStyle) => {
@@ -19,6 +20,17 @@ export function CvStylePicker({ current, sample, isOwn }: { current: CvStyle; sa
     } else {
       setStyle(before);
       setMessage({ ok: false, text: r.message ?? "Couldn't save your CV style." });
+    }
+  };
+
+  const choosePaper = async (next: "A4" | "LETTER") => {
+    const before = paper;
+    setPaper(next);
+    const r = await setPageSize(next);
+    if (r.ok) setMessage({ ok: true, text: `Your CVs will use ${next === "A4" ? "A4" : "US Letter"} paper.` });
+    else {
+      setPaper(before);
+      setMessage({ ok: false, text: r.message ?? "Couldn't save the paper size." });
     }
   };
 
@@ -49,6 +61,17 @@ export function CvStylePicker({ current, sample, isOwn }: { current: CvStyle; sa
             </label>
           ))}
         </div>
+        <fieldset>
+          <legend>Paper size</legend>
+          <div className="pills">
+            {(["A4", "LETTER"] as const).map((size) => (
+              <label className="pill" key={size}>
+                <input type="radio" name="paper" value={size} checked={paper === size} onChange={() => void choosePaper(size)} />
+                {size === "A4" ? "A4" : "US Letter"}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         {isOwn ? null : <small className="muted">The preview shows an invented example until you have a CV of your own.</small>}
       </section>
       <section className="styr" aria-label="Preview">

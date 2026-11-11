@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { regionsOfCountry, Region, type CvStyle, type Preferences, type PreferencesInput, type Resume, type WorkMode } from "@cvtailor/core";
+import { regionsOfCountry, Region, type Preferences, type PreferencesInput, type WorkMode } from "@cvtailor/core";
 import type { TitleSuggestions } from "@cvtailor/core/prompts";
 import type { CountryOption } from "@/lib/countries";
-import { savePreferences, setCvStyle } from "@/app/actions";
-import { CvTemplatePicker } from "@/components/CvTemplatePicker";
+import { savePreferences } from "@/app/actions";
 import { blankPreferences, commas, CommaField } from "@/components/PreferenceFields";
 import { errorFields, log, loggedFetch } from "@/lib/log";
 
@@ -45,20 +44,14 @@ export function PreferencesForm({
   categories,
   tz,
   countries,
-  style: initialStyle,
-  sample,
 }: {
   initial: Preferences | null;
   categories: { id: string; label: string }[];
   tz: string;
   countries: CountryOption[];
-  style: CvStyle;
-  sample: Resume;
 }) {
   const [p, setP] = useState<PreferencesInput>(initial ?? blankPreferences(tz));
   const [titles, setTitles] = useState((p.targetTitles ?? []).join(", "));
-  const [style, setStyle] = useState(initialStyle);
-  const [savedStyle, setSavedStyle] = useState(initialStyle);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, start] = useTransition();
   const [suggesting, setSuggesting] = useState(false);
@@ -99,11 +92,6 @@ export function PreferencesForm({
     if (commas(titles).length === 0) return setMessage({ ok: false, text: "Add at least one job title." });
     if (modes.length === 0) return setMessage({ ok: false, text: "Choose at least one way of working." });
     start(async () => {
-      if (style !== savedStyle) {
-        const styled = await setCvStyle(style);
-        if (!styled.ok) return setMessage({ ok: false, text: styled.message ?? "Couldn't save your CV template." });
-        setSavedStyle(style);
-      }
       const r = await savePreferences({ ...p, targetTitles: commas(titles) });
       setMessage({ ok: r.ok, text: r.message ?? "" });
     });
@@ -306,19 +294,6 @@ export function PreferencesForm({
             ))}
           </div>
         </fieldset>
-      </div>
-
-      <div className="card">
-        <h2>Your CV template</h2>
-        <CvTemplatePicker value={style} onChange={setStyle} sample={sample} />
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={p.cvTemplate?.pageSize === "LETTER"}
-            onChange={(e) => set({ cvTemplate: { convention: p.cvTemplate?.convention ?? "standard", pageSize: e.target.checked ? "LETTER" : "A4" } })}
-          />
-          Use US Letter paper instead of A4
-        </label>
       </div>
 
       {message ? <div className={`notice ${message.ok ? "ok" : "bad"}`}>{message.text}</div> : null}

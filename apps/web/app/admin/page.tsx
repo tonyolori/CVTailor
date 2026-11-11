@@ -1,5 +1,6 @@
 import { allowEmail, inviteFromWaitlist, removeEmail, removeFromWaitlist, setKillSwitch } from "@/app/actions";
 import { AppShell } from "@/components/AppShell";
+import { When } from "@/components/When";
 import { requireAdmin } from "@/lib/auth";
 import { adminClient } from "@/lib/supabase/admin";
 
@@ -66,7 +67,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       <td className="overflow-wrap">{w.email}</td>
                       <td className="overflow-wrap">{w.name ?? "Not given"}</td>
                       <td className="overflow-wrap">{w.looking_for ?? "Not given"}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>{new Date(w.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <When value={w.created_at} />
+                      </td>
                       <td>
                         <div className="row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
                           {w.invited_at ? (
@@ -126,11 +129,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               <tbody>
                 {(dailyRuns ?? []).map((r) => (
                   <tr key={r.run_date}>
-                    <td>{r.run_date}</td>
+                    <td>
+                      <When value={r.run_date} />
+                    </td>
                     <td>
                       <span className={`chip ${r.status === "ok" ? "ok" : r.status === "failed" ? "bad" : "info"}`}>{r.status}</span>
                     </td>
-                    <td>{r.finished_at ? new Date(r.finished_at).toLocaleTimeString() : "-"}</td>
+                    <td>
+                      <When value={r.finished_at} />
+                    </td>
                     <td>{(byDay.get(r.run_date) ?? 0).toFixed(4)}</td>
                   </tr>
                 ))}

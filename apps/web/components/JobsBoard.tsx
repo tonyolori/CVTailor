@@ -23,8 +23,9 @@ export interface BoardRow {
   company: string;
   /** Town and way of working, as one short line. */
   where: string;
-  /** When the match was made, as a short date. */
+  /** When the match was made, in words, and in full for a hover title. */
   found: string;
+  foundExact: string;
   original: string | null;
   apply: string | null;
   locationQuote: string;
@@ -423,7 +424,9 @@ export function JobsBoard(props: {
                         <span className="cvst">None yet</span>
                       )}
                     </td>
-                    <td className="r wide">{r.found}</td>
+                    <td className="r wide">
+                      <time title={r.foundExact}>{r.found}</time>
+                    </td>
                   </tr>
                 ))}
               </tbody>

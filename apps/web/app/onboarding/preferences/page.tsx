@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { cvStyleOf, FactLibrarySchema, titlesFromLibrary } from "@cvtailor/core";
+import { FactLibrarySchema, titlesFromLibrary } from "@cvtailor/core";
 import { OnboardingPreferences } from "@/components/OnboardingPreferences";
 import { countryOptions } from "@/lib/countries";
 import { requireUser } from "@/lib/auth";
-import { landingExample } from "@/lib/landing-examples";
 
 export default async function OnboardingPreferencesPage() {
   const { supabase, user, profile } = await requireUser();
@@ -34,8 +33,6 @@ export default async function OnboardingPreferencesPage() {
         countries={countryOptions()}
         categoryIds={(categories ?? []).map((c) => c.id as string)}
         fromCv={lib.success ? titlesFromLibrary(lib.data) : []}
-        style={cvStyleOf(profile.cv_style)}
-        sample={landingExample()[0]!.resume}
       />
     </main>
     </div>

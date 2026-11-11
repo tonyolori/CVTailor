@@ -186,6 +186,19 @@ export const setCvStyle = logged("action.setCvStyle", async (style: string): Pro
   revalidatePath("/dashboard");
   return error ? { ok: false, message: "Couldn't save your CV style." } : { ok: true };
 });
+/** A4 or US Letter for every CV. Kept with the preferences, where the CV writer reads it. */
+export const setPageSize = logged("action.setPageSize", async (size: string): Promise<ActionResult> => {
+  if (size !== "A4" && size !== "LETTER") return { ok: false, message: "Unknown paper size." };
+  const { supabase, user } = await requireUser();
+  const { data } = await supabase.from("preferences").select("data").eq("user_id", user.id).maybeSingle();
+  const parsed = PreferencesSchema.safeParse(data?.data);
+  if (!parsed.success) return { ok: false, message: "Say what you're looking for first, in Profile." };
+  const next = { ...parsed.data, cvTemplate: { ...parsed.data.cvTemplate, pageSize: size } };
+  const { error } = await supabase.from("preferences").upsert({ user_id: user.id, data: next });
+  if (error) log("preferences.page_size_failed", { userId: user.id, code: bodyErrorCode(error) }, "error");
+  revalidatePath("/settings/cv-style");
+  return error ? { ok: false, message: "Couldn't save the paper size." } : { ok: true };
+});
 export const updateSettings = logged("action.updateSettings", async (_prev: ActionResult | null, form: FormData): Promise<ActionResult> => {
   const { supabase, user } = await requireUser();
   const tz = String(form.get("tz") ?? "UTC");

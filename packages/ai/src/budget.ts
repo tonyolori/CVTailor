@@ -1,5 +1,7 @@
 import type { LlmUsage } from "@cvtailor/llm";
+import { logIdentifier } from "@cvtailor/core/log";
 import { must, type Db } from "./db";
+import { log } from "./log";
 
 export class BudgetExceeded extends Error {
   constructor(readonly scope: "global" | "user" | "kill_switch") {
@@ -83,5 +85,10 @@ export class Budget {
       }),
       "record run",
     );
+    // A failed stage is what the admin page counts, so it alerts as well: error-level lines go to
+    // Slack. "stage_error" is logged where it's thrown, with more detail, so it isn't repeated.
+    if (status === "failed" && error !== "stage_error") {
+      log("stage.failed", { stage, userId, runDate: this.runDate, kind: logIdentifier(error) ?? "unknown" }, "error");
+    }
   }
 }

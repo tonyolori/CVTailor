@@ -1,10 +1,9 @@
-import { cvStyleOf, PreferencesSchema } from "@cvtailor/core";
+import { PreferencesSchema } from "@cvtailor/core";
 import { AppShell } from "@/components/AppShell";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { ProfileTabs } from "@/components/ProfileTabs";
 import { countryOptions } from "@/lib/countries";
 import { requireUser } from "@/lib/auth";
-import { landingExample } from "@/lib/landing-examples";
 
 export default async function PreferencesPage() {
   const { supabase, user, profile } = await requireUser();
@@ -21,8 +20,6 @@ export default async function PreferencesPage() {
           categories={categories ?? []}
           tz={profile.tz}
           countries={countryOptions()}
-          style={cvStyleOf(profile.cv_style)}
-          sample={landingExample()[0]!.resume}
         />
       </main>
     </AppShell>

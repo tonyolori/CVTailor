@@ -3,6 +3,7 @@ import { expireCvRequests } from "@cvtailor/ai/cv-request";
 import { AppShell, loadShell } from "@/components/AppShell";
 import { JobsBoard, type BoardRow } from "@/components/JobsBoard";
 import { requireUser } from "@/lib/auth";
+import { dateInWords, exactDate } from "@/lib/dates";
 import { cvAllowance } from "@/lib/entitlement";
 import { loadMatchDetail } from "@/lib/match-detail";
 import { adminClient } from "@/lib/supabase/admin";
@@ -25,7 +26,6 @@ interface Row {
 
 const MODES: Record<string, string> = { remote: "Remote", hybrid: "Hybrid", onsite: "On-site" };
 
-const shortDate = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ view?: string; job?: string }> }) {
   const { supabase, user, profile } = await requireUser();
@@ -83,7 +83,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         title: job.title,
         company: job.company,
         where: [job.location_text?.trim(), MODES[job.work_mode ?? ""]].filter(Boolean).join(" · "),
-        found: shortDate(r.run_date),
+        found: dateInWords(r.run_date),
+        foundExact: exactDate(r.run_date),
         original: safeHref(job.url),
         apply: safeHref(job.apply_url) ?? safeHref(job.url),
         locationQuote: e?.locationQuote ?? "",
