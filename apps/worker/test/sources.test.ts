@@ -13,6 +13,7 @@ import {
 } from "../src/sources/ats";
 import {
   AGGREGATORS,
+  himalayasSearches,
   parseHimalayas,
   parseHnThread,
   parseJobicy,
@@ -26,7 +27,7 @@ import { onsiteNursePersona, remoteAccountantPersona, remoteSoftwarePersona } fr
 import { urlChunks } from "../src/db";
 import { capDescription, dedupeRun } from "../src/pipeline/collect";
 import { slugCandidates } from "../src/pipeline/discovery";
-import { coverageGaps, searchQueries, usableAdapters } from "../src/sources/registry";
+import { coverageGaps, fallbackQueries, primaryQueries, searchQueries, usableAdapters } from "../src/sources/registry";
 import { politeHttp } from "../src/sources/http";
 import { blockedBySourceRules } from "../src/sources/restricted";
 import { dedupeKey, guessCountry, htmlToText, toIso } from "../src/sources/text";
@@ -50,6 +51,15 @@ function expectValid(jobs: RawJob[], source: string) {
 }
 
 describe("aggregator parsers, against saved real responses", () => {
+  it("searches Himalayas plainly, worldwide-only and by each user's country", () => {
+    const urls = himalayasSearches(["Payroll Specialist"], ["pt", "PT"]).map((x) => x.base);
+    expect(urls).toEqual([
+      "https://himalayas.app/jobs/api/search?q=Payroll%20Specialist",
+      "https://himalayas.app/jobs/api/search?q=Payroll%20Specialist&worldwide=true",
+      "https://himalayas.app/jobs/api/search?q=Payroll%20Specialist&country=Portugal",
+    ]);
+  });
+
   it("Himalayas keeps applicationLink unchanged and passes the location list", () => {
     const body = json("himalayas.json");
     const jobs = parseHimalayas(body);
@@ -283,6 +293,14 @@ describe("source registry", () => {
     expect(coverageGaps(software, opts, [])).toEqual([]);
   });
 
+  it("searches main titles and topics first, and fallback titles only later", () => {
+    const first = primaryQueries([software], [["Reconciliations"]]);
+    expect(first).toEqual([...software.targetTitles, "Reconciliations"]);
+    const later = fallbackQueries([software], first);
+    expect(later.length).toBeGreaterThan(0);
+    expect(later.some((q) => first.includes(q))).toBe(false);
+  });
+
   it("searchQueries de-duplicates across users, main titles first", () => {
     const q = searchQueries([software, software, accountant]);
     expect(q.filter((t) => t === "Backend Engineer")).toHaveLength(1);
@@ -383,7 +401,7 @@ describe("source rules at the HTTP layer", () => {
       json: async (url: string) => (asked.push(url), null),
       text: async (url: string) => (asked.push(url), null),
     };
-    for (const a of AGGREGATORS) await a.fetch({ http, queries: ["Accountant"], now: new Date() });
+    for (const a of AGGREGATORS) await a.fetch({ http, queries: ["Accountant"], countries: ["PT"], now: new Date() });
     expect(asked.length).toBeGreaterThan(5);
     expect(asked.filter(blockedBySourceRules)).toEqual([]);
   });

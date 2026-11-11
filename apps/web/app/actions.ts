@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
-import { CvStyle, FactLibrarySchema, PreferencesSchema, ResumeSchema, type FactLibrary } from "@cvtailor/core";
+import { CvStyle, FactLibrarySchema, levelDefaults, PreferencesSchema, ResumeSchema, type FactLibrary, type Preferences } from "@cvtailor/core";
 import { requireAdmin, requireUser, type Profile } from "@/lib/auth";
 import { sendAddressConfirmation, sendInvite, sendWelcome } from "@/lib/email";
 import { bodyErrorCode, log, logged } from "@/lib/log";
@@ -108,12 +108,28 @@ export const saveFacts = logged("action.saveFacts", async (input: unknown, next?
   return { ok: true, message: "Saved." };
 });
 
+/**
+ * The first save (onboarding) fills the years cap and seniority exclusions from the library when the
+ * person left them empty. Later saves keep exactly what they set, so they can change or clear these.
+ */
+async function withLevelDefaults(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, prefs: Preferences): Promise<Preferences> {
+  if (prefs.maxYearsRequired != null || prefs.excludeSeniority.length > 0) return prefs;
+  const { data: existing } = await supabase.from("preferences").select("user_id").eq("user_id", userId).maybeSingle();
+  if (existing) return prefs;
+  const { data: facts } = await supabase.from("fact_library").select("data").eq("user_id", userId).maybeSingle();
+  const lib = FactLibrarySchema.safeParse(facts?.data);
+  if (!lib.success) return prefs;
+  const d = levelDefaults(lib.data);
+  return { ...prefs, maxYearsRequired: d.maxYearsRequired, excludeSeniority: d.excludeSeniority };
+}
+
 export const savePreferences = logged("action.savePreferences", async (input: unknown, next?: string): Promise<ActionResult> => {
   const { supabase, user, profile } = await requireUser();
   if (!profile.consented_at) return { ok: false, message: "Agree to how CV Tailor uses your details first." };
   const parsed = PreferencesSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: issuesMessage(parsed.error) };
-  const { error } = await supabase.from("preferences").upsert({ user_id: user.id, data: parsed.data });
+  const data = await withLevelDefaults(supabase, user.id, parsed.data);
+  const { error } = await supabase.from("preferences").upsert({ user_id: user.id, data });
   if (error) return { ok: false, message: "Couldn't save your preferences." };
   await supabase.from("profiles").update({ daily_cap: parsed.data.dailyCap }).eq("id", user.id);
   revalidatePath("/preferences");

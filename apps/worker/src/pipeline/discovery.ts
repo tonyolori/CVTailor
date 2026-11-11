@@ -3,8 +3,10 @@ import { log } from "../log";
 import { ATS_KINDS, scanBoard, type AtsKind, type CompanyRow } from "../sources/ats";
 import type { Http } from "../sources/http";
 
-const WEEK_MS = 7 * 86_400_000;
-const MAX_PROBES_PER_RUN = 40;
+const DAY_MS = 86_400_000;
+const WEEK_MS = 7 * DAY_MS;
+/** Each probe is one polite request to a public board API. */
+const MAX_PROBES_PER_RUN = 150;
 
 export function slugCandidates(company: string): string[] {
   const words = company
@@ -21,12 +23,14 @@ export function slugCandidates(company: string): string[] {
 }
 
 /**
- * Weekly: harvest companies behind aggregator hits and probe their public boards, one at a
- * time. Adds rows only; no LLM. A company is tagged with the categories it was found under.
+ * Daily, on the local worker: harvest companies behind the past week's aggregator hits and probe
+ * their public boards, one at a time, so the board list keeps growing. Adds rows only; no LLM.
+ * A company is tagged with the categories it was found under.
  */
 export async function runDiscovery(db: Db, http: Http, now: Date = new Date()): Promise<{ probed: number; added: number } | null> {
   const last = must(await db.from("app_settings").select("value").eq("key", "last_discovery_at").single(), "last discovery") as { value: string | null };
-  if (last.value && now.getTime() - new Date(last.value).getTime() < WEEK_MS) return null;
+  // A little under a day, so a run that starts a bit earlier than yesterday's still discovers.
+  if (last.value && now.getTime() - new Date(last.value).getTime() < DAY_MS - 2 * 3_600_000) return null;
 
   const since = new Date(now.getTime() - WEEK_MS).toISOString();
   const jobs = must(

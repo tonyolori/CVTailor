@@ -67,18 +67,36 @@ function adapterServesCountry(a: SourceAdapter, countries: Set<string>): boolean
   return a.countries === "*" || countries.size === 0 || a.countries.some((c) => countries.has(c.toUpperCase()));
 }
 
-const MAX_QUERIES = 30;
+const MAX_QUERIES = 40;
 
-/** Titles to search, de-duplicated across users, main titles first. */
-export function searchQueries(users: Preferences[]): string[] {
+/**
+ * What to search, de-duplicated across users, most important first: main titles, then each user's
+ * search topics, then fallback titles. `topics[i]` belongs to `users[i]`.
+ */
+export function searchQueries(users: Preferences[], topics: string[][] = []): string[] {
   const seen = new Map<string, string>();
   const add = (t: string) => {
     const key = t.trim().toLowerCase();
     if (key && !seen.has(key)) seen.set(key, t.trim());
   };
   users.forEach((u) => u.targetTitles.forEach(add));
+  topics.forEach((t) => t.forEach(add));
   users.forEach((u) => u.expansionTitles.a.forEach(add));
   users.forEach((u) => u.expansionTitles.b.forEach(add));
   users.forEach((u) => u.expansionTitles.c.forEach(add));
   return [...seen.values()].slice(0, MAX_QUERIES);
+}
+
+/** First-pass searches: main titles and topics only. Fallback titles are searched later, for users short of picks. */
+export function primaryQueries(users: Preferences[], topics: string[][] = []): string[] {
+  return searchQueries(
+    users.map((u) => ({ ...u, expansionTitles: { a: [], b: [], c: [] } })),
+    topics,
+  );
+}
+
+/** Fallback-title searches for users below their minimum picks, minus what the first pass searched. */
+export function fallbackQueries(users: Preferences[], alreadySearched: string[]): string[] {
+  const done = new Set(alreadySearched.map((q) => q.trim().toLowerCase()));
+  return searchQueries(users.map((u) => ({ ...u, targetTitles: [] }))).filter((q) => !done.has(q.toLowerCase()));
 }

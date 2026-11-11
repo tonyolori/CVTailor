@@ -41,8 +41,10 @@ export interface Terms {
 
 export interface FetchContext {
   http: Http;
-  /** Target and expansion titles of active users, de-duplicated and capped. */
+  /** Titles and search topics of active users, de-duplicated and capped, most important first. */
   queries: string[];
+  /** Where active users live (ISO alpha-2), for sources that can search roles open to one country. */
+  countries: string[];
   now: Date;
 }
 
@@ -58,5 +60,7 @@ export interface SourceAdapter {
   /** Minimum gap between requests to this source's host. */
   rateLimit: { host: string; minIntervalMs: number };
   terms: Terms;
+  /** Searches by query rather than returning one fixed feed. Only these run in the fallback-title search. */
+  queryDriven?: boolean;
   fetch(ctx: FetchContext): Promise<RawJob[]>;
 }

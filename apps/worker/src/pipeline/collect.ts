@@ -94,6 +94,15 @@ export async function recordBoardOutcomes(db: Db, companies: CompanyRow[], outco
   }
 }
 
+export interface SearchPlan {
+  /** Titles and topics to search, most important first. */
+  queries: string[];
+  /** Where users live, for sources that can search by eligible country. */
+  countries: string[];
+  /** Only the sources that search by query, and no board scan: the fallback-title search. */
+  queryOnly?: boolean;
+}
+
 export async function collect(
   db: Db,
   http: Http,
@@ -101,10 +110,10 @@ export async function collect(
   categories: Category[],
   opts: RegistryOptions,
   now: Date = new Date(),
+  plan: SearchPlan = { queries: searchQueries(users), countries: [] },
 ): Promise<CollectResult> {
-  const adapters = usableAdapters(opts, AGGREGATORS);
-  const queries = searchQueries(users);
-  const ctx = { http, queries, now };
+  const adapters = usableAdapters(opts, AGGREGATORS).filter((a) => !plan.queryOnly || a.queryDriven);
+  const ctx = { http, queries: plan.queries, countries: plan.countries, now };
   const sources: CollectResult["sources"] = [];
   const raw: RawJob[] = [];
 
@@ -120,18 +129,20 @@ export async function collect(
     }
   }
 
-  const companies = must(
-    await db.from("companies").select("id,ats,slug,name,tags,countries,fail_count").in("ats", ["gh", "lever", "ashby", "workable", "breezy", "recruitee"]),
-    "load companies",
-  ) as CompanyRow[];
-  // Every board, not only those tagged for today's users: a board's tags and countries are a guess,
-  // and the pre-filter below is what decides what's kept.
-  const boards = companies;
-  const scan = await scanCompanies(http, boards);
-  raw.push(...scan.jobs);
-  await recordBoardOutcomes(db, boards, scan.outcomes);
-  sources.push({ id: atsBoards.id, label: atsBoards.label, found: scan.jobs.length, failed: false });
-  log("collect.boards", { boards: boards.length, failed: scan.outcomes.filter((o) => !o.ok).length, found: scan.jobs.length });
+  if (!plan.queryOnly) {
+    const companies = must(
+      await db.from("companies").select("id,ats,slug,name,tags,countries,fail_count").in("ats", ["gh", "lever", "ashby", "workable", "breezy", "recruitee"]),
+      "load companies",
+    ) as CompanyRow[];
+    // Every board, not only those tagged for today's users: a board's tags and countries are a guess,
+    // and the pre-filter below is what decides what's kept.
+    const boards = companies;
+    const scan = await scanCompanies(http, boards);
+    raw.push(...scan.jobs);
+    await recordBoardOutcomes(db, boards, scan.outcomes);
+    sources.push({ id: atsBoards.id, label: atsBoards.label, found: scan.jobs.length, failed: false });
+    log("collect.boards", { boards: boards.length, failed: scan.outcomes.filter((o) => !o.ok).length, found: scan.jobs.length });
+  }
 
   // Pre-filter first: postings nobody could want are never stored or enriched.
   const droppedByFilter: Record<string, number> = {};

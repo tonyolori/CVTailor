@@ -42,7 +42,37 @@ Role match (0-5): how close the job is to the candidate's target titles. 5 for a
 
 Library fit (0-5): how many of the posting's must-haves the library can back with real facts. 5 means nearly all of them, 0 means the core requirements are missing. Count only what the library actually shows. Don't give credit for what the candidate could probably do.
 
-Reason: one short line on why it fits or doesn't, in plain language.`;
+Reason: one short line on why it fits or doesn't, in plain language.
+
+Past decisions: the candidate's own record may list roles they applied to or added themselves, and roles they dismissed. Treat these as a signal of what they want. Move role match up to one point toward work like what they applied to, and down for work like what they dismissed. Never change library fit because of them.`;
+
+export const REFINE_SYSTEM = `${SCORE_SYSTEM}
+
+You have the full posting text this time, not a summary, and an earlier quick score put this posting near the top. Read the whole posting and score it again carefully. Judge must-haves from what the posting really asks for, including requirements stated only in its prose, and check each against the library. Be strict: a close call stays below the line unless the library clearly backs the posting's core work.`;
+
+/** Postings run long; the requirements are nearly always within the first part. */
+const MAX_REFINE_TEXT = 12_000;
+
+export function refineUserPrompt(job: { title: string; company: string; enriched: EnrichedJob; text: string }, prefs: Preferences, tier: string): string {
+  const text = job.text.length > MAX_REFINE_TEXT ? `${job.text.slice(0, MAX_REFINE_TEXT)}\n[cut]` : job.text;
+  return scoreUserPrompt(job, prefs, tier).replace(
+    "\n\nScore this posting for this candidate.",
+    `\n<posting_text>\n${text}\n</posting_text>\n\nScore this posting for this candidate.`,
+  );
+}
+
+export interface PastDecision {
+  title: string;
+  company: string;
+  /** applied: they applied, interviewed or got an offer. added: they pasted it in themselves. dismissed: they said no. */
+  kind: "applied" | "added" | "dismissed";
+}
+
+/** One user's own decisions, appended to their library context. Titles and companies only. */
+export function pastDecisionsContext(decisions: PastDecision[]): string {
+  if (decisions.length === 0) return "";
+  return `\n<past_decisions>\n${JSON.stringify(decisions)}\n</past_decisions>`;
+}
 
 export function scoreUserPrompt(job: { title: string; company: string; enriched: EnrichedJob }, prefs: Preferences, tier: string): string {
   const e = job.enriched;

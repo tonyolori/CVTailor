@@ -18,6 +18,7 @@
     "seed:demo": "npm run seed:demo -w @cvtailor/worker --",
     "seed:companies": "npm run seed:companies -w @cvtailor/worker --",
     "seed:companies:live": "npm run seed:companies:live -w @cvtailor/worker --",
+    "seed:tony:live": "npm run seed:tony:live -w @cvtailor/worker --",
     "claude:login": "npm run claude:login -w @cvtailor/llm",
     "llm:check": "npm run llm:check -w @cvtailor/worker",
     "email:auth-templates": "npm run email:auth-templates -w @cvtailor/worker",

@@ -1,8 +1,8 @@
-import type { Category } from "@cvtailor/core";
+import { titleTier, type Category, type Preferences, type TitleTier } from "@cvtailor/core";
 import { addUsage, ZERO_USAGE, type LlmProvider, type LlmUsage } from "@cvtailor/llm";
 import { BudgetExceeded, type Budget } from "@cvtailor/ai/budget";
 import { buildEnrichRequest, reconcile, type JobRow } from "@cvtailor/ai/enrich";
-import { must, type Db } from "../db";
+import { chunks, must, type Db } from "../db";
 import { log } from "../log";
 import type { Http } from "../sources/http";
 import { checkLive, type LiveCheck } from "./live";
@@ -26,7 +26,64 @@ export interface EnrichResult {
   usage: LlmUsage;
 }
 
-/** Each posting is enriched once and shared by all users. Failures don't stop the rest. */
+const WORLDWIDE_HINT = /\b(worldwide|anywhere|global|work from anywhere)\b/i;
+const TIER_RANK: Record<TitleTier, number> = { core: 0, a: 1, b: 2, c: 3 };
+
+interface PendingJob {
+  id: number;
+  title: string;
+  location_text: string | null;
+  from_ats: boolean;
+  posted_at: string | null;
+}
+
+/**
+ * Lower is sooner. A job close to someone's main titles goes first, then one labelled worldwide or
+ * read from an employer's own board. With a capped run, this decides what gets looked at today.
+ */
+export function enrichPriority(job: Pick<PendingJob, "title" | "location_text" | "from_ats">, users: Preferences[]): number {
+  let best = 4;
+  for (const u of users) {
+    const t = titleTier(job.title, u);
+    if (t) best = Math.min(best, TIER_RANK[t]);
+  }
+  return best - (WORLDWIDE_HINT.test(job.location_text ?? "") ? 0.5 : 0) - (job.from_ats ? 0.25 : 0);
+}
+
+/** Picks today's batch from the backlog, best first, and retires postings already too old for everyone. */
+async function pendingBatch(db: Db, users: Preferences[], maxPerRun: number, now: Date): Promise<JobRow[]> {
+  const pending = must(
+    await db.from("jobs").select("id,title,location_text,from_ats,posted_at").eq("status", "new").is("owner_id", null).order("posted_at", { ascending: false, nullsFirst: false }).limit(5000),
+    "pending jobs",
+  ) as PendingJob[];
+
+  const maxAge = users.length > 0 ? Math.max(...users.map((u) => u.maxPostingAgeDays)) : Infinity;
+  const tooOld = pending.filter((j) => j.posted_at && (now.getTime() - new Date(j.posted_at).getTime()) / 86_400_000 > maxAge);
+  for (const ids of chunks(tooOld.map((j) => j.id), 200)) {
+    must(await db.from("jobs").update({ status: "filtered", filter_reason: "age" }).in("id", ids), "retire old jobs");
+  }
+  const old = new Set(tooOld.map((j) => j.id));
+  const time = (j: PendingJob) => (j.posted_at ? new Date(j.posted_at).getTime() : 0);
+  const chosen = pending
+    .filter((j) => !old.has(j.id))
+    .map((j) => ({ j, p: enrichPriority(j, users) }))
+    .sort((a, b) => a.p - b.p || time(b.j) - time(a.j))
+    .slice(0, maxPerRun)
+    .map((x) => x.j.id);
+
+  const rows: JobRow[] = [];
+  for (const ids of chunks(chosen, 200)) {
+    rows.push(...(must(await db.from("jobs").select("*").in("id", ids), "batch jobs") as JobRow[]));
+  }
+  const order = new Map(chosen.map((id, i) => [id, i]));
+  log("enrich.batch", { pending: pending.length, retired: tooOld.length, chosen: rows.length });
+  return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+}
+
+/**
+ * Each posting is enriched once and shared by all users. Failures don't stop the rest. What isn't
+ * reached today stays 'new' and is ranked again tomorrow.
+ */
 export async function enrichPending(
   db: Db,
   http: Http,
@@ -34,20 +91,10 @@ export async function enrichPending(
   budget: Budget,
   categories: Category[],
   maxPerRun = 300,
+  users: Preferences[] = [],
+  now: Date = new Date(),
 ): Promise<EnrichResult> {
-  const jobs = must(
-    // Employers' own boards first, because their dates and locations can be trusted, then newest.
-    // Otherwise whichever source was fetched first uses up the whole cap.
-    await db
-      .from("jobs")
-      .select("*")
-      .eq("status", "new")
-      .is("owner_id", null)
-      .order("from_ats", { ascending: false })
-      .order("posted_at", { ascending: false, nullsFirst: false })
-      .limit(maxPerRun),
-    "pending jobs",
-  ) as JobRow[];
+  const jobs = await pendingBatch(db, users, maxPerRun, now);
   let usage = ZERO_USAGE;
   let enriched = 0;
   let failed = 0;

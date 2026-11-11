@@ -1,4 +1,5 @@
 import type { FetchContext, RawJob, SourceAdapter } from "./types";
+import { countryName } from "@cvtailor/core";
 import { decodeEntities, guessCountry, htmlToText, toIso } from "./text";
 
 const asArray = <T>(v: T[] | null | undefined): T[] => (Array.isArray(v) ? v : []);
@@ -50,24 +51,49 @@ export function parseHimalayas(body: { jobs?: HimalayasJob[] }): RawJob[] {
   });
 }
 
+const HIMALAYAS_PAGE_SIZE = 20;
+const HIMALAYAS_PAGES = 3;
+/** Queries also searched once per user country: the first ones, which are main titles and topics. */
+const HIMALAYAS_COUNTRY_QUERIES = 10;
+
+/** The search URLs for one run: each query plain, then worldwide-only, then open to each user's country. */
+export function himalayasSearches(queries: string[], countries: string[]): { base: string; paged: boolean }[] {
+  const out: { base: string; paged: boolean }[] = [];
+  const api = "https://himalayas.app/jobs/api/search";
+  for (const q of queries) {
+    const enc = encodeURIComponent(q);
+    out.push({ base: `${api}?q=${enc}`, paged: false });
+    out.push({ base: `${api}?q=${enc}&worldwide=true`, paged: true });
+  }
+  for (const code of [...new Set(countries.map((c) => c.toUpperCase()))]) {
+    const name = encodeURIComponent(countryName(code));
+    for (const q of queries.slice(0, HIMALAYAS_COUNTRY_QUERIES)) out.push({ base: `${api}?q=${encodeURIComponent(q)}&country=${name}`, paged: true });
+  }
+  return out;
+}
+
 export const himalayas: SourceAdapter = {
   id: "himalayas",
   label: "Himalayas",
   countries: "*",
   categories: "*",
   workModes: ["remote"],
-  rateLimit: { host: "himalayas.app", minIntervalMs: 1100 },
+  // It answers "Rate limit reached" to quicker bursts.
+  rateLimit: { host: "himalayas.app", minIntervalMs: 3000 },
+  queryDriven: true,
   terms: {
     status: "permitted",
     note: "himalayas.app/api: show jobs only on our own sites and apps, keep applicationLink unchanged, show a visible link to Himalayas, remove expired jobs, never pass them to other boards. Data refreshes daily.",
   },
   async fetch(ctx) {
     const out: RawJob[] = [];
-    for (const q of ctx.queries) {
-      const body = await ctx.http.json<{ jobs?: HimalayasJob[] }>(
-        `https://himalayas.app/jobs/api/search?q=${encodeURIComponent(q)}`,
-      );
-      if (body) out.push(...parseHimalayas(body));
+    for (const s of himalayasSearches(ctx.queries, ctx.countries)) {
+      for (let page = 1; page <= (s.paged ? HIMALAYAS_PAGES : 1); page++) {
+        const body = await ctx.http.json<{ jobs?: HimalayasJob[] }>(page === 1 ? s.base : `${s.base}&page=${page}`);
+        const jobs = body ? parseHimalayas(body) : [];
+        out.push(...jobs);
+        if (jobs.length < HIMALAYAS_PAGE_SIZE) break;
+      }
     }
     return out;
   },
@@ -369,6 +395,7 @@ export const workableSearch: SourceAdapter = {
   categories: "*",
   workModes: ["remote", "hybrid", "onsite"],
   rateLimit: { host: "jobs.workable.com", minIntervalMs: 3000 },
+  queryDriven: true,
   terms: {
     status: "unverified",
     note: "Undocumented endpoint behind jobs.workable.com, whose robots.txt disallows /search. It answers Cloudflare 1015 to bursts. Off until Tony decides; the documented per-account widget in the ATS adapter stays on.",

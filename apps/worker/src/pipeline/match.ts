@@ -8,7 +8,17 @@ import {
   type Preferences,
   type TitleTier,
 } from "@cvtailor/core";
-import { libraryContext, SCORE_SYSTEM, ScoreSchema, scoreUserPrompt, type Score } from "@cvtailor/core/prompts";
+import {
+  libraryContext,
+  pastDecisionsContext,
+  REFINE_SYSTEM,
+  refineUserPrompt,
+  SCORE_SYSTEM,
+  ScoreSchema,
+  scoreUserPrompt,
+  type PastDecision,
+  type Score,
+} from "@cvtailor/core/prompts";
 import { addUsage, mayUseAi, ZERO_USAGE, type LlmProvider, type LlmRequest, type LlmUsage } from "@cvtailor/llm";
 import { chunks, must, type Db } from "../db";
 import { log } from "../log";
@@ -36,6 +46,8 @@ interface Candidate {
 interface Scored extends Candidate {
   score: number;
   reason: string;
+  /** True once the strong model has scored it against the full posting. */
+  refined: boolean;
 }
 
 /** How far back to look. Longer than any user's age window, which never widens. */
@@ -43,6 +55,12 @@ const LOOKBACK_DAYS = 60;
 const MAX_NEAR_MISSES_SCORED = 12;
 /** A role needing a credential the user lacks, under the score-penalty policy. */
 export const MISSING_CREDENTIAL_PENALTY = 3;
+/** Strong-model re-scores per user per run: candidates for picks, then for "worth a look". */
+export const REFINE_PICKS = 10;
+export const REFINE_NEAR_MISSES = 4;
+/** A first-pass score this far under the bar can still be lifted by a closer read. */
+const REFINE_MARGIN = 2;
+const PAST_DECISIONS = 40;
 
 export function heldCredentials(user: Pick<ActiveUser, "facts">): string[] {
   return [
@@ -146,27 +164,39 @@ class ScoreStop extends Error {
 }
 
 /** Scores with the cache keyed by (user, job, preferences version). Stops cleanly at a budget or rate limit. */
-async function scoreAll(deps: MatchDeps, user: ActiveUser, items: Candidate[]): Promise<{ scored: Scored[]; usage: LlmUsage; stoppedBy?: string }> {
+async function scoreAll(deps: MatchDeps, user: ActiveUser, items: Candidate[], context: string): Promise<{ scored: Scored[]; usage: LlmUsage; stoppedBy?: string }> {
   if (items.length === 0) return { scored: [], usage: ZERO_USAGE };
-  const cached: { job_id: number; role_match: number; library_fit: number; reason: string | null }[] = [];
+  type CacheRow = {
+    job_id: number;
+    role_match: number;
+    library_fit: number;
+    reason: string | null;
+    refined_role_match: number | null;
+    refined_library_fit: number | null;
+    refined_reason: string | null;
+  };
+  const cached: CacheRow[] = [];
   for (const ids of chunks(items.map((c) => c.job.id), 200)) {
     const rows = must(
       await deps.db
         .from("match_scores")
-        .select("job_id,role_match,library_fit,reason")
+        .select("job_id,role_match,library_fit,reason,refined_role_match,refined_library_fit,refined_reason")
         .eq("user_id", user.id)
         .eq("preferences_version", user.preferencesVersion)
         .in("job_id", ids),
       "cached scores",
-    ) as typeof cached;
+    ) as CacheRow[];
     cached.push(...rows);
   }
-  const scores = new Map<number, Score>(
-    cached.map((c) => [c.job_id, { roleMatch: Number(c.role_match), libraryFit: Number(c.library_fit), reason: c.reason ?? "" }]),
+  const scores = new Map<number, Score & { refined: boolean }>(
+    cached.map((c) =>
+      c.refined_role_match != null && c.refined_library_fit != null
+        ? [c.job_id, { roleMatch: Number(c.refined_role_match), libraryFit: Number(c.refined_library_fit), reason: c.refined_reason ?? c.reason ?? "", refined: true }]
+        : [c.job_id, { roleMatch: Number(c.role_match), libraryFit: Number(c.library_fit), reason: c.reason ?? "", refined: false }],
+    ),
   );
 
   const missing = items.filter((c) => !scores.has(c.job.id));
-  const context = libraryContext(user.facts);
   const requests: LlmRequest<Score>[] = missing.map((c) => ({
     id: String(c.job.id),
     tier: "small",
@@ -189,7 +219,7 @@ async function scoreAll(deps: MatchDeps, user: ActiveUser, items: Candidate[]): 
         usage = addUsage(usage, r.usage);
         deps.budget.add(r.usage.costUsd, user.id);
         if (r.ok) {
-          scores.set(Number(id), r.data);
+          scores.set(Number(id), { ...r.data, refined: false });
           must(
             await deps.db.from("match_scores").upsert({
               user_id: user.id,
@@ -217,9 +247,102 @@ async function scoreAll(deps: MatchDeps, user: ActiveUser, items: Candidate[]): 
   const scored: Scored[] = [];
   for (const c of items) {
     const s = scores.get(c.job.id);
-    if (s) scored.push({ ...c, score: totalScore(s, c.gates.missingCredentials), reason: s.reason });
+    if (s) scored.push({ ...c, score: totalScore(s, c.gates.missingCredentials), reason: s.reason, refined: s.refined });
   }
   return { scored, usage, stoppedBy };
+}
+
+/** Which first-pass scores earn a closer read: the best ones within reach of the bar, not yet refined. */
+export function refineCandidates<T extends { score: number; refined: boolean; enriched: EnrichedJob }>(items: T[], bar: number, limit: number): T[] {
+  if (limit <= 0) return [];
+  return rank(items.filter((s) => !s.refined && s.score >= bar - REFINE_MARGIN)).slice(0, limit);
+}
+
+/**
+ * Second stage: the strong model reads the full posting for the most promising candidates and its
+ * score replaces the first one. Updates `items` in place and the cache. Stops at a budget or rate limit.
+ */
+async function refine(deps: MatchDeps, user: ActiveUser, items: Scored[], bar: number, limit: number, context: string): Promise<{ calls: number; usage: LlmUsage; stoppedBy?: string }> {
+  const chosen = refineCandidates(items, bar, limit);
+  let usage = ZERO_USAGE;
+  if (chosen.length === 0) return { calls: 0, usage };
+  try {
+    deps.budget.assertAvailable(user.id);
+  } catch (err) {
+    if (err instanceof BudgetExceeded) return { calls: 0, usage, stoppedBy: err.scope };
+    throw err;
+  }
+  const requests: LlmRequest<Score>[] = chosen.map((c) => ({
+    id: String(c.job.id),
+    tier: "strong",
+    effort: "medium",
+    maxTokens: 600,
+    system: REFINE_SYSTEM,
+    cachedContext: context,
+    user: refineUserPrompt({ title: c.job.title, company: c.job.company, enriched: c.enriched, text: c.job.raw_text ?? "" }, user.preferences, c.tier),
+    schema: ScoreSchema,
+  }));
+  let stoppedBy: string | undefined;
+  const byId = new Map(chosen.map((c) => [String(c.job.id), c]));
+  const CHUNK = deps.provider.name === "anthropic-api" ? 20 : 3;
+  try {
+    for (let i = 0; i < requests.length; i += CHUNK) {
+      deps.budget.assertAvailable(user.id);
+      const results = await deps.provider.completeMany(requests.slice(i, i + CHUNK));
+      for (const [id, r] of results) {
+        usage = addUsage(usage, r.usage);
+        deps.budget.add(r.usage.costUsd, user.id);
+        const item = byId.get(id);
+        if (!item) continue;
+        if (r.ok) {
+          item.score = totalScore(r.data, item.gates.missingCredentials);
+          item.reason = r.data.reason;
+          item.refined = true;
+          must(
+            await deps.db
+              .from("match_scores")
+              .update({ refined_role_match: r.data.roleMatch, refined_library_fit: r.data.libraryFit, refined_reason: r.data.reason })
+              .eq("user_id", user.id)
+              .eq("job_id", Number(id))
+              .eq("preferences_version", user.preferencesVersion),
+            "cache refined score",
+          );
+        } else if (r.kind === "rate_limit" || r.kind === "auth") {
+          throw new ScoreStop(r.kind);
+        } else {
+          // The first-pass score stands.
+          log("refine.failed", { jobId: Number(id), userId: user.id, kind: r.kind });
+        }
+      }
+    }
+  } catch (err) {
+    if (err instanceof BudgetExceeded) stoppedBy = err.scope;
+    else if (err instanceof ScoreStop) stoppedBy = err.by;
+    else throw err;
+  }
+  log("refine.done", { userId: user.id, calls: usage.calls });
+  return { calls: chosen.length, usage, stoppedBy };
+}
+
+/** The person's own signals: roles they applied to or added, and roles they dismissed. Newest first. */
+export async function loadPastDecisions(db: Db, userId: string): Promise<PastDecision[]> {
+  const rows = must(
+    await db
+      .from("matches")
+      .select("decision,tracker_status,jobs(title,company)")
+      .eq("user_id", userId)
+      .or("tracker_status.in.(applied,interview,offer,dismissed),decision.eq.pasted")
+      .order("created_at", { ascending: false })
+      .limit(PAST_DECISIONS),
+    "past decisions",
+  ) as unknown as { decision: string; tracker_status: string; jobs: { title: string; company: string } | null }[];
+  const out: PastDecision[] = [];
+  for (const r of rows) {
+    if (!r.jobs) continue;
+    const kind: PastDecision["kind"] = r.tracker_status === "dismissed" ? "dismissed" : r.decision === "pasted" && r.tracker_status === "to_apply" ? "added" : "applied";
+    out.push({ title: r.jobs.title, company: r.jobs.company, kind });
+  }
+  return out;
 }
 
 const TIER_ORDER: TitleTier[] = ["core", "a", "b", "c"];
@@ -271,18 +394,27 @@ export async function matchUser(deps: MatchDeps, user: ActiveUser, runDate: stri
 
   const { count } = await deps.db.from("matches").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("run_date", runDate).eq("decision", "picked");
   const room = Math.max(0, capFor(user) - (count ?? 0));
-  const wantAtLeast = Math.min(prefs.minPicks, room);
+  // A second pass the same day (after the fallback-title search) only needs what's still missing.
+  const wantAtLeast = Math.min(Math.max(0, prefs.minPicks - (count ?? 0)), room);
+  const context = libraryContext(user.facts) + pastDecisionsContext(await loadPastDecisions(deps.db, user.id));
 
   // Main titles first. Fallback tiers only while below minPicks, never relaxing a gate or the score floor.
   const qualifying: Scored[] = [];
   const belowThreshold: Scored[] = [];
+  let refineLeft = REFINE_PICKS;
   for (const tier of TIER_ORDER) {
     if (tier !== "core" && qualifying.length >= wantAtLeast) break;
     const inTier = passing.filter((c) => c.tier === tier);
-    const r = await scoreAll(deps, user, inTier);
+    const r = await scoreAll(deps, user, inTier, context);
     result.usage = addUsage(result.usage, r.usage);
-    for (const s of r.scored) (s.score >= prefs.minScore ? qualifying : belowThreshold).push(s);
     if (r.stoppedBy) result.stoppedBy = r.stoppedBy;
+    if (!result.stoppedBy) {
+      const rf = await refine(deps, user, r.scored, prefs.minScore, refineLeft, context);
+      refineLeft -= rf.calls;
+      result.usage = addUsage(result.usage, rf.usage);
+      if (rf.stoppedBy) result.stoppedBy = rf.stoppedBy;
+    }
+    for (const s of r.scored) (s.score >= prefs.minScore ? qualifying : belowThreshold).push(s);
     if (result.stoppedBy) break;
   }
 
@@ -313,9 +445,14 @@ export async function matchUser(deps: MatchDeps, user: ActiveUser, runDate: stri
   let worth: Scored[] = [];
   if (prefs.worthALookCount > 0 && !result.stoppedBy) {
     const toScore = nearMisses.filter((c) => c.tier === "core").slice(0, MAX_NEAR_MISSES_SCORED);
-    const r = await scoreAll(deps, user, toScore);
+    const r = await scoreAll(deps, user, toScore, context);
     result.usage = addUsage(result.usage, r.usage);
     if (r.stoppedBy) result.stoppedBy = r.stoppedBy;
+    else {
+      const rf = await refine(deps, user, r.scored, prefs.worthALookMinScore, REFINE_NEAR_MISSES, context);
+      result.usage = addUsage(result.usage, rf.usage);
+      if (rf.stoppedBy) result.stoppedBy = rf.stoppedBy;
+    }
     worth = rankNearMisses(r.scored.filter((s) => s.score >= prefs.worthALookMinScore), prefs).slice(0, prefs.worthALookCount);
   }
   const worthIds = new Set(worth.map((w) => w.job.id));

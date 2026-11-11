@@ -81,3 +81,23 @@ export function shouldAlert(
   if (existing?.status === "ok") return false;
   return !existing?.alert_sent_at;
 }
+
+/** How far back the worker looks for days it never ran. */
+export const MISSED_LOOKBACK_DAYS = 7;
+
+/**
+ * Days with no run row at all, from the day after the first recorded run up to yesterday. A day
+ * before the service's first run isn't missed, so a new install raises nothing.
+ */
+export function missedDays(recorded: string[], today: string, lookbackDays = MISSED_LOOKBACK_DAYS): string[] {
+  if (recorded.length === 0) return [];
+  const have = new Set(recorded);
+  const first = [...recorded].sort()[0]!;
+  const out: string[] = [];
+  const day = new Date(`${today}T00:00:00Z`);
+  for (let i = lookbackDays; i >= 1; i--) {
+    const d = new Date(day.getTime() - i * 86_400_000).toISOString().slice(0, 10);
+    if (d > first && !have.has(d)) out.push(d);
+  }
+  return out;
+}

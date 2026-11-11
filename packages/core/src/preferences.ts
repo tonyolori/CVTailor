@@ -46,6 +46,12 @@ export const PreferencesSchema = z.object({
     })
     .default({ a: [], b: [], c: [] }),
 
+  /**
+   * Extra searches beyond job titles: skills and topics from the person's work. Empty means the
+   * worker takes them from the library's most frequent tags (topicsFromLibrary).
+   */
+  searchTopics: z.array(z.string().min(1).max(60)).max(15).default([]),
+
   workModes: z.array(WorkMode).min(1).default(["remote"]),
   /** How far remote roles may be limited. Ignored unless workModes includes remote. */
   remoteScope: RemoteScope.default("eligible_regions"),
