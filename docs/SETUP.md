@@ -88,7 +88,9 @@ To switch back, put the Level 2 or Level 3 values back and restart the worker. N
 - [ ] Create a private channel for alerts, such as `#cvtailor-alerts`.
 - [ ] At [api.slack.com/apps](https://api.slack.com/apps): **Create New App** > **From scratch**, then **Incoming Webhooks** > turn it on > **Add New Webhook to Workspace** and pick the channel.
 - [ ] Set the webhook URL as `SLACK_ALERT_WEBHOOK_URL` on the web host (server-only, Production) and in the worker's `.env.production`. Redeploy the web app and restart the worker. Anyone with the URL can post to the channel, so keep it secret.
-- [ ] Every error-level log line is then posted there, with the same ids and codes as the log. The same failure is posted at most once every 10 minutes per server. Unset, nothing is sent.
+- [ ] Every error-level log line is then posted there, with the same ids and codes as the log. When an exception caused it, the post also shows the exception and each of its causes: type, code, message, status or request id, and the stack trace. The message has values taken out first (addresses, quoted text, query strings, Postgres key values, long numbers), so a CV or someone's details don't reach Slack. Each post ends with where it ran: region, commit and deployment on the web host, machine and commit for the worker.
+- [ ] The same failure is posted at most once every 10 minutes per server, and the next post says how many were held back. Unset, nothing is sent.
+- [ ] A worker that crashes still posts before it exits.
 
 ## Level 5: paid plans
 

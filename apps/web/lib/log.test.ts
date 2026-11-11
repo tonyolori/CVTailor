@@ -40,6 +40,19 @@ describe("log", () => {
     }
     expect(alerts).toEqual([{ event: "thing.failed", fields: { reason: "no user [email]" } }]);
   });
+
+  it("hands the exception from errorFields() to the alert, and leaves it out of the line", () => {
+    const seen: unknown[] = [];
+    setAlertSink((_event, _fields, exception) => seen.push(exception));
+    const err = new Error(`no user ${SECRET}`);
+    try {
+      log("thing.failed", { op: "x", ...errorFields(err) }, "error");
+    } finally {
+      setAlertSink(undefined);
+    }
+    expect(seen).toEqual([err]);
+    expect(JSON.stringify(lines[0]!.line)).not.toContain("no user");
+  });
 });
 
 describe("errorFields", () => {

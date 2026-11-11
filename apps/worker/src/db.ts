@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { DbError, type Db } from "@cvtailor/ai/db";
-import { errorFields } from "@cvtailor/core/log";
+import { errorFields, exceptionField, EXCEPTION } from "@cvtailor/core/log";
 import type { Config } from "./config";
 import { failureLoggingFetch } from "./log";
 
@@ -45,9 +45,9 @@ export function urlChunks(values: string[], maxChars = 4000): string[][] {
   return out;
 }
 
-/** What to log about an error: its step when it has one, never free text from elsewhere. */
-export function errorInfo(err: unknown): { kind: string; detail?: string; code?: string; at?: string } {
-  if (err instanceof DbError) return { kind: "DbError", detail: err.message };
+/** What to log about an error: its step when it has one, never free text from elsewhere. The error itself goes along to the alert. */
+export function errorInfo(err: unknown): { kind: string; detail?: string; code?: string; at?: string; [EXCEPTION]: unknown } {
+  if (err instanceof DbError) return { kind: "DbError", detail: err.message, ...exceptionField(err) };
   const { errorType, code, at } = errorFields(err);
-  return { kind: errorType, code, at };
+  return { kind: errorType, code, at, ...exceptionField(err) };
 }

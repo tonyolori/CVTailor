@@ -1,4 +1,4 @@
-import { bodyErrorCode, errorFields, safeLogFields, type LogField } from "@cvtailor/core/log";
+import { bodyErrorCode, errorFields, exceptionField, exceptionOf, safeLogFields, type LogField } from "@cvtailor/core/log";
 import { raiseAlert } from "@cvtailor/core/alert";
 
 export type LogLevel = "info" | "warn" | "error";
@@ -9,7 +9,7 @@ export function log(event: string, fields: Record<string, LogField> = {}, level:
   const line = JSON.stringify({ t: new Date().toISOString(), level, event, ...safe });
   if (level === "error") {
     console.error(line);
-    raiseAlert(event, safe);
+    raiseAlert(event, safe, exceptionOf(fields));
   } else if (level === "warn") console.warn(line);
   else console.log(line);
 }
@@ -27,7 +27,7 @@ export const failureLoggingFetch: typeof fetch = async (input, init) => {
     return res;
   } catch (err) {
     const { errorType, code, at } = errorFields(err);
-    log("db.failed", { method, path, kind: errorType, code, at }, "error");
+    log("db.failed", { method, path, kind: errorType, code, at, ...exceptionField(err) }, "error");
     throw err;
   }
 };

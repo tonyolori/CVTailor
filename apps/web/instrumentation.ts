@@ -5,7 +5,13 @@ export async function register(): Promise<void> {
   const webhookUrl = process.env.SLACK_ALERT_WEBHOOK_URL;
   if (process.env.NEXT_RUNTIME !== "nodejs" || !webhookUrl) return;
   const [{ setAlertSink, slackAlerts }, { waitUntil }] = await Promise.all([import("@cvtailor/core/alert"), import("@vercel/functions")]);
-  setAlertSink(slackAlerts({ webhookUrl, source: `web (${process.env.VERCEL_ENV ?? "local"})`, keepAlive: waitUntil }));
+  const context = [
+    process.env.VERCEL_REGION && `region ${process.env.VERCEL_REGION}`,
+    process.env.VERCEL_GIT_COMMIT_SHA && `commit ${process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)}`,
+    process.env.VERCEL_DEPLOYMENT_ID && `deployment ${process.env.VERCEL_DEPLOYMENT_ID}`,
+    `node ${process.version}`,
+  ].filter((part): part is string => Boolean(part));
+  setAlertSink(slackAlerts({ webhookUrl, source: `web (${process.env.VERCEL_ENV ?? "local"})`, context, keepAlive: waitUntil }));
 }
 
 /** Next calls this for any uncaught server error, including page renders that nothing else wraps. */

@@ -1,4 +1,4 @@
-import { safeLogFields, type LogField } from "@cvtailor/core/log";
+import { exceptionOf, safeLogFields, type LogField } from "@cvtailor/core/log";
 import { raiseAlert } from "@cvtailor/core/alert";
 
 /** Structured log line of ids and counts only, the same as the worker's and the web app's. */
@@ -7,7 +7,7 @@ export function log(event: string, fields: Record<string, LogField> = {}, level:
   const line = JSON.stringify({ t: new Date().toISOString(), level, event, ...safe });
   if (level === "error") {
     console.error(line);
-    raiseAlert(event, safe);
+    raiseAlert(event, safe, exceptionOf(fields));
   } else if (level === "warn") console.warn(line);
   else console.log(line);
 }

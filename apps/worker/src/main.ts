@@ -1,5 +1,7 @@
+import { execFileSync } from "node:child_process";
+import { hostname } from "node:os";
 import { join } from "node:path";
-import { setAlertSink, slackAlerts } from "@cvtailor/core/alert";
+import { alertsSent, setAlertSink, slackAlerts } from "@cvtailor/core/alert";
 import { createProvider, withLogging } from "@cvtailor/llm";
 import { llmConfig, loadConfig } from "./config";
 import { errorInfo, serviceClient } from "./db";
@@ -18,7 +20,27 @@ import { politeHttp } from "./sources/http";
  * missed run is caught up on start.
  */
 const config = loadConfig();
-if (config.SLACK_ALERT_WEBHOOK_URL) setAlertSink(slackAlerts({ webhookUrl: config.SLACK_ALERT_WEBHOOK_URL, source: "worker" }));
+if (config.SLACK_ALERT_WEBHOOK_URL) {
+  setAlertSink(slackAlerts({ webhookUrl: config.SLACK_ALERT_WEBHOOK_URL, source: "worker", context: [`host ${hostname()}`, `commit ${commit()}`, `node ${process.version}`] }));
+}
+
+/** Which code is running, for the alerts. The worker runs from a checkout. */
+function commit(): string {
+  try {
+    return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: import.meta.dirname, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+/** Anything nothing else caught still reaches Slack before the worker stops. */
+async function crash(event: string, err: unknown): Promise<never> {
+  log(event, errorInfo(err), "error");
+  await alertsSent();
+  process.exit(1);
+}
+process.on("uncaughtException", (err) => void crash("worker.crashed", err));
+process.on("unhandledRejection", (err) => void crash("worker.unhandled_rejection", err));
 const db = serviceClient(config);
 const provider = withLogging(await createProvider(llmConfig(config)), log);
 const policies = {
@@ -52,5 +74,5 @@ if (process.argv.includes("--loop")) {
     await new Promise((resolve) => setTimeout(resolve, TICK_MS));
   }
 } else {
-  await pass();
+  await pass().catch((err: unknown) => crash("worker.pass_failed", err));
 }
