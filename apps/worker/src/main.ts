@@ -3,6 +3,7 @@ import { hostname } from "node:os";
 import { join } from "node:path";
 import { alertsSent, setAlertSink, slackAlerts } from "@cvtailor/core/alert";
 import { createProvider, withLogging } from "@cvtailor/llm";
+import { stayAwake } from "./awake";
 import { llmConfig, loadConfig } from "./config";
 import { errorInfo, serviceClient } from "./db";
 import { fileSender, mailpitSender, resendSender } from "./email/send";
@@ -52,6 +53,7 @@ const deps: RunDeps = {
   http: politeHttp(policies),
   provider,
   config,
+  stayAwake,
   sender:
     config.EMAIL_PROVIDER === "resend" && config.EMAIL_API_KEY
       ? resendSender(config.EMAIL_API_KEY)

@@ -37,6 +37,8 @@ export interface RunDeps {
     | "SITE_URL"
   >;
   now?: () => Date;
+  /** Keeps the machine from sleeping during a run; returns the release. */
+  stayAwake?: () => () => void;
 }
 
 const ADAPTER_LABELS = [...AGGREGATORS.map((a) => ({ id: a.id, label: a.label })), ...["greenhouse", "lever", "ashby", "workable", "breezy", "recruitee"].map((id) => ({ id, label: atsBoards.label }))];
@@ -219,6 +221,7 @@ export async function tick(deps: RunDeps): Promise<string> {
       await db.from("daily_runs").upsert({ run_date: runDate, status: "running", started_at: now.toISOString(), finished_at: null }, { onConflict: "run_date" }),
       "start run",
     );
+    const release = deps.stayAwake?.();
     try {
       const detail = await runDaily(deps, runDate);
       must(
@@ -228,6 +231,8 @@ export async function tick(deps: RunDeps): Promise<string> {
     } catch (err) {
       log("run.failed", { runDate, ...errorInfo(err) }, "error");
       must(await db.from("daily_runs").update({ status: "failed", finished_at: new Date().toISOString(), detail: errorInfo(err) }).eq("run_date", runDate), "fail run");
+    } finally {
+      release?.();
     }
   }
 

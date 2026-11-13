@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { errorInfo } from "../src/db";
 import { resendSender } from "../src/email/send";
-import { failureLoggingFetch, log } from "../src/log";
+import { dbFetch, failureLoggingFetch, log } from "../src/log";
 import { politeHttp } from "../src/sources/http";
 
 const SECRET = "ada@example.com";
@@ -57,12 +57,42 @@ describe("failureLoggingFetch", () => {
     expect(lines[0]!.raw).not.toContain(SECRET);
   });
 
-  it("logs a network failure and still throws it", async () => {
+  it("logs a network failure once it has given up, and still throws it", async () => {
     const err = new TypeError("fetch failed");
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(err)));
-    await expect(failureLoggingFetch("https://db.example.com/x")).rejects.toBe(err);
-    expect(lines[0]!.level).toBe("error");
-    expect(lines[0]!.line).toMatchObject({ event: "db.failed", kind: "TypeError" });
+    const fetchFn = vi.fn(async () => Promise.reject(err));
+    vi.stubGlobal("fetch", fetchFn);
+    await expect(dbFetch(noPause)("https://db.example.com/x")).rejects.toBe(err);
+    expect(fetchFn).toHaveBeenCalledTimes(4);
+    expect(lines.filter((l) => l.level === "error")).toHaveLength(1);
+    expect(lines.at(-1)!.line).toMatchObject({ event: "db.failed", kind: "TypeError", attempts: 4 });
+  });
+
+  it("rides out a dropped connection, warning but not alerting", async () => {
+    const dropped = new TypeError("fetch failed", { cause: Object.assign(new Error("read EADDRNOTAVAIL"), { code: "EADDRNOTAVAIL" }) });
+    const fetchFn = vi.fn().mockRejectedValueOnce(dropped).mockResolvedValueOnce(new Response("[]"));
+    vi.stubGlobal("fetch", fetchFn);
+    const res = await dbFetch(noPause)("https://db.example.com/rest/v1/jobs", { method: "PATCH", body: "{}" });
+    expect(res.status).toBe(200);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(lines.map((l) => [l.level, l.line.event])).toEqual([["warn", "db.retry"]]);
+  });
+
+  it("doesn't resend an insert that may have arrived", async () => {
+    const dropped = new TypeError("fetch failed", { cause: Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }) });
+    const fetchFn = vi.fn(async () => Promise.reject(dropped));
+    vi.stubGlobal("fetch", fetchFn);
+    await expect(dbFetch(noPause)("https://db.example.com/rest/v1/runs", { method: "POST", body: "{}" })).rejects.toBe(dropped);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("resends an insert that never connected, and an upsert either way", async () => {
+    const timeout = new TypeError("fetch failed", { cause: Object.assign(new Error("Connect Timeout Error"), { code: "UND_ERR_CONNECT_TIMEOUT" }) });
+    const reset = new TypeError("fetch failed", { cause: Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }) });
+    const fetchFn = vi.fn().mockRejectedValueOnce(timeout).mockResolvedValueOnce(new Response("[]")).mockRejectedValueOnce(reset).mockResolvedValueOnce(new Response("[]"));
+    vi.stubGlobal("fetch", fetchFn);
+    await dbFetch(noPause)("https://db.example.com/rest/v1/runs", { method: "POST", body: "{}" });
+    await dbFetch(noPause)("https://db.example.com/rest/v1/daily_runs", { method: "POST", body: "{}", headers: { Prefer: "resolution=merge-duplicates" } });
+    expect(fetchFn).toHaveBeenCalledTimes(4);
   });
 });
 
