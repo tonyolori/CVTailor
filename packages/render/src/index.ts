@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { Font, renderToBuffer } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
 import type { CoverLetter, CvStyle, Resume } from "@cvtailor/core";
@@ -10,8 +10,13 @@ export { dateRange, formatDate, orderedSections } from "@cvtailor/core";
 /** Resolved from the working directory, because a bundled module's own location isn't reliable. */
 const require = createRequire(join(process.cwd(), "package.json"));
 
+/**
+ * Resolves the font file itself, not the package's package.json: a deploy ships only the
+ * .ttf files (`outputFileTracingIncludes` in apps/web/next.config.ts), so anything else
+ * fails with MODULE_NOT_FOUND there.
+ */
 function fontFile(pkg: string, file: string): string {
-  return join(dirname(require.resolve(`${pkg}/package.json`)), file);
+  return require.resolve(`${pkg}/${file}`);
 }
 
 let registered = false;
