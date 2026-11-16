@@ -29,7 +29,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             {profile.plan === "pro" && paidUntil && paidUntil > new Date()
               ? `Paid until ${paidUntil.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.`
               : "Free."}{" "}
-            <Link href="/pricing">See plans</Link>
+            <Link prefetch={false} href="/pricing">See plans</Link>
           </p>
           {allowance.unlimited ? null : (
             <p>
@@ -44,7 +44,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         <div className="card">
           <h2>Your data</h2>
-          <p className="muted">Download everything held about you: your library, preferences, matches, jobs you've pasted in, CVs and your CV allowance history. See also the <Link href="/privacy?from=/settings">privacy page</Link>.</p>
+          <p className="muted">Download everything held about you: your library, preferences, matches, jobs you've pasted in, CVs and your CV allowance history. See also the <Link prefetch={false} href="/privacy?from=/settings">privacy page</Link>.</p>
           <div>
             <a className="button" href="/api/export">
               Download my data

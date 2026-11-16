@@ -9,10 +9,10 @@ export function ProfileTabs({ active }: { active: "experience" | "wants" }) {
         <p className="muted">What we match jobs against, and the only facts your CVs are written from.</p>
       </div>
       <nav className="tabs" aria-label="Profile">
-        <Link className={active === "experience" ? "on" : ""} aria-current={active === "experience" ? "page" : undefined} href="/library">
+        <Link prefetch={false} className={active === "experience" ? "on" : ""} aria-current={active === "experience" ? "page" : undefined} href="/library">
           Your experience
         </Link>
-        <Link className={active === "wants" ? "on" : ""} aria-current={active === "wants" ? "page" : undefined} href="/preferences">
+        <Link prefetch={false} className={active === "wants" ? "on" : ""} aria-current={active === "wants" ? "page" : undefined} href="/preferences">
           What you want
         </Link>
       </nav>

@@ -38,7 +38,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <h1>{job.title}</h1>
           <p className="muted">There's no CV for this role yet.</p>
           <div>
-            <Link className="button" href={back.href}>
+            <Link prefetch={false} className="button" href={back.href}>
               Back to {back.label}
             </Link>
           </div>

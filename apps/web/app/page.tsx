@@ -11,7 +11,7 @@ export default async function Home() {
   // Signed-in people can still read this page, with a way back in instead of the sign-in form.
   const signedIn = Boolean(data.user);
   const join = signedIn ? (
-    <Link className="button primary" href="/dashboard">
+    <Link prefetch={false} className="button primary" href="/dashboard">
       Go to your dashboard
     </Link>
   ) : (
@@ -24,7 +24,7 @@ export default async function Home() {
       <section className="hero">
         <div className="nav">
           <span className="logo">CV Tailor</span>
-          {signedIn ? <Link href="/dashboard">Dashboard</Link> : <Link href="/login">Sign in</Link>}
+          {signedIn ? <Link prefetch={false} href="/dashboard">Dashboard</Link> : <Link prefetch={false} href="/login">Sign in</Link>}
         </div>
         <h1 className="disp">
           <span className="ln">
@@ -79,9 +79,9 @@ export default async function Home() {
         </div>
         {/* <p className="plans">Plans coming soon.</p> */}
         <div className="foot">
-          <Link href="/privacy">Privacy</Link>
-          {signedIn ? <Link href="/dashboard">Dashboard</Link> : <Link href="/login">Sign in</Link>}
-          <Link href="/waitlist">Join the waitlist</Link>
+          <Link prefetch={false} href="/privacy">Privacy</Link>
+          {signedIn ? <Link prefetch={false} href="/dashboard">Dashboard</Link> : <Link prefetch={false} href="/login">Sign in</Link>}
+          <Link prefetch={false} href="/waitlist">Join the waitlist</Link>
         </div>
       </section>
     </main>

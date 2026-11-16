@@ -10,7 +10,7 @@ function Pending() {
 
 export function NavLink({ href, className, current, children }: { href: string; className: string; current: boolean; children: React.ReactNode }) {
   return (
-    <Link className={className} aria-current={current ? "page" : undefined} href={href}>
+    <Link prefetch={false} className={className} aria-current={current ? "page" : undefined} href={href}>
       {children}
       <Pending />
     </Link>

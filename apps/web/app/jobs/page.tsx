@@ -118,7 +118,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           {q || field || mode ? (
             <>
               {" "}
-              · <Link href="/jobs">Clear filters</Link>
+              · <Link prefetch={false} href="/jobs">Clear filters</Link>
             </>
           ) : null}
         </p>
@@ -146,11 +146,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                     </a>
                   ) : null}
                   {match ? (
-                    <Link className="button quiet" href={`/dashboard?job=${match.id}`}>
+                    <Link prefetch={false} className="button quiet" href={`/dashboard?job=${match.id}`}>
                       In your jobs
                     </Link>
                   ) : (
-                    <Link className="button" href={`/write?job=${j.id}`}>
+                    <Link prefetch={false} className="button" href={`/write?job=${j.id}`}>
                       Tailor a CV
                     </Link>
                   )}
@@ -162,11 +162,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
         {total > PER_PAGE ? (
           <nav className="row" aria-label="Pages">
-            {page > 1 ? <Link className="button" href={pageHref(page - 1)}>Newer</Link> : null}
+            {page > 1 ? <Link prefetch={false} className="button" href={pageHref(page - 1)}>Newer</Link> : null}
             <small className="muted">
               Page {page} of {Math.ceil(total / PER_PAGE)}
             </small>
-            {page * PER_PAGE < total ? <Link className="button" href={pageHref(page + 1)}>Older</Link> : null}
+            {page * PER_PAGE < total ? <Link prefetch={false} className="button" href={pageHref(page + 1)}>Older</Link> : null}
           </nav>
         ) : null}
       </main>

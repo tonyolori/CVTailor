@@ -247,8 +247,8 @@ export function JobsBoard(props: {
       : undefined;
     setToast({ text: status === "dismissed" ? "Moved to Closed" : `Moved to ${STAGES[stageOf(status)]!.label}`, undo });
     const result = await setTrackerStatus(r.id, status);
+    // No router.refresh(): the action revalidates /dashboard, and its response carries the new page.
     if (!result.ok) setToast({ text: result.message ?? "Couldn't update that." });
-    router.refresh();
   };
 
   const style = row?.cvStyle ?? defaultStyle;
@@ -284,7 +284,7 @@ export function JobsBoard(props: {
               <Outbound />
             </a>
           ) : null}
-          <Link className="button" href={`/matches/${r.id}`}>
+          <Link prefetch={false} className="button" href={`/matches/${r.id}`}>
             Edit CV
           </Link>
           <a className="button" href={`/api/documents/${r.id}?kind=resume`}>
@@ -303,7 +303,7 @@ export function JobsBoard(props: {
       return (
         <>
           <div className="acts">
-            <Link className="button primary" href={`/write?match=${r.id}`}>
+            <Link prefetch={false} className="button primary" href={`/write?match=${r.id}`}>
               Paste the posting
             </Link>
             {notForMe}
@@ -316,7 +316,7 @@ export function JobsBoard(props: {
       return (
         <>
           <div className="acts">
-            <Link className="button primary" href="/pricing">
+            <Link prefetch={false} className="button primary" href="/pricing">
               Get more CVs
             </Link>
             {r.apply ? (
@@ -358,14 +358,14 @@ export function JobsBoard(props: {
           <h1>Jobs</h1>
           <p>
             {props.lastRun ? `Last searched ${props.lastRun}. ` : ""}
-            <Link href="/jobs">Browse every open job</Link>
+            <Link prefetch={false} href="/jobs">Browse every open job</Link>
           </p>
         </div>
 
         <div className="jobs-bar">
           <nav className="stages" aria-label="Stage">
             {STAGE_KEYS.map((k) => (
-              <Link key={k} href={`/dashboard?view=${k}`} aria-current={k === stageKey ? "page" : undefined}>
+              <Link prefetch={false} key={k} href={`/dashboard?view=${k}`} aria-current={k === stageKey ? "page" : undefined}>
                 {STAGES[k]!.label}
                 <span>{counts[k] ?? 0}</span>
               </Link>

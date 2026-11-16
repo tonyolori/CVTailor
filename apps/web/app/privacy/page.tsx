@@ -16,10 +16,10 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
   return (
     <div className="public">
       <div className="public-top">
-        <Link className="logo" href={back.href}>
+        <Link prefetch={false} className="logo" href={back.href}>
           CV Tailor
         </Link>
-        <Link href={back.href}>← {back.label}</Link>
+        <Link prefetch={false} href={back.href}>← {back.label}</Link>
       </div>
     <main className="page">
       <div className="stack">
@@ -55,7 +55,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <p>Under the Nigeria Data Protection Act 2023 you can access, correct, move and delete your data, and object to or restrict its use. Your settings page has a full export and account deletion. You can also complain to the Nigeria Data Protection Commission.</p>
 
         <p>
-          <Link className="button" href={back.href}>
+          <Link prefetch={false} className="button" href={back.href}>
             {back.label}
           </Link>
         </p>

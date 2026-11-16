@@ -7,10 +7,10 @@ export default function WaitlistPage() {
   return (
     <main className="wl">
       <div className="nav">
-        <Link className="logo" href="/">
+        <Link prefetch={false} className="logo" href="/">
           CV Tailor
         </Link>
-        <Link href="/login">Sign in</Link>
+        <Link prefetch={false} href="/login">Sign in</Link>
       </div>
       <div className="wlg">
         <div>

@@ -157,7 +157,7 @@ export function ResumeEditor({
     <div className="ed">
       <section className="edl">
         <div className="edtop">
-          <Link className="back" href={back.href}>
+          <Link prefetch={false} className="back" href={back.href}>
             Back to {back.label}
           </Link>
           <h1>{title}</h1>

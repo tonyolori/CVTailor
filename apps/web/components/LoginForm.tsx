@@ -28,7 +28,7 @@ export function LandingSignIn() {
     <>
       <SignInFields />
       <p className="pub-note">
-        Invite only for now. <Link href="/waitlist">Join the waitlist</Link>
+        Invite only for now. <Link prefetch={false} href="/waitlist">Join the waitlist</Link>
       </p>
     </>
   );
@@ -38,10 +38,10 @@ export function LoginForm({ linkFailed }: { linkFailed: boolean }) {
   return (
     <main className="wl">
       <div className="nav">
-        <Link className="logo" href="/">
+        <Link prefetch={false} className="logo" href="/">
           CV Tailor
         </Link>
-        <Link href="/waitlist">Join the waitlist</Link>
+        <Link prefetch={false} href="/waitlist">Join the waitlist</Link>
       </div>
       <div className="wlg">
         <div>
@@ -52,7 +52,7 @@ export function LoginForm({ linkFailed }: { linkFailed: boolean }) {
           {linkFailed ? <div className="notice bad">That sign-in link didn't work. It may have expired or been used already. Ask for a new one here, and open it in this same browser.</div> : null}
           <SignInFields />
           <p className="pub-note" style={{ marginTop: 0 }}>
-            Invite only for now. <Link href="/waitlist">Join the waitlist</Link> and we'll email you when there's a place. <Link href="/privacy?from=/login">Privacy</Link>
+            Invite only for now. <Link prefetch={false} href="/waitlist">Join the waitlist</Link> and we'll email you when there's a place. <Link prefetch={false} href="/privacy?from=/login">Privacy</Link>
           </p>
         </div>
       </div>

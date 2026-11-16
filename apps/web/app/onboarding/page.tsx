@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
   return (
     <div className="public ui">
       <div className="public-top">
-        <Link className="logo" href="/">
+        <Link prefetch={false} className="logo" href="/">
           CV Tailor
         </Link>
       </div>

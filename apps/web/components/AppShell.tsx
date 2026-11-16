@@ -31,7 +31,7 @@ export async function AppShell({ supabase, userId, email, active, children }: { 
   return (
     <div className="ui">
       <header className="top">
-        <Link className="brand" href="/dashboard">
+        <Link prefetch={false} className="brand" href="/dashboard">
           CV Tailor
         </Link>
         <nav className="top-nav" aria-label="Main">
@@ -42,11 +42,11 @@ export async function AppShell({ supabase, userId, email, active, children }: { 
         </nav>
         <div className="top-end">
           {allowance && !allowance.unlimited ? (
-            <Link className={`left ${allowance.left === 0 ? "none" : ""}`} href="/pricing">
+            <Link prefetch={false} className={`left ${allowance.left === 0 ? "none" : ""}`} href="/pricing">
               {allowance.left === 0 ? "No CVs left" : allowance.left === 1 ? "1 CV left" : `${allowance.left} CVs left`}
             </Link>
           ) : null}
-          <Link className="button sm" href="/write" aria-current={active === "write" ? "page" : undefined}>
+          <Link prefetch={false} className="button sm" href="/write" aria-current={active === "write" ? "page" : undefined}>
             Add a job
           </Link>
           <details className="acct">
@@ -67,7 +67,7 @@ export async function AppShell({ supabase, userId, email, active, children }: { 
           <span>
             <b>Finish setting up to get your matches.</b> {setup.step === 1 ? "Next: add your experience." : "Next: say what you're looking for."}
           </span>
-          <Link className="button primary sm" href={setup.href}>
+          <Link prefetch={false} className="button primary sm" href={setup.href}>
             Continue setup
           </Link>
         </div>

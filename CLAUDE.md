@@ -70,6 +70,7 @@ npm run web              # dashboard on :3000; magic links land in Mailpit on :5
 - New tables get default privileges for anon and authenticated, so every migration must `revoke all` and grant back only what's needed.
 - Upserts need a full unique constraint. A partial index can't back `onConflict`.
 - Redirects use `siteUrl()`, never the request's own URL, which can name an internal host.
+- Every `<Link>` takes `prefetch={false}`. Signed-in pages are dynamic, so each prefetch is a full server render and Supabase reads for a page nobody opened. After a server action that calls `revalidatePath` for the current page, don't also `router.refresh()`: the action's response already carries the new page.
 - In client components, use `onSubmit` or `useActionState` for slow forms. React holds back state set inside a plain `<form action={fn}>` until `fn` ends, so a waiting screen set there never shows.
 - Persona fixtures live in `packages/core/src/personas.ts` and are invented. Exercise changes against all three, not only the software one.
 - A job with an `owner_id` was pasted in by that user and is private to them. Pipeline queries over shared jobs must filter `owner_id is null`.

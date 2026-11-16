@@ -27,10 +27,10 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   return (
     <div className="public">
       <div className="public-top">
-        <Link className="logo" href="/">
+        <Link prefetch={false} className="logo" href="/">
           CV Tailor
         </Link>
-        {auth.user ? <Link href="/dashboard">Your matches</Link> : <Link href="/login">Sign in</Link>}
+        {auth.user ? <Link prefetch={false} href="/dashboard">Your matches</Link> : <Link prefetch={false} href="/login">Sign in</Link>}
       </div>
       <main className="page">
         <h1>Plans</h1>
@@ -88,7 +88,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           )
         ) : null}
         <small>
-          <Link href="/">Back</Link>
+          <Link prefetch={false} href="/">Back</Link>
         </small>
       </main>
     </div>

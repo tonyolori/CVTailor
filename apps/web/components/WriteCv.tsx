@@ -73,7 +73,7 @@ export function WriteCv({
         <div className="stack">
           <div className="notice">You've used all your CVs. Your matches stay free.</div>
           <div>
-            <Link className="button primary" href="/pricing">
+            <Link prefetch={false} className="button primary" href="/pricing">
               Get more CVs
             </Link>
           </div>
@@ -116,7 +116,7 @@ export function WriteCv({
               {busy ? <i className="spinner" /> : null}
               {busy ? "Adding" : "Add and tailor my CV"}
             </button>
-            <Link className="button quiet" href="/dashboard">
+            <Link prefetch={false} className="button quiet" href="/dashboard">
               Cancel
             </Link>
           </div>

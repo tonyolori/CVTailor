@@ -16,7 +16,7 @@ export default async function LibraryPage() {
           <ProfileEditor initial={FactLibrarySchema.parse(data.data)} style={cvStyleOf(profile.cv_style)} />
         ) : (
           <p>
-            Nothing here yet. <Link href="/onboarding">Upload your CV</Link> to fill it in.
+            Nothing here yet. <Link prefetch={false} href="/onboarding">Upload your CV</Link> to fill it in.
           </p>
         )}
       </main>
