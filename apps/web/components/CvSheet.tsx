@@ -133,13 +133,22 @@ export function CvSheet({ resume, style, label }: { resume: Resume; style: CvSty
   }, [resume]);
 
   const h = resume.header;
-  const contact = [h.location, h.phone, h.email, ...h.links.map((l) => l.label)].filter(Boolean).join(", ");
+  const place = [h.location, h.phone].filter(Boolean).join(", ");
+  const links = [h.email, ...h.links.map((l) => l.label)].filter(Boolean);
   return (
     <div className="sheet" data-style={style} ref={ref} role={label ? "img" : undefined} aria-label={label}>
       <div className="cvi">
         <div className="nm">{h.name}</div>
         {h.roleTitle ? <div className="hl">{h.roleTitle}</div> : null}
-        <div className="ct">{contact}</div>
+        <div className="ct">
+          {place}
+          {links.map((l, i) => (
+            <Fragment key={i}>
+              {place || i > 0 ? ", " : null}
+              <span className="lk">{l}</span>
+            </Fragment>
+          ))}
+        </div>
         {orderedSections(resume).map((section) => {
           const content = body(section, resume);
           return content ? (

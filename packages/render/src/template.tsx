@@ -11,11 +11,14 @@ interface Theme {
   body: string;
   head: string;
   name: { family: string; weight: number; size: number; color: string; align: "center" | "left" };
-  role: { size: number; color: string; weight: number; caps: boolean; spacing: number };
+  /** marginTop sits below the name; contactGap above the first contact line. */
+  role: { size: number; color: string; weight: number; caps: boolean; spacing: number; marginTop: number; contactGap: number };
   headerRule: { width: number; color: string };
   h2: { size: number; color: string; weight: number; caps: boolean; spacing: number; rule: number; ruleColor: string; marginTop: number };
   text: string;
   muted: string;
+  /** Email and profile links in the header. */
+  link: string;
   ink: string;
   accent: string;
   size: number;
@@ -30,12 +33,13 @@ const THEMES: Record<CvStyle, Theme> = {
     body: "Inter",
     head: "Inter",
     name: { family: "Lora", weight: 700, size: 25, color: "#16304f", align: "center" },
-    role: { size: 8.8, color: "#2d5a8c", weight: 600, caps: true, spacing: 0.35 },
+    role: { size: 8.8, color: "#2d5a8c", weight: 600, caps: true, spacing: 0.35, marginTop: 7, contactGap: 5 },
     headerRule: { width: 2, color: "#16304f" },
     // Tracking stays low: wider and PDF text extractors, so ATS parsers, read "S U M M A R Y".
-    h2: { size: 8.6, color: "#16304f", weight: 600, caps: true, spacing: 0.34, rule: 0.75, ruleColor: "#c7d2df", marginTop: 9 },
+    h2: { size: 8.6, color: "#16304f", weight: 600, caps: true, spacing: 0.34, rule: 0.75, ruleColor: "#c7d2df", marginTop: 8 },
     text: "#1f2937",
     muted: "#4b5563",
+    link: "#2d5a8c",
     ink: "#111827",
     accent: "#2d5a8c",
     size: 9.4,
@@ -48,11 +52,12 @@ const THEMES: Record<CvStyle, Theme> = {
     body: "Source Serif",
     head: "Source Serif",
     name: { family: "Source Serif", weight: 700, size: 25, color: "#14204A", align: "left" },
-    role: { size: 11, color: "#1546E0", weight: 600, caps: false, spacing: 0 },
+    role: { size: 11, color: "#1546E0", weight: 600, caps: false, spacing: 0, marginTop: 2, contactGap: 3 },
     headerRule: { width: 0, color: "#14204A" },
     h2: { size: 10, color: "#14204A", weight: 700, caps: false, spacing: 0, rule: 0.75, ruleColor: "#C8D2EA", marginTop: 10 },
     text: "#14204A",
     muted: "#5B678C",
+    link: "#5B678C",
     ink: "#14204A",
     accent: "#1546E0",
     size: 10,
@@ -65,11 +70,12 @@ const THEMES: Record<CvStyle, Theme> = {
     body: "Inter",
     head: "Inter",
     name: { family: "Inter", weight: 700, size: 20, color: "#111111", align: "left" },
-    role: { size: 10, color: "#111111", weight: 400, caps: false, spacing: 0 },
+    role: { size: 10, color: "#111111", weight: 400, caps: false, spacing: 0, marginTop: 2, contactGap: 3 },
     headerRule: { width: 0, color: "#111111" },
     h2: { size: 10.5, color: "#111111", weight: 700, caps: false, spacing: 0, rule: 0, ruleColor: "#111111", marginTop: 11 },
     text: "#111111",
     muted: "#444444",
+    link: "#444444",
     ink: "#111111",
     accent: "#111111",
     size: 9.6,
@@ -82,11 +88,12 @@ const THEMES: Record<CvStyle, Theme> = {
     body: "Inter",
     head: "Inter",
     name: { family: "Inter", weight: 700, size: 19, color: "#1546E0", align: "left" },
-    role: { size: 9, color: "#1a2340", weight: 600, caps: false, spacing: 0 },
+    role: { size: 9, color: "#1a2340", weight: 600, caps: false, spacing: 0, marginTop: 2, contactGap: 3 },
     headerRule: { width: 0, color: "#1a2340" },
     h2: { size: 8.8, color: "#1546E0", weight: 600, caps: false, spacing: 0, rule: 0.5, ruleColor: "#D5DFF5", marginTop: 7 },
     text: "#1a2340",
     muted: "#4b5563",
+    link: "#4b5563",
     ink: "#1a2340",
     accent: "#1546E0",
     size: 8.6,
@@ -103,15 +110,15 @@ function stylesFor(t: Theme) {
     page: { paddingVertical: t.page.v, paddingHorizontal: t.page.h, fontFamily: t.body, fontSize: t.size, lineHeight: t.lineHeight, color: t.text },
     header: {
       alignItems: center ? "center" : "flex-start",
-      paddingBottom: t.headerRule.width ? 7 : 2,
+      paddingBottom: t.headerRule.width ? 6 : 2,
       borderBottomWidth: t.headerRule.width,
       borderBottomColor: t.headerRule.color,
       marginBottom: 2,
     },
     name: { fontFamily: t.name.family, fontWeight: t.name.weight as 700, fontSize: t.name.size, color: t.name.color, lineHeight: 1.2 },
-    role: { fontWeight: t.role.weight as 600, fontSize: t.role.size, color: t.role.color, textTransform: t.role.caps ? "uppercase" : "none", letterSpacing: t.role.spacing, marginTop: 2 },
-    contact: { fontSize: t.size - 0.4, color: t.muted, marginTop: 3, textAlign: center ? "center" : "left", lineHeight: 1.5 },
-    link: { color: t.muted, textDecoration: "none" },
+    role: { fontWeight: t.role.weight as 600, fontSize: t.role.size, color: t.role.color, textTransform: t.role.caps ? "uppercase" : "none", letterSpacing: t.role.spacing, marginTop: t.role.marginTop },
+    contact: { fontSize: t.size - 0.4, color: t.muted, marginTop: t.role.contactGap, textAlign: center ? "center" : "left", lineHeight: 1.5 },
+    link: { color: t.link, textDecoration: "none" },
     h2: {
       fontFamily: t.head,
       fontWeight: t.h2.weight as 600,
@@ -212,7 +219,8 @@ function sectionBody(section: ResumeSection, r: Resume, s: Styles, accent: strin
         <Section s={s} title={SECTION_TITLES.skills}>
           {r.skills.map((g, i) => (
             <Text key={i} style={{ marginBottom: 1.5 }}>
-              <Text style={s.skillGroup}>{g.group}: </Text>
+              <Text style={s.skillGroup}>{g.group}</Text>
+              {": "}
               {g.items.join(" | ")}
             </Text>
           ))}

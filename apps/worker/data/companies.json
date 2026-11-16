@@ -2018,5 +2018,179 @@
    "data-ai"
   ],
   "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "storyteq",
+  "name": "Storyteq",
+  "notes": "Storyteq (Amsterdam, marketing-content SaaS): C#/.NET roles, listed in South Africa on 2026-11-11",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "openfn",
+  "name": "OpenFn",
+  "notes": "OpenFn (workflow automation and interoperability for NGOs and governments): many roles list African countries, Nigeria included; confirm the hiring entity's base before picking",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lever",
+  "slug": "smart-working-solutions",
+  "name": "Smart Working Solutions",
+  "notes": "Smart Working Solutions (UK remote-staffing): Lever roles tied to India or Pakistan on 2026-11-13; watch for other countries",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "getbits",
+  "name": "Bits",
+  "notes": "Bits (London, FCA-regulated credit-builder fintech; every engineer uses Claude Code): payments role UK-only on 2026-11-11",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "monterail",
+  "name": "Monterail",
+  "notes": "Monterail (Wrocław software house): .NET, Vue and LLM freelance roles, Poland-tagged",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "ottimate",
+  "name": "Ottimate",
+  "notes": "Ottimate (US, AI-native AP automation and payments): Python/Django + Angular roles listed per LATAM country on 2026-11-13",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "workable",
+  "slug": "fuseenergy",
+  "name": "Fuse Energy",
+  "notes": "Fuse Energy (London energy startup with a large applied-AI team): remote AI roles list hidden UK/US/CH/UAE/DE locations",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "jimdo.com",
+  "name": "Jimdo",
+  "notes": "Jimdo (Hamburg website builder, remote-first): Ashby slug is `jimdo.com`; roles list Germany, Italy, Portugal, Spain",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "everfield",
+  "name": "Everfield",
+  "notes": "Everfield (European software holding; agent-first \"AI Builder\" role, Poland, Sept 2026)",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "ashby",
+  "slug": "aveni",
+  "name": "Aveni",
+  "notes": "Aveni (Edinburgh, FinLLM and agentic systems for financial services): UK-only remote roles",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://searchatlas.com/careers/",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://www.getonbrd.com/companies/zipisa",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "page",
+  "slug": "https://jobs.opinov8.com/",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "Kake",
+  "name": "Kake",
+  "notes": "remote engineer network (Kake Group) posting Senior AI/LLM Engineer (Python) once per country on LinkedIn (Lisbon, Bucharest, Canada) with 5–6h PST overlap; Lever `kakegroup` returns no postings",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
+ },
+ {
+  "ats": "lead",
+  "slug": "TGScope",
+  "name": "TGScope",
+  "notes": "Telegram search R&D lab posting \"Remote Worldwide\" Python/IR contracts on python.org and tgscope.io/careers; no company address or legal entity found, so the company-base gate can't be checked",
+  "tags": [
+   "tech",
+   "software-engineering",
+   "data-ai"
+  ],
+  "countries": []
  }
 ]
