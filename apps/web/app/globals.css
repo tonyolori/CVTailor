@@ -524,6 +524,8 @@ label.opt small { display: block; line-height: 1.35; font-size: 14px; }
 .ui .jt button.t { display: block; min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; color: var(--ink); font-size: 15px; font-weight: 600; line-height: 1.35; text-align: left; }
 .ui .jt button.t:hover { background: none; text-decoration: underline; }
 .jt .co { display: block; margin-top: 2px; }
+/* Some postings list every country they hire in; keep the row short, full text on hover. */
+.jt .where { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 16em; }
 .ui .jt td.r, .ui .jt th.r { text-align: right; white-space: nowrap; font-size: 13px; color: var(--text-3); }
 .lvl { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-size: 13px; font-weight: 600; line-height: 1.45; white-space: nowrap; }
 .lvl.good { background: var(--good-bg); color: var(--good); }
@@ -543,6 +545,7 @@ label.opt small { display: block; line-height: 1.35; font-size: 14px; }
 .panel-head { display: grid; gap: 8px; }
 .ui .panel-head h2 { font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; }
 .panel-head p { color: var(--text-2); overflow-wrap: anywhere; }
+.panel-head .where { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .ui .panel label.stage { display: grid; gap: 8px; font-size: 13px; color: var(--text-2); }
 .panel-do { display: grid; gap: 8px; }
 .ask { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: var(--surface); font-size: 14px; }

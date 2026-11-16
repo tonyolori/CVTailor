@@ -409,7 +409,11 @@ export function JobsBoard(props: {
                     <td>
                       <Level decision={r.decision} />
                     </td>
-                    <td className="wide">{r.where || "Not stated"}</td>
+                    <td className="wide">
+                      <span className="where" title={r.where || undefined}>
+                        {r.where || "Not stated"}
+                      </span>
+                    </td>
                     <td>
                       {r.requestId ? (
                         <span className="cvst">
@@ -488,7 +492,9 @@ export function JobsBoard(props: {
 
             <div className="panel-head">
               <h2>{row.title}</h2>
-              <p>{[row.company, row.where].filter(Boolean).join(" · ")}</p>
+              <p className="where" title={row.where || undefined}>
+                {[row.company, row.where].filter(Boolean).join(" · ")}
+              </p>
             </div>
 
             <div className="panel-do">
