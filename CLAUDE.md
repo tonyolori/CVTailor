@@ -11,7 +11,7 @@ Invite-only service: collects job postings, matches them to each user's preferen
 - `apps/worker`: runs on Tony's PC. Daily pipeline (`collect -> enrich -> match -> verify live -> email`), source adapters, scheduler. Nothing people wait on.
 - `apps/web`: Next.js landing page, waitlist and signed-in app. Runs CVs on request (`tailor -> verify facts -> render`, after the response) and onboarding's AI as people ask. Design tokens and styles are in `app/globals.css`. `components/CvSheet.tsx` is the on-screen CV.
 - `supabase/`: migrations, RLS, `seed.sql`.
-- `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SOURCE-ISSUES.md`, `SCHEDULING.md`, `BACKUPS.md`.
+- `docs/`: `SETUP.md` (things only Tony can do), `SOURCES.md`, `SOURCE-ISSUES.md`, `SCHEDULING.md`, `BACKUPS.md`, `DECISIONS.md` (choices to revisit as the app grows, with what should trigger a look).
 - `private/`: **gitignored.** `owner.json` holds Tony's real CV facts, preferences and contact details, and is the only source for `seed:tony`. `seen.tsv` holds his past job decisions for the eval. Never copy personal data out of it into a tracked file. This repo stands alone: copy anything it needs in here rather than pointing at another project.
 
 ## Commands
