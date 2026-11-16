@@ -2,6 +2,22 @@ import type { FetchContext, RawJob, SourceAdapter } from "./types";
 import { countryName } from "@cvtailor/core";
 import { decodeEntities, guessCountry, htmlToText, toIso } from "./text";
 
+/**
+ * A feed that couldn't be read fails its source rather than finding nothing, so the summary
+ * says it didn't respond and collect.source_failed alerts. The page-level give-up only warns.
+ */
+export class FeedUnreadable extends Error {
+  constructor() {
+    super("feed could not be read");
+    this.name = "FeedUnreadable";
+  }
+}
+
+function readOrFail<T>(body: T | null): T {
+  if (body === null) throw new FeedUnreadable();
+  return body;
+}
+
 const asArray = <T>(v: T[] | null | undefined): T[] => (Array.isArray(v) ? v : []);
 
 // ---------------------------------------------------------------------------
@@ -87,14 +103,19 @@ export const himalayas: SourceAdapter = {
   },
   async fetch(ctx) {
     const out: RawJob[] = [];
+    let read = 0;
+    let tried = 0;
     for (const s of himalayasSearches(ctx.queries, ctx.countries)) {
       for (let page = 1; page <= (s.paged ? HIMALAYAS_PAGES : 1); page++) {
         const body = await ctx.http.json<{ jobs?: HimalayasJob[] }>(page === 1 ? s.base : `${s.base}&page=${page}`);
+        tried++;
+        if (body) read++;
         const jobs = body ? parseHimalayas(body) : [];
         out.push(...jobs);
         if (jobs.length < HIMALAYAS_PAGE_SIZE) break;
       }
     }
+    if (tried > 0 && read === 0) throw new FeedUnreadable();
     return out;
   },
 };
@@ -144,7 +165,7 @@ export const remotive: SourceAdapter = {
   },
   async fetch(ctx) {
     const body = await ctx.http.json<{ jobs?: RemotiveJob[] }>("https://remotive.com/api/remote-jobs");
-    return body ? parseRemotive(body) : [];
+    return parseRemotive(readOrFail(body));
   },
 };
 
@@ -199,7 +220,7 @@ export const remoteOk: SourceAdapter = {
   },
   async fetch(ctx) {
     const body = await ctx.http.json<RemoteOkItem[]>("https://remoteok.com/api");
-    return body ? parseRemoteOk(body) : [];
+    return parseRemoteOk(readOrFail(body));
   },
 };
 
@@ -252,7 +273,7 @@ export const weWorkRemotely: SourceAdapter = {
   },
   async fetch(ctx) {
     const xml = await ctx.http.text("https://weworkremotely.com/remote-jobs.rss");
-    return xml ? parseWwr(xml) : [];
+    return parseWwr(readOrFail(xml));
   },
 };
 
@@ -302,7 +323,7 @@ export const jobicy: SourceAdapter = {
   },
   async fetch(ctx) {
     const body = await ctx.http.json<{ jobs?: JobicyJob[] }>("https://jobicy.com/api/v2/remote-jobs?count=100");
-    return body ? parseJobicy(body) : [];
+    return parseJobicy(readOrFail(body));
   },
 };
 
@@ -350,7 +371,7 @@ export const workingNomads: SourceAdapter = {
   },
   async fetch(ctx) {
     const body = await ctx.http.json<NomadJob[]>("https://www.workingnomads.com/api/exposed_jobs/");
-    return body ? parseWorkingNomads(body) : [];
+    return parseWorkingNomads(readOrFail(body));
   },
 };
 
@@ -402,12 +423,17 @@ export const workableSearch: SourceAdapter = {
   },
   async fetch(ctx) {
     const out: RawJob[] = [];
+    let read = 0;
     for (const q of ctx.queries) {
       const body = await ctx.http.json<{ jobs?: WorkableSearchJob[] }>(
         `https://jobs.workable.com/api/v1/jobs?query=${encodeURIComponent(q)}`,
       );
-      if (body) out.push(...parseWorkableSearch(body));
+      if (body) {
+        read++;
+        out.push(...parseWorkableSearch(body));
+      }
     }
+    if (ctx.queries.length > 0 && read === 0) throw new FeedUnreadable();
     return out;
   },
 };
@@ -476,12 +502,12 @@ export const hackerNews: SourceAdapter = {
     const found = await ctx.http.json<{ hits?: { objectID: string; title: string; created_at: string }[] }>(
       "https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&query=hiring",
     );
-    const thread = asArray(found?.hits).find((h) => /who is hiring/i.test(h.title));
+    const thread = asArray(readOrFail(found).hits).find((h) => /who is hiring/i.test(h.title));
     if (!thread) return [];
     const ageDays = (ctx.now.getTime() - new Date(thread.created_at).getTime()) / 86_400_000;
     if (ageDays > 40) return [];
     const item = await ctx.http.json<HnItem>(`https://hn.algolia.com/api/v1/items/${thread.objectID}`);
-    return item ? parseHnThread(item) : [];
+    return parseHnThread(readOrFail(item));
   },
 };
 

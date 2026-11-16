@@ -109,12 +109,13 @@ describe("politeHttp", () => {
     expect(lines[0]!.line).toMatchObject({ event: "http.response", status: 404 });
   });
 
-  it("logs each network failure, and giving up", async () => {
+  it("logs each network failure, and giving up, as warnings", async () => {
     const fail = async () => {
       throw new TypeError("fetch failed");
     };
     await politeHttp({}, fail, noPause).json("https://jobs.example.com/feed");
     expect(events()).toEqual(["http.failed", "http.failed", "http.failed", "http.gave_up"]);
+    expect(lines.every((l) => l.level === "warn")).toBe(true);
     expect(lines[0]!.line).toMatchObject({ host: "jobs.example.com", attempt: 1, kind: "TypeError" });
   });
 

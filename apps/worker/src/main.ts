@@ -9,6 +9,7 @@ import { errorInfo, serviceClient } from "./db";
 import { fileSender, mailpitSender, resendSender } from "./email/send";
 import { log } from "./log";
 import { tick, type RunDeps } from "./pipeline/run";
+import { CHECK_MS, sleeps } from "./sleep";
 import { ATS_HOST_POLICIES } from "./sources/ats";
 import { AGGREGATORS } from "./sources/aggregators";
 import { politeHttp } from "./sources/http";
@@ -40,6 +41,11 @@ async function crash(event: string, err: unknown): Promise<never> {
   await alertsSent();
   process.exit(1);
 }
+// A warning, not an alert: overnight the Mac wakes every quarter hour. Errors soon after say so themselves.
+setInterval(() => {
+  const slept = sleeps.check();
+  if (slept) log("worker.woke", { asleepMin: Math.round((slept.to - slept.from) / 60_000) }, "warn");
+}, CHECK_MS).unref();
 process.on("uncaughtException", (err) => void crash("worker.crashed", err));
 process.on("unhandledRejection", (err) => void crash("worker.unhandled_rejection", err));
 const db = serviceClient(config);

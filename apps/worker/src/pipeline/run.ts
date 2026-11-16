@@ -16,6 +16,7 @@ import { enrichPending } from "./enrich";
 import { matchUser, type MatchResult } from "./match";
 import { decideRun, missedDays, MISSED_LOOKBACK_DAYS, sendAtFor, shouldAlert } from "./schedule";
 import { buildSummary } from "./summary";
+import { duration, sleeps } from "../sleep";
 import { loadActiveUsers, type ActiveUser } from "@cvtailor/ai/users";
 
 export interface RunDeps {
@@ -195,7 +196,9 @@ async function noteMissedDays(db: Db, now: Date): Promise<void> {
   const rows = must(await db.from("daily_runs").select("run_date").gte("run_date", since), "recent runs") as { run_date: string }[];
   const recorded = [...new Set([first[0]!.run_date, ...rows.map((r) => r.run_date)])];
   for (const day of missedDays(recorded, runDate)) {
-    log("run.missed_day", { runDate: day }, "error");
+    const start = new Date(`${day}T00:00:00Z`).getTime();
+    const asleep = sleeps.asleepBetween(start, start + 86_400_000);
+    log("run.missed_day", { runDate: day, pcSlept: asleep > 0 ? `asleep ${duration(asleep)} of that day` : undefined }, "error");
     must(
       await db.from("daily_runs").upsert({ run_date: day, status: "missed", started_at: now.toISOString(), alert_sent_at: now.toISOString() }, { onConflict: "run_date", ignoreDuplicates: true }),
       "record missed day",

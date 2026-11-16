@@ -22,7 +22,9 @@ export const GET = logged("GET /api/cron/run-check", async (request: NextRequest
 
   // An error-level line reaches Slack whether or not email is set up, so a worker that's off is noticed.
   const { data: lastOk } = await db.from("daily_runs").select("run_date").eq("status", "ok").order("run_date", { ascending: false }).limit(1).maybeSingle();
-  log("run_check.no_completed_run", { runDate, status: run?.status ?? "not_started", lastOkRun: lastOk?.run_date ?? "none" }, "error");
+  // No row at all means the worker never started today, which is almost always the PC asleep since the night.
+  const likely = run ? undefined : "PC asleep or worker stopped";
+  log("run_check.no_completed_run", { runDate, status: run?.status ?? "not_started", lastOkRun: lastOk?.run_date ?? "none", likely }, "error");
 
   const owner = process.env.OWNER_EMAIL;
   const key = process.env.EMAIL_API_KEY;

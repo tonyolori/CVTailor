@@ -72,7 +72,8 @@ export function politeHttp(
         if (attempt < MAX_ATTEMPTS) await pause(1000 * attempt);
       }
     }
-    log("http.gave_up", { host, path, attempts: MAX_ATTEMPTS }, "error");
+    // A warning: one page or site that won't answer is routine. A source that fails as a whole alerts as collect.source_failed.
+    log("http.gave_up", { host, path, attempts: MAX_ATTEMPTS }, "warn");
     return null;
   }
 

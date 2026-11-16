@@ -1,15 +1,21 @@
 import { bodyErrorCode, errorFields, exceptionField, exceptionOf, safeLogFields, type LogField } from "@cvtailor/core/log";
 import { raiseAlert } from "@cvtailor/core/alert";
+import { sleeps } from "./sleep";
 
 export type LogLevel = "info" | "warn" | "error";
 
-/** Structured log line of ids and counts only. */
+/**
+ * Structured log line of ids and counts only. An error just after the Mac woke says so, in the
+ * line and in the alert's heading, as the sleep is the likely cause rather than the code.
+ */
 export function log(event: string, fields: Record<string, LogField> = {}, level: LogLevel = "info"): void {
-  const safe = safeLogFields(fields);
+  const given = typeof fields.pcSlept === "string" ? fields.pcSlept : undefined;
+  const pcSlept = given ?? (level === "error" ? sleeps.note() : undefined);
+  const safe = safeLogFields(pcSlept ? { ...fields, pcSlept } : fields);
   const line = JSON.stringify({ t: new Date().toISOString(), level, event, ...safe });
   if (level === "error") {
     console.error(line);
-    raiseAlert(event, safe, exceptionOf(fields));
+    raiseAlert(pcSlept ? `${event} (PC was asleep)` : event, safe, exceptionOf(fields));
   } else if (level === "warn") console.warn(line);
   else console.log(line);
 }

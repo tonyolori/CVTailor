@@ -13,6 +13,7 @@ import {
 } from "../src/sources/ats";
 import {
   AGGREGATORS,
+  FeedUnreadable,
   himalayasSearches,
   parseHimalayas,
   parseHnThread,
@@ -401,8 +402,26 @@ describe("source rules at the HTTP layer", () => {
       json: async (url: string) => (asked.push(url), null),
       text: async (url: string) => (asked.push(url), null),
     };
-    for (const a of AGGREGATORS) await a.fetch({ http, queries: ["Accountant"], countries: ["PT"], now: new Date() });
+    for (const a of AGGREGATORS) await a.fetch({ http, queries: ["Accountant"], countries: ["PT"], now: new Date() }).catch(() => []);
     expect(asked.length).toBeGreaterThan(5);
     expect(asked.filter(blockedBySourceRules)).toEqual([]);
+  });
+});
+
+describe("a feed that can't be read", () => {
+  const ctx = (http: { json: () => Promise<unknown>; text: () => Promise<string | null> }) => ({ http: http as never, queries: ["Nurse", "Accountant"], countries: [], now: new Date() });
+  const byId = (id: string) => AGGREGATORS.find((a) => a.id === id)!;
+
+  it("fails its source, so it's reported rather than finding nothing", async () => {
+    const down = { json: async () => null, text: async () => null };
+    for (const id of ["remotive", "remoteok", "weworkremotely", "himalayas"]) {
+      await expect(byId(id).fetch(ctx(down)), id).rejects.toBeInstanceOf(FeedUnreadable);
+    }
+  });
+
+  it("doesn't fail a search source when only some of its searches answered", async () => {
+    let calls = 0;
+    const flaky = { json: async () => (calls++ === 0 ? null : { jobs: [] }), text: async () => null };
+    await expect(byId("himalayas").fetch(ctx(flaky))).resolves.toEqual([]);
   });
 });
